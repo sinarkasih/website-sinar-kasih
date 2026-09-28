@@ -41,11 +41,12 @@ export default function HargaProdukPage() {
       return;
     }
 
-    const { data: produkData, error: produkError } = await supabase
-      .from("produk")
-      .select("id, nama, sku")
-      .eq("id", productId)
-      .maybeSingle();
+    const { data: produkData, error: produkError } =
+      await supabase
+        .from("produk")
+        .select("id, nama, sku")
+        .eq("id", productId)
+        .maybeSingle();
 
     if (produkError) {
       setError(produkError.message);
@@ -61,17 +62,18 @@ export default function HargaProdukPage() {
 
     setProduk(produkData);
 
-    const { data: hargaData, error: hargaError } = await supabase
-      .from("harga_produk")
-      .select(
-        "id, produk_id, variasi_id, mode_harga, harga, harga_min, harga_max, aktif"
-      )
-      .eq("produk_id", productId)
-      .eq("aktif", true)
-      .is("variasi_id", null)
-      .order("id", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: hargaData, error: hargaError } =
+      await supabase
+        .from("harga_produk")
+        .select(
+          "id, produk_id, variasi_id, mode_harga, harga, harga_min, harga_max, aktif"
+        )
+        .eq("produk_id", productId)
+        .eq("aktif", true)
+        .is("variasi_id", null)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
     if (hargaError) {
       setError(hargaError.message);
@@ -81,18 +83,23 @@ export default function HargaProdukPage() {
 
     if (hargaData) {
       setHargaLama(hargaData);
+
       setModeHarga(hargaData.mode_harga || "pasti");
+
       setHarga(
-        hargaData.harga !== null && hargaData.harga !== undefined
+        hargaData.harga !== null &&
+          hargaData.harga !== undefined
           ? String(hargaData.harga)
           : ""
       );
+
       setHargaMin(
         hargaData.harga_min !== null &&
           hargaData.harga_min !== undefined
           ? String(hargaData.harga_min)
           : ""
       );
+
       setHargaMax(
         hargaData.harga_max !== null &&
           hargaData.harga_max !== undefined
@@ -105,13 +112,33 @@ export default function HargaProdukPage() {
   }
 
   function formatRupiah(value) {
-    if (!value) return "-";
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return "-";
+    }
 
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
     }).format(Number(value));
+  }
+
+  function getNumber(value) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return 0;
+    }
+
+    const cleaned = String(value)
+      .replace(/[^\d]/g, "");
+
+    return Number(cleaned);
   }
 
   async function handleSubmit(e) {
@@ -129,15 +156,21 @@ export default function HargaProdukPage() {
       return;
     }
 
-    if (!modeHarga) {
-      setError("Pilih mode harga.");
-      setSaving(false);
-      return;
+    const hargaNumber = getNumber(harga);
+    const hargaMinNumber = getNumber(hargaMin);
+    const hargaMaxNumber = getNumber(hargaMax);
+
+    if (modeHarga === "pasti") {
+      if (!hargaNumber || hargaNumber <= 0) {
+        setError("Masukkan harga yang valid.");
+        setSaving(false);
+        return;
+      }
     }
 
-    if (modeHarga === "pasti" || modeHarga === "mulai_dari") {
-      if (!harga || Number(harga) <= 0) {
-        setError("Masukkan harga yang valid.");
+    if (modeHarga === "mulai_dari") {
+      if (!hargaNumber || hargaNumber <= 0) {
+        setError("Masukkan harga mulai yang valid.");
         setSaving(false);
         return;
       }
@@ -145,17 +178,19 @@ export default function HargaProdukPage() {
 
     if (modeHarga === "range") {
       if (
-        !hargaMin ||
-        !hargaMax ||
-        Number(hargaMin) <= 0 ||
-        Number(hargaMax) <= 0
+        !hargaMinNumber ||
+        hargaMinNumber <= 0 ||
+        !hargaMaxNumber ||
+        hargaMaxNumber <= 0
       ) {
-        setError("Masukkan harga minimum dan maksimum.");
+        setError(
+          "Masukkan harga minimum dan maksimum."
+        );
         setSaving(false);
         return;
       }
 
-      if (Number(hargaMin) > Number(hargaMax)) {
+      if (hargaMinNumber > hargaMaxNumber) {
         setError(
           "Harga minimum tidak boleh lebih besar dari harga maksimum."
         );
@@ -164,17 +199,17 @@ export default function HargaProdukPage() {
       }
     }
 
-    /*
-      Nonaktifkan harga aktif sebelumnya untuk produk ini.
-      Setelah itu kita buat harga baru sebagai harga aktif.
-    */
+    if (modeHarga === "hubungi") {
+      // Tidak membutuhkan nilai harga.
+    }
 
-    const { error: deactivateError } = await supabase
-      .from("harga_produk")
-      .update({ aktif: false })
-      .eq("produk_id", productId)
-      .is("variasi_id", null)
-      .eq("aktif", true);
+    const { error: deactivateError } =
+      await supabase
+        .from("harga_produk")
+        .update({ aktif: false })
+        .eq("produk_id", productId)
+        .is("variasi_id", null)
+        .eq("aktif", true);
 
     if (deactivateError) {
       setError(deactivateError.message);
@@ -187,23 +222,27 @@ export default function HargaProdukPage() {
       variasi_id: null,
       mode_harga: modeHarga,
       harga:
-        modeHarga === "pasti" || modeHarga === "mulai_dari"
-          ? Number(harga)
+        modeHarga === "pasti" ||
+        modeHarga === "mulai_dari"
+          ? hargaNumber
           : null,
       harga_min:
         modeHarga === "range"
-          ? Number(hargaMin)
+          ? hargaMinNumber
           : null,
       harga_max:
         modeHarga === "range"
-          ? Number(hargaMax)
+          ? hargaMaxNumber
           : null,
       aktif: true,
     };
 
-    const { error: insertError } = await supabase
-      .from("harga_produk")
-      .insert(payload);
+    const { data, error: insertError } =
+      await supabase
+        .from("harga_produk")
+        .insert(payload)
+        .select()
+        .single();
 
     if (insertError) {
       setError(insertError.message);
@@ -211,8 +250,12 @@ export default function HargaProdukPage() {
       return;
     }
 
-    setHargaLama(payload);
-    setMessage("Harga produk berhasil disimpan.");
+    setHargaLama(data);
+
+    setMessage(
+      "Harga produk berhasil disimpan."
+    );
+
     setSaving(false);
   }
 
@@ -242,6 +285,7 @@ export default function HargaProdukPage() {
       <div className="admin-page-header">
         <div>
           <h1>Harga Produk</h1>
+
           <p>
             Atur harga untuk produk{" "}
             <strong>{produk.nama}</strong>.
@@ -251,7 +295,9 @@ export default function HargaProdukPage() {
         <button
           type="button"
           className="admin-secondary-button"
-          onClick={() => router.push("/admin/produk")}
+          onClick={() =>
+            router.push("/admin/produk")
+          }
         >
           ← Kembali
         </button>
@@ -260,6 +306,7 @@ export default function HargaProdukPage() {
       <div className="admin-card">
 
         <div className="admin-price-product-info">
+
           <div>
             <span>Produk</span>
             <strong>{produk.nama}</strong>
@@ -267,8 +314,11 @@ export default function HargaProdukPage() {
 
           <div>
             <span>SKU</span>
-            <strong>{produk.sku || "-"}</strong>
+            <strong>
+              {produk.sku || "-"}
+            </strong>
           </div>
+
         </div>
 
         <form
@@ -277,6 +327,7 @@ export default function HargaProdukPage() {
         >
 
           <div className="admin-form-group">
+
             <label>Mode Harga *</label>
 
             <div className="admin-price-options">
@@ -288,22 +339,29 @@ export default function HargaProdukPage() {
                     : "admin-price-option"
                 }
               >
+
                 <input
                   type="radio"
                   name="mode_harga"
                   value="pasti"
-                  checked={modeHarga === "pasti"}
-                  onChange={(e) =>
-                    setModeHarga(e.target.value)
+                  checked={
+                    modeHarga === "pasti"
+                  }
+                  onChange={() =>
+                    setModeHarga("pasti")
                   }
                 />
 
                 <span>
-                  <strong>Harga Pasti</strong>
+                  <strong>
+                    Harga Pasti
+                  </strong>
+
                   <small>
                     Contoh: Rp25.000
                   </small>
                 </span>
+
               </label>
 
               <label
@@ -313,22 +371,29 @@ export default function HargaProdukPage() {
                     : "admin-price-option"
                 }
               >
+
                 <input
                   type="radio"
                   name="mode_harga"
                   value="range"
-                  checked={modeHarga === "range"}
-                  onChange={(e) =>
-                    setModeHarga(e.target.value)
+                  checked={
+                    modeHarga === "range"
+                  }
+                  onChange={() =>
+                    setModeHarga("range")
                   }
                 />
 
                 <span>
-                  <strong>Range Harga</strong>
+                  <strong>
+                    Range Harga
+                  </strong>
+
                   <small>
                     Contoh: Rp20.000 - Rp30.000
                   </small>
                 </span>
+
               </label>
 
               <label
@@ -338,22 +403,29 @@ export default function HargaProdukPage() {
                     : "admin-price-option"
                 }
               >
+
                 <input
                   type="radio"
                   name="mode_harga"
                   value="mulai_dari"
-                  checked={modeHarga === "mulai_dari"}
-                  onChange={(e) =>
-                    setModeHarga(e.target.value)
+                  checked={
+                    modeHarga === "mulai_dari"
+                  }
+                  onChange={() =>
+                    setModeHarga("mulai_dari")
                   }
                 />
 
                 <span>
-                  <strong>Mulai Dari</strong>
+                  <strong>
+                    Mulai Dari
+                  </strong>
+
                   <small>
                     Contoh: Mulai Rp20.000
                   </small>
                 </span>
+
               </label>
 
               <label
@@ -363,22 +435,29 @@ export default function HargaProdukPage() {
                     : "admin-price-option"
                 }
               >
+
                 <input
                   type="radio"
                   name="mode_harga"
                   value="hubungi"
-                  checked={modeHarga === "hubungi"}
-                  onChange={(e) =>
-                    setModeHarga(e.target.value)
+                  checked={
+                    modeHarga === "hubungi"
+                  }
+                  onChange={() =>
+                    setModeHarga("hubungi")
                   }
                 />
 
                 <span>
-                  <strong>Hubungi Kami</strong>
+                  <strong>
+                    Hubungi Kami
+                  </strong>
+
                   <small>
                     Harga tidak ditampilkan
                   </small>
                 </span>
+
               </label>
 
             </div>
@@ -386,7 +465,9 @@ export default function HargaProdukPage() {
 
           {(modeHarga === "pasti" ||
             modeHarga === "mulai_dari") && (
+
             <div className="admin-form-group">
+
               <label>
                 {modeHarga === "pasti"
                   ? "Harga"
@@ -394,101 +475,135 @@ export default function HargaProdukPage() {
               </label>
 
               <div className="admin-price-input">
+
                 <span>Rp</span>
 
                 <input
                   type="number"
                   min="0"
+                  step="1"
                   value={harga}
                   onChange={(e) =>
                     setHarga(e.target.value)
                   }
                   placeholder="25000"
                 />
+
               </div>
+
             </div>
           )}
 
           {modeHarga === "range" && (
+
             <div className="admin-form-grid">
 
               <div className="admin-form-group">
-                <label>Harga Minimum</label>
+
+                <label>
+                  Harga Minimum
+                </label>
 
                 <div className="admin-price-input">
+
                   <span>Rp</span>
 
                   <input
                     type="number"
                     min="0"
+                    step="1"
                     value={hargaMin}
                     onChange={(e) =>
                       setHargaMin(e.target.value)
                     }
                     placeholder="20000"
                   />
+
                 </div>
+
               </div>
 
               <div className="admin-form-group">
-                <label>Harga Maksimum</label>
+
+                <label>
+                  Harga Maksimum
+                </label>
 
                 <div className="admin-price-input">
+
                   <span>Rp</span>
 
                   <input
                     type="number"
                     min="0"
+                    step="1"
                     value={hargaMax}
                     onChange={(e) =>
                       setHargaMax(e.target.value)
                     }
                     placeholder="30000"
                   />
+
                 </div>
+
               </div>
 
             </div>
           )}
 
           {hargaLama && (
+
             <div className="admin-current-price">
 
-              <span>Harga aktif saat ini</span>
+              <span>
+                Harga aktif saat ini
+              </span>
 
               <strong>
-                {hargaLama.mode_harga === "pasti" &&
-                  formatRupiah(hargaLama.harga)}
 
-                {hargaLama.mode_harga === "mulai_dari" &&
+                {hargaLama.mode_harga ===
+                  "pasti" &&
+                  formatRupiah(
+                    hargaLama.harga
+                  )}
+
+                {hargaLama.mode_harga ===
+                  "mulai_dari" &&
                   `Mulai ${formatRupiah(
                     hargaLama.harga
                   )}`}
 
-                {hargaLama.mode_harga === "range" &&
+                {hargaLama.mode_harga ===
+                  "range" &&
                   `${formatRupiah(
                     hargaLama.harga_min
                   )} - ${formatRupiah(
                     hargaLama.harga_max
                   )}`}
 
-                {hargaLama.mode_harga === "hubungi" &&
+                {hargaLama.mode_harga ===
+                  "hubungi" &&
                   "Hubungi Kami"}
+
               </strong>
 
             </div>
           )}
 
           {error && (
+
             <div className="admin-message admin-message-error">
               {error}
             </div>
+
           )}
 
           {message && (
+
             <div className="admin-message admin-message-success">
               {message}
             </div>
+
           )}
 
           <button
