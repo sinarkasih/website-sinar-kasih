@@ -70,6 +70,7 @@ export default async function Page({ searchParams }) {
             defaultValue={query}
             placeholder="Cari lampu, kabel, saklar..."
           />
+
           <button className="btn" type="submit">
             Cari
           </button>
@@ -97,7 +98,11 @@ export default async function Page({ searchParams }) {
               );
 
               return (
-                <div className="card" key={product.id}>
+                <Link
+                  href={`/produk/${product.id}`}
+                  className="card"
+                  key={product.id}
+                >
                   <div className="img">
                     {mainImage?.url ? (
                       <img
@@ -111,15 +116,18 @@ export default async function Page({ searchParams }) {
 
                   {price?.mode_harga === "pasti" && (
                     <div className="price">
-                      Rp {Number(price.harga || 0).toLocaleString("id-ID")}
+                      Rp{" "}
+                      {Number(price.harga || 0).toLocaleString("id-ID")}
                     </div>
                   )}
 
                   {price?.mode_harga === "range" && (
                     <div className="price">
-                      Rp {Number(price.harga_min || 0).toLocaleString("id-ID")}
+                      Rp{" "}
+                      {Number(price.harga_min || 0).toLocaleString("id-ID")}
                       {" – "}
-                      Rp {Number(price.harga_max || 0).toLocaleString("id-ID")}
+                      Rp{" "}
+                      {Number(price.harga_max || 0).toLocaleString("id-ID")}
                     </div>
                   )}
 
@@ -133,27 +141,35 @@ export default async function Page({ searchParams }) {
                   )}
 
                   {price?.mode_harga === "hubungi" && (
-                    <div className="price">Hubungi kami</div>
+                    <div className="price">
+                      Hubungi kami
+                    </div>
                   )}
 
                   {!price && (
-                    <div className="price">Harga tersedia</div>
+                    <div className="price">
+                      Harga tersedia
+                    </div>
                   )}
 
                   <h3>{product.nama}</h3>
 
                   {product.brand?.nama && (
-                    <p>Brand: {product.brand.nama}</p>
+                    <p>
+                      Brand: {product.brand.nama}
+                    </p>
                   )}
 
                   {product.kategori?.nama && (
-                    <p>Kategori: {product.kategori.nama}</p>
+                    <p>
+                      Kategori: {product.kategori.nama}
+                    </p>
                   )}
 
                   {product.deskripsi && (
                     <p>{product.deskripsi}</p>
                   )}
-                </div>
+                </Link>
               );
             })}
           </div>
