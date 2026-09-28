@@ -43,12 +43,14 @@ export default function HargaProdukPage() {
       return;
     }
 
-    const { data: produkData, error: produkError } =
-      await supabase
-        .from("produk")
-        .select("id, nama, sku")
-        .eq("id", productId)
-        .maybeSingle();
+    const {
+      data: produkData,
+      error: produkError,
+    } = await supabase
+      .from("produk")
+      .select("id, nama, sku")
+      .eq("id", productId)
+      .maybeSingle();
 
     if (produkError) {
       setError(produkError.message);
@@ -64,18 +66,20 @@ export default function HargaProdukPage() {
 
     setProduk(produkData);
 
-    const { data: hargaData, error: hargaError } =
-      await supabase
-        .from("harga_produk")
-        .select(
-          "id, produk_id, variasi_id, mode_harga, harga, harga_min, harga_max, aktif"
-        )
-        .eq("produk_id", productId)
-        .eq("aktif", true)
-        .is("variasi_id", null)
-        .order("id", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const {
+      data: hargaData,
+      error: hargaError,
+    } = await supabase
+      .from("harga_produk")
+      .select(
+        "id, produk_id, variasi_id, mode_harga, harga, harga_min, harga_max, aktif"
+      )
+      .eq("produk_id", productId)
+      .eq("aktif", true)
+      .is("variasi_id", null)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (hargaError) {
       setError(hargaError.message);
@@ -87,6 +91,7 @@ export default function HargaProdukPage() {
       setHargaLama(hargaData);
     }
 
+    // Input harga baru selalu dimulai dari 0
     setHarga("0");
     setHargaMin("0");
     setHargaMax("0");
@@ -166,6 +171,7 @@ export default function HargaProdukPage() {
     const hargaMinNumber = parseNumber(hargaMin);
     const hargaMaxNumber = parseNumber(hargaMax);
 
+    // Validasi Harga Pasti dan Mulai Dari
     if (
       modeHarga === "pasti" ||
       modeHarga === "mulai_dari"
@@ -177,6 +183,7 @@ export default function HargaProdukPage() {
       }
     }
 
+    // Validasi Range
     if (modeHarga === "range") {
       if (
         hargaMinNumber <= 0 ||
@@ -198,15 +205,17 @@ export default function HargaProdukPage() {
       }
     }
 
-    const { error: deactivateError } =
-      await supabase
-        .from("harga_produk")
-        .update({
-          aktif: false,
-        })
-        .eq("produk_id", productId)
-        .is("variasi_id", null)
-        .eq("aktif", true);
+    // Nonaktifkan harga lama
+    const {
+      error: deactivateError,
+    } = await supabase
+      .from("harga_produk")
+      .update({
+        aktif: false,
+      })
+      .eq("produk_id", productId)
+      .is("variasi_id", null)
+      .eq("aktif", true);
 
     if (deactivateError) {
       setError(
@@ -266,10 +275,13 @@ export default function HargaProdukPage() {
     setHargaMax("0");
 
     setMessage(
-      "Harga produk berhasil disimpan."
+      "Harga produk berhasil disimpan. Mengembalikan ke daftar produk..."
     );
 
-    setSaving(false);
+    // Beri waktu sebentar agar pesan berhasil terlihat
+    setTimeout(() => {
+      router.push("/admin/produk");
+    }, 700);
   }
 
   if (loading) {
@@ -298,7 +310,7 @@ export default function HargaProdukPage() {
       <div className="admin-page-header">
 
         <div>
-          <h1>Harga Produk</h1>
+          <h1>Edit Harga Produk</h1>
 
           <p>
             Atur harga untuk produk{" "}
@@ -628,19 +640,15 @@ export default function HargaProdukPage() {
           )}
 
           {error && (
-
             <div className="admin-message admin-message-error">
               {error}
             </div>
-
           )}
 
           {message && (
-
             <div className="admin-message admin-message-success">
               {message}
             </div>
-
           )}
 
           <button
