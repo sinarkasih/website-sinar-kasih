@@ -1,169 +1,179 @@
-"use client";
+import { getSupabase } from "../lib/supabase";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+export const dynamic = "force-dynamic";
 
-export default function Page() {
-  const [cart, setCart] = useState([]);
+export default async function Home() {
+  const supabase = getSupabase();
 
-  useEffect(() => {
-    const saved = JSON.parse(
-      localStorage.getItem("sinar_kasih_cart") || "[]"
-    );
+  let products = [];
+  let errorMessage = null;
 
-    setCart(saved);
-  }, []);
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("produk")
+      .select(`
+        id,
+        nama,
+        deskripsi,
+        produk_gambar (
+          url,
+          alt_text,
+          utama
+        ),
+        harga_produk (
+          mode_harga,
+          harga,
+          harga_min,
+          harga_max,
+          aktif
+        )
+      `)
+      .eq("aktif", true)
+      .order("id", { ascending: true });
 
-  function saveCart(nextCart) {
-    setCart(nextCart);
-
-    localStorage.setItem(
-      "sinar_kasih_cart",
-      JSON.stringify(nextCart)
-    );
-  }
-
-  function changeQty(id, amount) {
-    const nextCart = cart
-      .map((item) =>
-        item.id === id
-          ? { ...item, qty: item.qty + amount }
-          : item
-      )
-      .filter((item) => item.qty > 0);
-
-    saveCart(nextCart);
-  }
-
-  function removeItem(id) {
-    saveCart(
-      cart.filter((item) => item.id !== id)
-    );
-  }
-
-  function getDisplayPrice(item) {
-    if (item.mode_harga === "pasti") {
-      return `Rp ${Number(
-        item.harga || 0
-      ).toLocaleString("id-ID")}`;
+    if (error) {
+      console.error("SUPABASE PRODUK ERROR:", error);
+      errorMessage = error.message;
+    } else {
+      products = data || [];
     }
-
-    if (item.mode_harga === "range") {
-      return `Rp ${Number(
-        item.harga_min || 0
-      ).toLocaleString("id-ID")} – Rp ${Number(
-        item.harga_max || 0
-      ).toLocaleString("id-ID")}`;
-    }
-
-    if (item.mode_harga === "mulai_dari") {
-      return `Mulai Rp ${Number(
-        item.harga_min || item.harga || 0
-      ).toLocaleString("id-ID")}`;
-    }
-
-    return "Hubungi kami";
+  } else {
+    errorMessage = "Koneksi Supabase belum tersedia.";
   }
 
   return (
-    <section className="section">
-      <div className="wrap">
-        <h1>Troli</h1>
+    <>
+      <section className="hero">
+        <div className="wrap">
+          <p>
+            <b>TOKO LISTRIK SINAR KASIH</b>
+          </p>
 
-        {cart.length === 0 ? (
-          <div className="notice">
-            Troli masih kosong.
-            <br />
-            <br />
-            <Link href="/kategori">
-              ← Belanja Produk
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="cards">
-              {cart.map((item) => (
-                <div
-                  className="card"
-                  key={item.id}
-                >
-                  <div className="img">
-                    {item.gambar ? (
-                      <img
-                        src={item.gambar}
-                        alt={item.nama}
-                      />
-                    ) : (
-                      "Foto Produk"
-                    )}
-                  </div>
+          <h1>
+            Kebutuhan listrik, lampu & perlengkapan rumah.
+          </h1>
 
-                  <h3>{item.nama}</h3>
+          <p>
+            Temukan berbagai kebutuhan listrik dan
+            perlengkapan rumah dengan mudah.
+          </p>
 
-                  <div className="price">
-                    {getDisplayPrice(item)}
-                  </div>
+          <a href="/kategori" className="btn">
+            Belanja Produk
+          </a>
+        </div>
+      </section>
 
-                  <p>
-                    Jumlah: {item.qty}
-                  </p>
+      <section className="section">
+        <div className="wrap">
+          <h2>Produk Dari Database</h2>
 
-                  <div>
-                    <button
-                      className="btn"
-                      type="button"
-                      onClick={() =>
-                        changeQty(item.id, -1)
-                      }
-                    >
-                      −
-                    </button>
-
-                    <button
-                      className="btn"
-                      type="button"
-                      onClick={() =>
-                        changeQty(item.id, 1)
-                      }
-                    >
-                      +
-                    </button>
-
-                    <button
-                      className="btn"
-                      type="button"
-                      onClick={() =>
-                        removeItem(item.id)
-                      }
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
+          {errorMessage ? (
             <div className="notice">
-              <b>Jumlah produk:</b>{" "}
-              {cart.reduce(
-                (total, item) =>
-                  total + item.qty,
-                0
-              )}
-
-              <br />
-              <br />
-
-              <Link
-                href="/checkout"
-                className="btn"
-              >
-                Lanjut Checkout
-              </Link>
+              <b>Koneksi database:</b> {errorMessage}
             </div>
-          </>
-        )}
-      </div>
-    </section>
+          ) : products.length === 0 ? (
+            <div className="notice">
+              Belum ada produk aktif di database.
+            </div>
+          ) : (
+            <div className="cards">
+              {products.map((product) => {
+                const mainImage =
+                  product.produk_gambar?.find(
+                    (gambar) => gambar.utama
+                  );
+
+                const price =
+                  product.harga_produk?.find(
+                    (item) => item.aktif
+                  );
+
+                return (
+                  <div
+                    className="card"
+                    key={product.id}
+                  >
+                    <a
+                      href={`/produk/${product.id}`}
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                      }}
+                    >
+                      <div className="img">
+                        {mainImage?.url ? (
+                          <img
+                            src={mainImage.url}
+                            alt={
+                              mainImage.alt_text ||
+                              product.nama
+                            }
+                          />
+                        ) : (
+                          "Foto Produk"
+                        )}
+                      </div>
+
+                      {price?.mode_harga === "pasti" && (
+                        <div className="price">
+                          Rp{" "}
+                          {Number(
+                            price.harga || 0
+                          ).toLocaleString("id-ID")}
+                        </div>
+                      )}
+
+                      {price?.mode_harga === "range" && (
+                        <div className="price">
+                          Rp{" "}
+                          {Number(
+                            price.harga_min || 0
+                          ).toLocaleString("id-ID")}
+                          {" – "}
+                          Rp{" "}
+                          {Number(
+                            price.harga_max || 0
+                          ).toLocaleString("id-ID")}
+                        </div>
+                      )}
+
+                      {price?.mode_harga === "mulai_dari" && (
+                        <div className="price">
+                          Mulai Rp{" "}
+                          {Number(
+                            price.harga_min ||
+                              price.harga ||
+                              0
+                          ).toLocaleString("id-ID")}
+                        </div>
+                      )}
+
+                      {price?.mode_harga === "hubungi" && (
+                        <div className="price">
+                          Hubungi kami
+                        </div>
+                      )}
+
+                      {!price && (
+                        <div className="price">
+                          Harga tersedia
+                        </div>
+                      )}
+
+                      <h3>{product.nama}</h3>
+
+                      {product.deskripsi && (
+                        <p>{product.deskripsi}</p>
+                      )}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
