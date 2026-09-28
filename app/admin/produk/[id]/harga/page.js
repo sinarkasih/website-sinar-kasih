@@ -84,27 +84,51 @@ export default function HargaProdukPage() {
     }
 
     if (hargaData) {
-      /*
-        Harga lama hanya ditampilkan sebagai
-        "Harga aktif saat ini".
-
-        Tidak dimasukkan otomatis ke kotak input,
-        supaya admin tidak mengira itu harga default.
-      */
-
       setHargaLama(hargaData);
     }
-
-    /*
-      Input selalu dimulai dari 0.
-      Admin harus memasukkan harga yang ingin disimpan.
-    */
 
     setHarga("0");
     setHargaMin("0");
     setHargaMax("0");
 
     setLoading(false);
+  }
+
+  function formatNumber(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return "";
+    }
+
+    const digits = String(value).replace(/\D/g, "");
+
+    if (!digits) {
+      return "0";
+    }
+
+    return Number(digits).toLocaleString("id-ID");
+  }
+
+  function parseNumber(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return 0;
+    }
+
+    const digits = String(value).replace(/\D/g, "");
+
+    return digits ? Number(digits) : 0;
+  }
+
+  function handleHargaChange(value, setter) {
+    const formatted = formatNumber(value);
+    setter(formatted);
   }
 
   function formatRupiah(value) {
@@ -138,32 +162,16 @@ export default function HargaProdukPage() {
       return;
     }
 
-    const form = e.currentTarget;
-
-    const rawHarga =
-      form.elements.harga?.value || "0";
-
-    const rawHargaMin =
-      form.elements.harga_min?.value || "0";
-
-    const rawHargaMax =
-      form.elements.harga_max?.value || "0";
-
-    const hargaNumber = Number(rawHarga);
-    const hargaMinNumber = Number(rawHargaMin);
-    const hargaMaxNumber = Number(rawHargaMax);
+    const hargaNumber = parseNumber(harga);
+    const hargaMinNumber = parseNumber(hargaMin);
+    const hargaMaxNumber = parseNumber(hargaMax);
 
     if (
       modeHarga === "pasti" ||
       modeHarga === "mulai_dari"
     ) {
-      if (
-        !Number.isFinite(hargaNumber) ||
-        hargaNumber <= 0
-      ) {
-        setError(
-          "Masukkan harga lebih dari Rp0."
-        );
+      if (hargaNumber <= 0) {
+        setError("Masukkan harga lebih dari Rp0.");
         setSaving(false);
         return;
       }
@@ -171,8 +179,6 @@ export default function HargaProdukPage() {
 
     if (modeHarga === "range") {
       if (
-        !Number.isFinite(hargaMinNumber) ||
-        !Number.isFinite(hargaMaxNumber) ||
         hargaMinNumber <= 0 ||
         hargaMaxNumber <= 0
       ) {
@@ -191,10 +197,6 @@ export default function HargaProdukPage() {
         return;
       }
     }
-
-    /*
-      Nonaktifkan harga aktif sebelumnya.
-    */
 
     const { error: deactivateError } =
       await supabase
@@ -257,18 +259,7 @@ export default function HargaProdukPage() {
       return;
     }
 
-    /*
-      Setelah berhasil, harga baru menjadi
-      harga aktif saat ini.
-    */
-
     setHargaLama(data);
-
-    /*
-      Kosongkan kembali input supaya admin
-      tidak mengira angka tersebut adalah
-      nilai default untuk input berikutnya.
-    */
 
     setHarga("0");
     setHargaMin("0");
@@ -547,12 +538,14 @@ export default function HargaProdukPage() {
 
                 <input
                   name="harga"
-                  type="number"
-                  min="0"
-                  step="1"
+                  type="text"
+                  inputMode="numeric"
                   value={harga}
                   onChange={(e) =>
-                    setHarga(e.target.value)
+                    handleHargaChange(
+                      e.target.value,
+                      setHarga
+                    )
                   }
                 />
 
@@ -578,12 +571,14 @@ export default function HargaProdukPage() {
 
                   <input
                     name="harga_min"
-                    type="number"
-                    min="0"
-                    step="1"
+                    type="text"
+                    inputMode="numeric"
                     value={hargaMin}
                     onChange={(e) =>
-                      setHargaMin(e.target.value)
+                      handleHargaChange(
+                        e.target.value,
+                        setHargaMin
+                      )
                     }
                   />
 
@@ -603,12 +598,14 @@ export default function HargaProdukPage() {
 
                   <input
                     name="harga_max"
-                    type="number"
-                    min="0"
-                    step="1"
+                    type="text"
+                    inputMode="numeric"
                     value={hargaMax}
                     onChange={(e) =>
-                      setHargaMax(e.target.value)
+                      handleHargaChange(
+                        e.target.value,
+                        setHargaMax
+                      )
                     }
                   />
 
