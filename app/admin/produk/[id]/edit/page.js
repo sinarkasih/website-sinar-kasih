@@ -205,19 +205,16 @@ export default function EditProdukPage() {
 
     const payload = {
       nama: form.nama.trim(),
-      deskripsi:
-        form.deskripsi.trim() || null,
+      deskripsi: form.deskripsi.trim() || null,
       sku: form.sku.trim() || null,
-      slug:
-        form.slug.trim() || null,
+      slug: form.slug.trim() || null,
       kategori_id: form.kategori_id
         ? Number(form.kategori_id)
         : null,
       brand_id: form.brand_id
         ? Number(form.brand_id)
         : null,
-      satuan:
-        form.satuan.trim() || "pcs",
+      satuan: form.satuan.trim() || "pcs",
       stok: Number(form.stok) || 0,
       aktif: form.aktif,
     };
@@ -242,10 +239,14 @@ export default function EditProdukPage() {
     setProduk(data);
 
     setMessage(
-      "Perubahan produk berhasil disimpan."
+      "Perubahan produk berhasil disimpan. Mengembalikan ke daftar produk..."
     );
 
     setSaving(false);
+
+    setTimeout(() => {
+      router.push("/admin/produk");
+    }, 700);
   }
 
   async function handleUpload(e) {
