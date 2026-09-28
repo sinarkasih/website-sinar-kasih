@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabase } from "../../../../../lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 function buatSlug(text) {
   return text
@@ -59,8 +59,7 @@ export default function TambahLabelPage() {
           form.deskripsi.trim() || null,
         warna: form.warna || null,
         aktif: form.aktif,
-        urutan:
-          Number(form.urutan) || 0,
+        urutan: Number(form.urutan) || 0,
       });
 
     if (error) {
@@ -79,16 +78,23 @@ export default function TambahLabelPage() {
     <main className="admin-content">
 
       <div className="admin-page-header">
-
         <div>
           <h1>Tambah Label Produk</h1>
-
           <p>
             Buat label baru untuk digunakan
             pada produk.
           </p>
         </div>
 
+        <button
+          type="button"
+          className="admin-secondary-button"
+          onClick={() =>
+            router.push("/admin/produk/label")
+          }
+        >
+          ← Kembali
+        </button>
       </div>
 
       <div className="admin-card">
@@ -105,7 +111,6 @@ export default function TambahLabelPage() {
           )}
 
           <div className="admin-form-group">
-
             <label>
               Nama Label *
             </label>
@@ -121,11 +126,9 @@ export default function TambahLabelPage() {
               placeholder="Contoh: Promo"
               required
             />
-
           </div>
 
           <div className="admin-form-group">
-
             <label>
               Slug
             </label>
@@ -141,11 +144,9 @@ export default function TambahLabelPage() {
               }
               placeholder="promo"
             />
-
           </div>
 
           <div className="admin-form-group">
-
             <label>
               Deskripsi
             </label>
@@ -162,13 +163,11 @@ export default function TambahLabelPage() {
               }
               placeholder="Keterangan label..."
             />
-
           </div>
 
           <div className="admin-form-grid">
 
             <div className="admin-form-group">
-
               <label>
                 Warna Label
               </label>
@@ -180,7 +179,6 @@ export default function TambahLabelPage() {
                   gap: "12px",
                 }}
               >
-
                 <input
                   type="color"
                   value={form.warna}
@@ -210,13 +208,10 @@ export default function TambahLabelPage() {
                   }
                   placeholder="#8B5E3C"
                 />
-
               </div>
-
             </div>
 
             <div className="admin-form-group">
-
               <label>
                 Urutan
               </label>
@@ -233,13 +228,11 @@ export default function TambahLabelPage() {
                   })
                 }
               />
-
             </div>
 
           </div>
 
           <label className="admin-form-checkbox">
-
             <input
               type="checkbox"
               checked={form.aktif}
@@ -255,17 +248,22 @@ export default function TambahLabelPage() {
             <span>
               Label aktif
             </span>
-
           </label>
+
+          {message && (
+            <div className="admin-message">
+              {message}
+            </div>
+          )}
 
           <div
             style={{
               display: "flex",
               gap: "10px",
               marginTop: "20px",
+              flexWrap: "wrap",
             }}
           >
-
             <button
               type="submit"
               className="admin-primary-button"
@@ -285,9 +283,8 @@ export default function TambahLabelPage() {
                 )
               }
             >
-              Kembali
+              Batal
             </button>
-
           </div>
 
         </form>
