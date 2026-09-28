@@ -90,6 +90,10 @@ export default function AdminProdukPage() {
     }
   );
 
+  function hapusPencarian() {
+    setSearch("");
+  }
+
   return (
     <main className="admin-content">
 
@@ -118,14 +122,60 @@ export default function AdminProdukPage() {
 
       <div className="admin-product-toolbar">
 
-        <input
-          type="text"
-          placeholder="Cari nama produk, SKU, brand..."
-          value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-        />
+        <div
+          style={{
+            position: "relative",
+            flex: 1,
+          }}
+        >
+
+          <input
+            type="text"
+            placeholder="Cari nama produk, SKU, brand..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            style={{
+              width: "100%",
+              paddingRight: search
+                ? "42px"
+                : undefined,
+            }}
+          />
+
+          {search && (
+            <button
+              type="button"
+              onClick={hapusPencarian}
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform:
+                  "translateY(-50%)",
+                width: "28px",
+                height: "28px",
+                border: "none",
+                borderRadius: "50%",
+                background: "#e8dfd3",
+                color: "#4a372d",
+                fontSize: "20px",
+                lineHeight: "26px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          )}
+
+        </div>
 
         <div className="admin-product-count">
           {produkFiltered.length} produk
