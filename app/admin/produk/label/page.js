@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase } from "../../../../lib/supabase";
 
 export default function LabelProdukPage() {
   const router = useRouter();
@@ -24,7 +24,9 @@ export default function LabelProdukPage() {
       .order("nama", { ascending: true });
 
     if (error) {
-      setMessage("Gagal mengambil label: " + error.message);
+      setMessage(
+        "Gagal mengambil label: " + error.message
+      );
       setLabels([]);
     } else {
       setLabels(data || []);
@@ -40,11 +42,16 @@ export default function LabelProdukPage() {
   async function toggleAktif(label) {
     const { error } = await supabase
       .from("label_produk")
-      .update({ aktif: !label.aktif })
+      .update({
+        aktif: !label.aktif,
+      })
       .eq("id", label.id);
 
     if (error) {
-      setMessage("Gagal mengubah status: " + error.message);
+      setMessage(
+        "Gagal mengubah status: " +
+          error.message
+      );
       return;
     }
 
@@ -64,7 +71,10 @@ export default function LabelProdukPage() {
       .eq("id", label.id);
 
     if (error) {
-      setMessage("Gagal menghapus label: " + error.message);
+      setMessage(
+        "Gagal menghapus label: " +
+          error.message
+      );
       return;
     }
 
@@ -72,39 +82,48 @@ export default function LabelProdukPage() {
   }
 
   const filteredLabels = labels.filter((label) => {
-    const text = `${label.nama || ""} ${
-      label.slug || ""
-    } ${label.deskripsi || ""}`.toLowerCase();
+    const text = `
+      ${label.nama || ""}
+      ${label.slug || ""}
+      ${label.deskripsi || ""}
+    `.toLowerCase();
 
-    return text.includes(search.toLowerCase());
+    return text.includes(
+      search.toLowerCase()
+    );
   });
 
   return (
     <main className="admin-content">
 
       <div className="admin-page-header">
+
         <div>
           <h1>Label Produk</h1>
 
           <p>
-            Kelola label yang dapat digunakan pada
-            produk Toko Listrik Sinar Kasih.
+            Kelola label yang dapat digunakan
+            pada produk Toko Listrik Sinar Kasih.
           </p>
         </div>
 
         <button
           className="admin-primary-button"
           onClick={() =>
-            router.push("/admin/produk/label/tambah")
+            router.push(
+              "/admin/produk/label/tambah"
+            )
           }
         >
           + Tambah Label
         </button>
+
       </div>
 
       <div className="admin-card">
 
         <div className="admin-section-header">
+
           <div>
             <h2>Daftar Label</h2>
 
@@ -112,6 +131,7 @@ export default function LabelProdukPage() {
               {labels.length} label tersimpan.
             </p>
           </div>
+
         </div>
 
         {message && (
@@ -121,6 +141,7 @@ export default function LabelProdukPage() {
         )}
 
         <div className="admin-form-group">
+
           <input
             type="text"
             placeholder="Cari label..."
@@ -129,6 +150,7 @@ export default function LabelProdukPage() {
               setSearch(e.target.value)
             }
           />
+
         </div>
 
         {loading ? (
@@ -162,6 +184,7 @@ export default function LabelProdukPage() {
                     </td>
 
                     <td>
+
                       <strong>
                         {label.nama}
                       </strong>
@@ -177,6 +200,7 @@ export default function LabelProdukPage() {
                           {label.deskripsi}
                         </div>
                       )}
+
                     </td>
 
                     <td>
@@ -184,6 +208,7 @@ export default function LabelProdukPage() {
                     </td>
 
                     <td>
+
                       {label.warna ? (
                         <div
                           style={{
@@ -192,6 +217,7 @@ export default function LabelProdukPage() {
                             gap: "8px",
                           }}
                         >
+
                           <span
                             style={{
                               width: "24px",
@@ -209,10 +235,12 @@ export default function LabelProdukPage() {
                           <span>
                             {label.warna}
                           </span>
+
                         </div>
                       ) : (
                         "-"
                       )}
+
                     </td>
 
                     <td>
