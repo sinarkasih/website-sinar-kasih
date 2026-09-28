@@ -14,6 +14,7 @@ export default async function Home() {
       .order("id", { ascending: true });
 
     if (error) {
+      console.error("SUPABASE PRODUK ERROR:", error);
       errorMessage = error.message;
     } else {
       products = data || [];
