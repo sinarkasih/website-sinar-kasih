@@ -358,3 +358,169 @@
     font-size: 16px;
   }
 }
+
+/* =========================================
+   ADMIN PRODUCT LIST
+========================================= */
+
+.admin-product-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.admin-product-toolbar input {
+  flex: 1;
+  max-width: 520px;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid #d8cec3;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #3d3028;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.admin-product-toolbar input:focus {
+  border-color: #8a5a3c;
+  box-shadow: 0 0 0 3px rgba(138, 90, 60, 0.1);
+}
+
+.admin-product-count {
+  color: #75685e;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.admin-product-table-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e6ddd2;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(60, 45, 35, 0.05);
+}
+
+.admin-product-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-product-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.admin-product-table th {
+  padding: 15px 16px;
+  text-align: left;
+  background: #faf6f0;
+  color: #5d4a3d;
+  font-size: 13px;
+  font-weight: 800;
+  border-bottom: 1px solid #e6ddd2;
+  white-space: nowrap;
+}
+
+.admin-product-table td {
+  padding: 16px;
+  color: #4d4037;
+  font-size: 14px;
+  border-bottom: 1px solid #eee7df;
+  vertical-align: middle;
+}
+
+.admin-product-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-product-table tbody tr:hover {
+  background: #fdfaf6;
+}
+
+.admin-product-name {
+  color: #3d3028;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.admin-product-slug {
+  color: #988b80;
+  font-size: 12px;
+}
+
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-status.active {
+  background: #eaf7ed;
+  color: #28733c;
+}
+
+.admin-status.inactive {
+  background: #f5eaea;
+  color: #9a3838;
+}
+
+.admin-product-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.admin-product-actions button {
+  border: 1px solid #d8cec3;
+  background: #ffffff;
+  color: #7a5238;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-product-actions button:hover {
+  background: #f8f2eb;
+}
+
+.admin-loading,
+.admin-empty {
+  text-align: center;
+}
+
+.admin-empty {
+  padding: 50px 30px;
+}
+
+.admin-empty h2 {
+  margin: 0 0 8px;
+  color: #3d3028;
+}
+
+.admin-empty p {
+  color: #75685e;
+  margin: 0 0 22px;
+}
+
+@media (max-width: 700px) {
+  .admin-product-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-product-toolbar input {
+    max-width: none;
+  }
+}
