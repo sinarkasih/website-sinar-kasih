@@ -8,10 +8,19 @@ export default async function Home() {
 
   if (supabase) {
     const { data, error } = await supabase
-      .from("produk")
-      .select("id, nama, deskripsi")
-      .eq("aktif", true)
-      .order("id", { ascending: true });
+  .from("produk")
+  .select(`
+    id,
+    nama,
+    deskripsi,
+    produk_gambar (
+      url,
+      alt_text,
+      utama
+    )
+  `)
+  .eq("aktif", true)
+  .order("id", { ascending: true });
 
     if (error) {
       console.error("SUPABASE PRODUK ERROR:", error);
@@ -56,9 +65,19 @@ export default async function Home() {
             <div className="cards">
               {products.map((product) => (
                 <div className="card" key={product.id}>
-                  <div className="img">
-                    Foto Produk
-                  </div>
+                 <div className="img">
+  {product.produk_gambar?.find((gambar) => gambar.utama)?.url ? (
+    <img
+      src={product.produk_gambar.find((gambar) => gambar.utama).url}
+      alt={
+        product.produk_gambar.find((gambar) => gambar.utama).alt_text ||
+        product.nama
+      }
+    />
+  ) : (
+    "Foto Produk"
+  )}
+</div>
 
                   <h3>{product.nama}</h3>
 
