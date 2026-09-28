@@ -98,6 +98,7 @@ export default function AdminProdukPage() {
     <main className="admin-content">
 
       <div className="admin-page-header">
+
         <div>
           <h1>Produk</h1>
 
@@ -118,6 +119,7 @@ export default function AdminProdukPage() {
         >
           + Tambah Produk
         </button>
+
       </div>
 
       <div className="admin-product-toolbar">
@@ -125,7 +127,8 @@ export default function AdminProdukPage() {
         <div
           style={{
             position: "relative",
-            flex: 1,
+            width: "100%",
+            maxWidth: "440px",
           }}
         >
 
@@ -138,13 +141,12 @@ export default function AdminProdukPage() {
             }
             style={{
               width: "100%",
-              paddingRight: search
-                ? "42px"
-                : undefined,
+              boxSizing: "border-box",
+              paddingRight: "44px",
             }}
           />
 
-          {search && (
+          {search.trim() !== "" && (
             <button
               type="button"
               onClick={hapusPencarian}
@@ -152,23 +154,25 @@ export default function AdminProdukPage() {
               title="Hapus pencarian"
               style={{
                 position: "absolute",
-                right: "10px",
+                right: "8px",
                 top: "50%",
                 transform:
                   "translateY(-50%)",
                 width: "28px",
                 height: "28px",
+                padding: "0",
+                margin: "0",
                 border: "none",
                 borderRadius: "50%",
                 background: "#e8dfd3",
                 color: "#4a372d",
                 fontSize: "20px",
-                lineHeight: "26px",
+                lineHeight: "28px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 0,
+                zIndex: 10,
               }}
             >
               ×
