@@ -7,7 +7,7 @@ export default async function Home() {
   let errorMessage = null;
 
   if (supabase) {
-    const { data, error } = await supabase
+   const { data, error } = await supabase
   .from("produk")
   .select(`
     id,
@@ -17,6 +17,13 @@ export default async function Home() {
       url,
       alt_text,
       utama
+    ),
+    harga_produk (
+      mode_harga,
+      harga,
+      harga_min,
+      harga_max,
+      aktif
     )
   `)
   .eq("aktif", true)
@@ -79,11 +86,51 @@ export default async function Home() {
   )}
 </div>
 
-                  <h3>{product.nama}</h3>
+{(() => {
+  const price = product.harga_produk?.find((item) => item.aktif);
 
-                  {product.deskripsi && (
-                    <p>{product.deskripsi}</p>
-                  )}
+  if (!price) {
+    return <div className="price">Harga tersedia</div>;
+  }
+
+  if (price.mode_harga === "pasti") {
+    return (
+      <div className="price">
+        Rp {Number(price.harga || 0).toLocaleString("id-ID")}
+      </div>
+    );
+  }
+
+  if (price.mode_harga === "range") {
+    return (
+      <div className="price">
+        Rp {Number(price.harga_min || 0).toLocaleString("id-ID")}
+        {" – "}
+        Rp {Number(price.harga_max || 0).toLocaleString("id-ID")}
+      </div>
+    );
+  }
+
+  if (price.mode_harga === "mulai_dari") {
+    return (
+      <div className="price">
+        Mulai Rp {Number(price.harga_min || price.harga || 0).toLocaleString("id-ID")}
+      </div>
+    );
+  }
+
+  if (price.mode_harga === "hubungi") {
+    return <div className="price">Hubungi kami</div>;
+  }
+
+  return <div className="price">Harga tersedia</div>;
+})()}
+
+<h3>{product.nama}</h3>
+
+{product.deskripsi && (
+  <p>{product.deskripsi}</p>
+)}
                 </div>
               ))}
             </div>
