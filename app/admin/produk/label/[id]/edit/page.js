@@ -38,6 +38,9 @@ export default function EditLabelPage() {
   }, [params.id]);
 
   async function loadLabel() {
+    setLoading(true);
+    setMessage("");
+
     const { data, error } = await supabase
       .from("label_produk")
       .select("*")
@@ -87,7 +90,8 @@ export default function EditLabelPage() {
           form.deskripsi.trim() || null,
         warna: form.warna || null,
         aktif: form.aktif,
-        urutan: Number(form.urutan) || 0,
+        urutan:
+          Number(form.urutan) || 0,
       })
       .eq("id", params.id);
 
@@ -125,6 +129,18 @@ export default function EditLabelPage() {
             Perbarui informasi label produk.
           </p>
         </div>
+
+        <button
+          type="button"
+          className="admin-secondary-button"
+          onClick={() =>
+            router.push(
+              "/admin/produk/label"
+            )
+          }
+        >
+          ← Kembali
+        </button>
 
       </div>
 
@@ -292,11 +308,18 @@ export default function EditLabelPage() {
 
           </label>
 
+          {message && (
+            <div className="admin-message">
+              {message}
+            </div>
+          )}
+
           <div
             style={{
               display: "flex",
               gap: "10px",
               marginTop: "20px",
+              flexWrap: "wrap",
             }}
           >
 
