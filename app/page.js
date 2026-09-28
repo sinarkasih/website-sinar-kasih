@@ -1,142 +1,169 @@
-import { getSupabase } from "../lib/supabase";
-export const dynamic = "force-dynamic";
-export default async function Home() {
-  const supabase = getSupabase();
+"use client";
 
-  let products = [];
-  let errorMessage = null;
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-  if (supabase) {
-   const { data, error } = await supabase
-  .from("produk")
-  .select(`
-    id,
-    nama,
-    deskripsi,
-    produk_gambar (
-      url,
-      alt_text,
-      utama
-    ),
-    harga_produk (
-      mode_harga,
-      harga,
-      harga_min,
-      harga_max,
-      aktif
-    )
-  `)
-  .eq("aktif", true)
-  .order("id", { ascending: true });
+export default function Page() {
+  const [cart, setCart] = useState([]);
 
-    if (error) {
-      console.error("SUPABASE PRODUK ERROR:", error);
-      errorMessage = error.message;
-    } else {
-      products = data || [];
+  useEffect(() => {
+    const saved = JSON.parse(
+      localStorage.getItem("sinar_kasih_cart") || "[]"
+    );
+
+    setCart(saved);
+  }, []);
+
+  function saveCart(nextCart) {
+    setCart(nextCart);
+
+    localStorage.setItem(
+      "sinar_kasih_cart",
+      JSON.stringify(nextCart)
+    );
+  }
+
+  function changeQty(id, amount) {
+    const nextCart = cart
+      .map((item) =>
+        item.id === id
+          ? { ...item, qty: item.qty + amount }
+          : item
+      )
+      .filter((item) => item.qty > 0);
+
+    saveCart(nextCart);
+  }
+
+  function removeItem(id) {
+    saveCart(
+      cart.filter((item) => item.id !== id)
+    );
+  }
+
+  function getDisplayPrice(item) {
+    if (item.mode_harga === "pasti") {
+      return `Rp ${Number(
+        item.harga || 0
+      ).toLocaleString("id-ID")}`;
     }
-  } else {
-    errorMessage = "Koneksi Supabase belum tersedia.";
+
+    if (item.mode_harga === "range") {
+      return `Rp ${Number(
+        item.harga_min || 0
+      ).toLocaleString("id-ID")} – Rp ${Number(
+        item.harga_max || 0
+      ).toLocaleString("id-ID")}`;
+    }
+
+    if (item.mode_harga === "mulai_dari") {
+      return `Mulai Rp ${Number(
+        item.harga_min || item.harga || 0
+      ).toLocaleString("id-ID")}`;
+    }
+
+    return "Hubungi kami";
   }
 
   return (
-    <>
-      <section className="hero">
-        <div className="wrap">
-          <p>
-            <b>TOKO LISTRIK SINAR KASIH</b>
-          </p>
+    <section className="section">
+      <div className="wrap">
+        <h1>Troli</h1>
 
-          <h1>Kebutuhan listrik, lampu & perlengkapan rumah.</h1>
-
-          <p>
-            Temukan berbagai kebutuhan listrik dan perlengkapan rumah
-            dengan mudah.
-          </p>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="wrap">
-          <h2>Produk Dari Database</h2>
-
-          {errorMessage ? (
-            <div className="notice">
-              <b>Koneksi database:</b> {errorMessage}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="notice">
-              Belum ada produk aktif di database.
-            </div>
-          ) : (
+        {cart.length === 0 ? (
+          <div className="notice">
+            Troli masih kosong.
+            <br />
+            <br />
+            <Link href="/kategori">
+              ← Belanja Produk
+            </Link>
+          </div>
+        ) : (
+          <>
             <div className="cards">
-              {products.map((product) => (
-                <div className="card" key={product.id}>
-                 <div className="img">
-  {product.produk_gambar?.find((gambar) => gambar.utama)?.url ? (
-    <img
-      src={product.produk_gambar.find((gambar) => gambar.utama).url}
-      alt={
-        product.produk_gambar.find((gambar) => gambar.utama).alt_text ||
-        product.nama
-      }
-    />
-  ) : (
-    "Foto Produk"
-  )}
-</div>
+              {cart.map((item) => (
+                <div
+                  className="card"
+                  key={item.id}
+                >
+                  <div className="img">
+                    {item.gambar ? (
+                      <img
+                        src={item.gambar}
+                        alt={item.nama}
+                      />
+                    ) : (
+                      "Foto Produk"
+                    )}
+                  </div>
 
-{(() => {
-  const price = product.harga_produk?.find((item) => item.aktif);
+                  <h3>{item.nama}</h3>
 
-  if (!price) {
-    return <div className="price">Harga tersedia</div>;
-  }
+                  <div className="price">
+                    {getDisplayPrice(item)}
+                  </div>
 
-  if (price.mode_harga === "pasti") {
-    return (
-      <div className="price">
-        Rp {Number(price.harga || 0).toLocaleString("id-ID")}
-      </div>
-    );
-  }
+                  <p>
+                    Jumlah: {item.qty}
+                  </p>
 
-  if (price.mode_harga === "range") {
-    return (
-      <div className="price">
-        Rp {Number(price.harga_min || 0).toLocaleString("id-ID")}
-        {" – "}
-        Rp {Number(price.harga_max || 0).toLocaleString("id-ID")}
-      </div>
-    );
-  }
+                  <div>
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() =>
+                        changeQty(item.id, -1)
+                      }
+                    >
+                      −
+                    </button>
 
-  if (price.mode_harga === "mulai_dari") {
-    return (
-      <div className="price">
-        Mulai Rp {Number(price.harga_min || price.harga || 0).toLocaleString("id-ID")}
-      </div>
-    );
-  }
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() =>
+                        changeQty(item.id, 1)
+                      }
+                    >
+                      +
+                    </button>
 
-  if (price.mode_harga === "hubungi") {
-    return <div className="price">Hubungi kami</div>;
-  }
-
-  return <div className="price">Harga tersedia</div>;
-})()}
-
-<h3>{product.nama}</h3>
-
-{product.deskripsi && (
-  <p>{product.deskripsi}</p>
-)}
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() =>
+                        removeItem(item.id)
+                      }
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
-    </>
+
+            <div className="notice">
+              <b>Jumlah produk:</b>{" "}
+              {cart.reduce(
+                (total, item) =>
+                  total + item.qty,
+                0
+              )}
+
+              <br />
+              <br />
+
+              <Link
+                href="/checkout"
+                className="btn"
+              >
+                Lanjut Checkout
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
