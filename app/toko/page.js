@@ -1,0 +1,1 @@
+export default function Page(){return <section className="section"><div className="wrap"><h1>Toko Kami</h1><div className="cards"><div className="card"><h2>Cabang 1</h2><p>Alamat dan Google Maps akan diambil dari database.</p></div><div className="card"><h2>Cabang 2</h2><p>Alamat dan Google Maps akan diambil dari database.</p></div></div></div></section>}

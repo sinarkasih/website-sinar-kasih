@@ -1,0 +1,1 @@
+export default function Page(){return <section className="dash"><h1>Pelanggan</h1><div className="notice">Modul Pelanggan akan dihubungkan ke Supabase.</div></section>}

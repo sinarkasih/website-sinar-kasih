@@ -1,0 +1,1 @@
+export default function Page(){return <section className="dash"><h1>Toko & Kontak</h1><div className="notice">Modul Toko & Kontak akan dihubungkan ke Supabase.</div></section>}

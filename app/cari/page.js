@@ -1,0 +1,1 @@
+export default async function Page({searchParams}){const p=await searchParams;return <section className="section"><div className="wrap"><h1>Cari Produk</h1><input className="search" defaultValue={p?.q||""} placeholder="Cari lampu, kabel, saklar..." /><div className="notice">Pencarian akan dihubungkan ke Supabase pada tahap integrasi database.</div></div></section>}

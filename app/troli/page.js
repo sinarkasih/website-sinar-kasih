@@ -1,0 +1,1 @@
+import Link from "next/link";export default function Page(){return <section className="section"><div className="wrap"><h1>Troli</h1><div className="notice">Troli masih kosong. Produk dengan semua mode harga tetap dapat dimasukkan ke troli setelah integrasi selesai.</div><Link className="btn" href="/kategori">Mulai Belanja</Link></div></section>}

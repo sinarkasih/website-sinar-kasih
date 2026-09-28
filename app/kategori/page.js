@@ -1,0 +1,3 @@
+import Link from "next/link";
+const cats=["Lampu","Lampu LED","LED Bulb","LED Downlight","LED Panel","Lampu T5","Lampu Hias","Saklar & Stop Kontak","Kabel","Tools"];
+export default function Page(){return <section className="section"><div className="wrap"><h1>Kategori Produk</h1><div className="list">{cats.map(c=><Link href={"/cari?q="+encodeURIComponent(c)} key={c}>{c} →</Link>)}</div></div></section>}

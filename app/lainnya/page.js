@@ -1,0 +1,1 @@
+export default function Page(){return <section className="section"><div className="wrap"><h1>Lainnya</h1><div className="list"><a href="/toko">Toko Kami →</a><a href="https://wa.me/6281285750033">Hubungi Kami via WhatsApp →</a><a href="#">Instagram →</a><a href="#">TikTok →</a><a href="#">Tentang Sinar Kasih →</a><a href="#">Cara Pesan →</a></div></div></section>}
