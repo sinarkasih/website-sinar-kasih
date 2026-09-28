@@ -524,3 +524,151 @@
     max-width: none;
   }
 }
+
+/* =========================================
+   ADMIN PRODUCT PRICE
+========================================= */
+
+.admin-price-product-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 18px;
+  margin-bottom: 28px;
+  background: #faf6f0;
+  border: 1px solid #e6ddd2;
+  border-radius: 12px;
+}
+
+.admin-price-product-info span {
+  display: block;
+  margin-bottom: 5px;
+  color: #8b7b6e;
+  font-size: 12px;
+}
+
+.admin-price-product-info strong {
+  display: block;
+  color: #3d3028;
+  font-size: 16px;
+}
+
+.admin-price-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-price-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid #ddd2c7;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.admin-price-option:hover {
+  background: #faf6f0;
+}
+
+.admin-price-option.selected {
+  border-color: #8a5a3c;
+  background: #fbf6f0;
+}
+
+.admin-price-option input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.admin-price-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.admin-price-option strong {
+  color: #3d3028;
+  font-size: 15px;
+}
+
+.admin-price-option small {
+  color: #85766a;
+  font-size: 13px;
+}
+
+.admin-price-input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.admin-price-input span {
+  height: 47px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: #f5efe8;
+  border: 1px solid #d8cec3;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  color: #66574c;
+  font-weight: 700;
+}
+
+.admin-price-input input {
+  flex: 1;
+  height: 47px;
+  box-sizing: border-box;
+  border: 1px solid #d8cec3;
+  border-radius: 0 10px 10px 0;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.admin-price-input input:focus {
+  border-color: #8a5a3c;
+}
+
+.admin-current-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  border-radius: 10px;
+  background: #edf8ef;
+  border: 1px solid #c8e3ce;
+}
+
+.admin-current-price span {
+  color: #477052;
+  font-size: 14px;
+}
+
+.admin-current-price strong {
+  color: #285c34;
+  font-size: 16px;
+}
+
+@media (max-width: 700px) {
+  .admin-price-product-info,
+  .admin-price-options {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-current-price {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+}
