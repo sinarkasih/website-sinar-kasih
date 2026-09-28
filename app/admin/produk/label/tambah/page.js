@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase } from "../../../../../lib/supabase";
 
 function buatSlug(text) {
   return text
@@ -59,7 +59,8 @@ export default function TambahLabelPage() {
           form.deskripsi.trim() || null,
         warna: form.warna || null,
         aktif: form.aktif,
-        urutan: Number(form.urutan) || 0,
+        urutan:
+          Number(form.urutan) || 0,
       });
 
     if (error) {
@@ -78,6 +79,7 @@ export default function TambahLabelPage() {
     <main className="admin-content">
 
       <div className="admin-page-header">
+
         <div>
           <h1>Tambah Label Produk</h1>
 
@@ -86,6 +88,7 @@ export default function TambahLabelPage() {
             pada produk.
           </p>
         </div>
+
       </div>
 
       <div className="admin-card">
