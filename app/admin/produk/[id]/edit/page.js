@@ -12,8 +12,10 @@ export default function EditProdukPage() {
 
   const [kategori, setKategori] = useState([]);
   const [brand, setBrand] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [produk, setProduk] = useState(null);
   const [foto, setFoto] = useState([]);
+  const [selectedLabelIds, setSelectedLabelIds] = useState([]);
 
   const [form, setForm] = useState({
     nama: "",
@@ -57,6 +59,8 @@ export default function EditProdukPage() {
       produkResult,
       kategoriResult,
       brandResult,
+      labelResult,
+      produkLabelResult,
       fotoResult,
     ] = await Promise.all([
       supabase
@@ -87,6 +91,18 @@ export default function EditProdukPage() {
         .select("id, nama")
         .eq("aktif", true)
         .order("nama"),
+
+      supabase
+        .from("label_produk")
+        .select("id, nama, slug, warna")
+        .eq("aktif", true)
+        .order("urutan", { ascending: true })
+        .order("nama", { ascending: true }),
+
+      supabase
+        .from("produk_label")
+        .select("label_id")
+        .eq("produk_id", productId),
 
       supabase
         .from("produk_gambar")
@@ -129,6 +145,24 @@ export default function EditProdukPage() {
       return;
     }
 
+    if (labelResult.error) {
+      setError(
+        "Gagal mengambil label produk: " +
+          labelResult.error.message
+      );
+      setLoading(false);
+      return;
+    }
+
+    if (produkLabelResult.error) {
+      setError(
+        "Gagal mengambil label produk yang dipilih: " +
+          produkLabelResult.error.message
+      );
+      setLoading(false);
+      return;
+    }
+
     if (fotoResult.error) {
       setError(
         "Gagal mengambil foto produk: " +
@@ -160,7 +194,14 @@ export default function EditProdukPage() {
 
     setKategori(kategoriResult.data || []);
     setBrand(brandResult.data || []);
+    setLabels(labelResult.data || []);
     setFoto(fotoResult.data || []);
+
+    setSelectedLabelIds(
+      (produkLabelResult.data || [])
+        .map((item) => Number(item.label_id))
+        .filter(Boolean)
+    );
 
     setLoading(false);
   }
@@ -180,6 +221,20 @@ export default function EditProdukPage() {
           ? checked
           : value,
     }));
+  }
+
+  function toggleLabel(labelId) {
+    const id = Number(labelId);
+
+    setSelectedLabelIds((current) => {
+      if (current.includes(id)) {
+        return current.filter(
+          (item) => item !== id
+        );
+      }
+
+      return [...current, id];
+    });
   }
 
   async function handleSubmit(e) {
@@ -205,27 +260,32 @@ export default function EditProdukPage() {
 
     const payload = {
       nama: form.nama.trim(),
-      deskripsi: form.deskripsi.trim() || null,
+      deskripsi:
+        form.deskripsi.trim() || null,
       sku: form.sku.trim() || null,
-      slug: form.slug.trim() || null,
+      slug:
+        form.slug.trim() || null,
       kategori_id: form.kategori_id
         ? Number(form.kategori_id)
         : null,
       brand_id: form.brand_id
         ? Number(form.brand_id)
         : null,
-      satuan: form.satuan.trim() || "pcs",
+      satuan:
+        form.satuan.trim() || "pcs",
       stok: Number(form.stok) || 0,
       aktif: form.aktif,
     };
 
-    const { data, error: updateError } =
-      await supabase
-        .from("produk")
-        .update(payload)
-        .eq("id", productId)
-        .select()
-        .single();
+    const {
+      data,
+      error: updateError,
+    } = await supabase
+      .from("produk")
+      .update(payload)
+      .eq("id", productId)
+      .select()
+      .single();
 
     if (updateError) {
       setError(
@@ -238,15 +298,58 @@ export default function EditProdukPage() {
 
     setProduk(data);
 
+    // Hapus hubungan label lama
+    const {
+      error: deleteLabelError,
+    } = await supabase
+      .from("produk_label")
+      .delete()
+      .eq("produk_id", productId);
+
+    if (deleteLabelError) {
+      setError(
+        "Produk berhasil diperbarui, tetapi label lama gagal diperbarui: " +
+          deleteLabelError.message
+      );
+      setSaving(false);
+      return;
+    }
+
+    // Simpan label yang baru dipilih
+    if (selectedLabelIds.length > 0) {
+      const labelRows = selectedLabelIds.map(
+        (labelId) => ({
+          produk_id: Number(productId),
+          label_id: Number(labelId),
+        })
+      );
+
+      const {
+        error: insertLabelError,
+      } = await supabase
+        .from("produk_label")
+        .insert(labelRows);
+
+      if (insertLabelError) {
+        setError(
+          "Produk berhasil diperbarui, tetapi label gagal disimpan: " +
+            insertLabelError.message
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
     setMessage(
-      "Perubahan produk berhasil disimpan. Mengembalikan ke daftar produk..."
+      "Perubahan produk dan label berhasil disimpan."
     );
 
     setSaving(false);
 
+    // Kembali otomatis ke daftar produk
     setTimeout(() => {
       router.push("/admin/produk");
-    }, 700);
+    }, 500);
   }
 
   async function handleUpload(e) {
@@ -293,17 +396,18 @@ export default function EditProdukPage() {
         const filePath =
           `produk/${productId}/${randomName}`;
 
-        const { error: uploadError } =
-          await supabase.storage
-            .from("produk")
-            .upload(
-              filePath,
-              file,
-              {
-                cacheControl: "3600",
-                upsert: false,
-              }
-            );
+        const {
+          error: uploadError,
+        } = await supabase.storage
+          .from("produk")
+          .upload(
+            filePath,
+            file,
+            {
+              cacheControl: "3600",
+              upsert: false,
+            }
+          );
 
         if (uploadError) {
           throw uploadError;
@@ -333,7 +437,8 @@ export default function EditProdukPage() {
           .insert({
             produk_id: Number(productId),
             url: publicData.publicUrl,
-            alt_text: form.nama || "Foto Produk",
+            alt_text:
+              form.nama || "Foto Produk",
             utama: isFirstPhoto,
           })
           .select()
@@ -377,11 +482,12 @@ export default function EditProdukPage() {
     setError("");
     setMessage("");
 
-    const { error: resetError } =
-      await supabase
-        .from("produk_gambar")
-        .update({ utama: false })
-        .eq("produk_id", productId);
+    const {
+      error: resetError,
+    } = await supabase
+      .from("produk_gambar")
+      .update({ utama: false })
+      .eq("produk_id", productId);
 
     if (resetError) {
       setError(
@@ -391,12 +497,13 @@ export default function EditProdukPage() {
       return;
     }
 
-    const { error: mainError } =
-      await supabase
-        .from("produk_gambar")
-        .update({ utama: true })
-        .eq("id", photoId)
-        .eq("produk_id", productId);
+    const {
+      error: mainError,
+    } = await supabase
+      .from("produk_gambar")
+      .update({ utama: true })
+      .eq("id", photoId)
+      .eq("produk_id", productId);
 
     if (mainError) {
       setError(
@@ -455,11 +562,12 @@ export default function EditProdukPage() {
           .remove([filePath]);
       }
 
-      const { error: deleteError } =
-        await supabase
-          .from("produk_gambar")
-          .delete()
-          .eq("id", photo.id);
+      const {
+        error: deleteError,
+      } = await supabase
+        .from("produk_gambar")
+        .delete()
+        .eq("id", photo.id);
 
       if (deleteError) {
         throw deleteError;
@@ -518,6 +626,7 @@ export default function EditProdukPage() {
       <div className="admin-page-header">
         <div>
           <h1>Edit Produk</h1>
+
           <p>
             Ubah informasi dan foto produk{" "}
             <strong>{produk.nama}</strong>.
@@ -536,6 +645,7 @@ export default function EditProdukPage() {
       </div>
 
       <div className="admin-card">
+
         <form
           onSubmit={handleSubmit}
           className="admin-form"
@@ -665,6 +775,110 @@ export default function EditProdukPage() {
             />
           </div>
 
+          {/* LABEL PRODUK */}
+
+          <div className="admin-form-group">
+
+            <label>
+              Label Produk
+            </label>
+
+            <p
+              style={{
+                marginTop: "-4px",
+                marginBottom: "12px",
+                color: "#777",
+                fontSize: "14px",
+              }}
+            >
+              Pilih satu atau beberapa label
+              yang sesuai dengan produk.
+            </p>
+
+            {labels.length === 0 ? (
+              <div
+                className="admin-message"
+              >
+                Belum ada label aktif.
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
+              >
+                {labels.map((label) => {
+                  const selected =
+                    selectedLabelIds.includes(
+                      Number(label.id)
+                    );
+
+                  return (
+                    <label
+                      key={label.id}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 14px",
+                        borderRadius: "10px",
+                        border: selected
+                          ? "2px solid #8a6429"
+                          : "1px solid #d8cbbd",
+                        background: selected
+                          ? "#f7eedf"
+                          : "#fff",
+                        cursor: "pointer",
+                        userSelect: "none",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() =>
+                          toggleLabel(
+                            label.id
+                          )
+                        }
+                      />
+
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "7px",
+                        }}
+                      >
+                        {label.warna && (
+                          <span
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              borderRadius: "50%",
+                              background:
+                                label.warna,
+                              display:
+                                "inline-block",
+                              border:
+                                "1px solid #ddd",
+                            }}
+                          />
+                        )}
+
+                        <strong>
+                          {label.nama}
+                        </strong>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+
           <div className="admin-form-checkbox">
             <input
               type="checkbox"
@@ -703,18 +917,27 @@ export default function EditProdukPage() {
           </button>
 
         </form>
+
       </div>
 
-      <div className="admin-card" style={{ marginTop: "24px" }}>
+      {/* FOTO PRODUK */}
+
+      <div
+        className="admin-card"
+        style={{ marginTop: "24px" }}
+      >
 
         <div className="admin-page-header">
+
           <div>
             <h2>Foto Produk</h2>
+
             <p>
               Upload foto produk dan pilih
               salah satunya sebagai foto utama.
             </p>
           </div>
+
         </div>
 
         <div
