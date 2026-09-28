@@ -1,7 +1,75 @@
-import Link from "next/link";
-const products=["Philips LED 9W","Inlite Panel OB 18W","Dexta Stop Kontak Gepeng","TRM Stop Kontak Kabel 3M"];
-export default function Home(){return <>
-<section className="hero"><div className="wrap"><p><b>TOKO LISTRIK SINAR KASIH</b></p><h1>Kebutuhan listrik, lampu & perlengkapan rumah.</h1><p>Temukan produk listrik untuk rumah, toko, kantor, dan kebutuhan proyek di Ambon.</p><Link className="btn" href="/kategori">Belanja Produk</Link></div></section>
-<section className="section"><div className="wrap"><h2>Produk Pilihan</h2><div className="cards">{products.map(p=><div className="card" key={p}><div className="img">Foto Produk</div><h3>{p}</h3><div className="price">Harga tersedia</div></div>)}</div></div></section>
-<section className="section"><div className="wrap"><div className="notice"><b>Catatan:</b> katalog produk nyata akan diisi setelah sistem website selesai.</div></div></section>
-</>}
+import { getSupabase } from "@/lib/supabase";
+
+export default async function Home() {
+  const supabase = getSupabase();
+
+  let products = [];
+  let errorMessage = null;
+
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("produk")
+      .select("id, nama, deskripsi")
+      .eq("aktif", true)
+      .order("id", { ascending: true });
+
+    if (error) {
+      errorMessage = error.message;
+    } else {
+      products = data || [];
+    }
+  } else {
+    errorMessage = "Koneksi Supabase belum tersedia.";
+  }
+
+  return (
+    <>
+      <section className="hero">
+        <div className="wrap">
+          <p>
+            <b>TOKO LISTRIK SINAR KASIH</b>
+          </p>
+
+          <h1>Kebutuhan listrik, lampu & perlengkapan rumah.</h1>
+
+          <p>
+            Temukan berbagai kebutuhan listrik dan perlengkapan rumah
+            dengan mudah.
+          </p>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap">
+          <h2>Produk Dari Database</h2>
+
+          {errorMessage ? (
+            <div className="notice">
+              <b>Koneksi database:</b> {errorMessage}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="notice">
+              Belum ada produk aktif di database.
+            </div>
+          ) : (
+            <div className="cards">
+              {products.map((product) => (
+                <div className="card" key={product.id}>
+                  <div className="img">
+                    Foto Produk
+                  </div>
+
+                  <h3>{product.nama}</h3>
+
+                  {product.deskripsi && (
+                    <p>{product.deskripsi}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
+  );
+}
