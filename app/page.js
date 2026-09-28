@@ -1,5 +1,5 @@
 import { getSupabase } from "../lib/supabase";
-
+export const dynamic = "force-dynamic";
 export default async function Home() {
   const supabase = getSupabase();
 
