@@ -14,9 +14,10 @@ export default function HargaProdukPage() {
   const [hargaLama, setHargaLama] = useState(null);
 
   const [modeHarga, setModeHarga] = useState("pasti");
-  const [harga, setHarga] = useState("");
-  const [hargaMin, setHargaMin] = useState("");
-  const [hargaMax, setHargaMax] = useState("");
+
+  const [harga, setHarga] = useState("0");
+  const [hargaMin, setHargaMin] = useState("0");
+  const [hargaMax, setHargaMax] = useState("0");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,6 +33,7 @@ export default function HargaProdukPage() {
   async function loadData() {
     setLoading(true);
     setError("");
+    setMessage("");
 
     const supabase = getSupabase();
 
@@ -82,30 +84,25 @@ export default function HargaProdukPage() {
     }
 
     if (hargaData) {
+      /*
+        Harga lama hanya ditampilkan sebagai
+        "Harga aktif saat ini".
+
+        Tidak dimasukkan otomatis ke kotak input,
+        supaya admin tidak mengira itu harga default.
+      */
+
       setHargaLama(hargaData);
-      setModeHarga(hargaData.mode_harga || "pasti");
-
-      setHarga(
-        hargaData.harga !== null &&
-          hargaData.harga !== undefined
-          ? String(hargaData.harga)
-          : ""
-      );
-
-      setHargaMin(
-        hargaData.harga_min !== null &&
-          hargaData.harga_min !== undefined
-          ? String(hargaData.harga_min)
-          : ""
-      );
-
-      setHargaMax(
-        hargaData.harga_max !== null &&
-          hargaData.harga_max !== undefined
-          ? String(hargaData.harga_max)
-          : ""
-      );
     }
+
+    /*
+      Input selalu dimulai dari 0.
+      Admin harus memasukkan harga yang ingin disimpan.
+    */
+
+    setHarga("0");
+    setHargaMin("0");
+    setHargaMax("0");
 
     setLoading(false);
   }
@@ -141,70 +138,46 @@ export default function HargaProdukPage() {
       return;
     }
 
-    /*
-      Ambil nilai LANGSUNG dari input form.
-      Jadi tidak bergantung pada state React.
-    */
-
     const form = e.currentTarget;
 
     const rawHarga =
-      form.elements.harga?.value || "";
+      form.elements.harga?.value || "0";
 
     const rawHargaMin =
-      form.elements.harga_min?.value || "";
+      form.elements.harga_min?.value || "0";
 
     const rawHargaMax =
-      form.elements.harga_max?.value || "";
+      form.elements.harga_max?.value || "0";
 
-    const hargaNumber =
-      rawHarga === ""
-        ? null
-        : Number(rawHarga);
-
-    const hargaMinNumber =
-      rawHargaMin === ""
-        ? null
-        : Number(rawHargaMin);
-
-    const hargaMaxNumber =
-      rawHargaMax === ""
-        ? null
-        : Number(rawHargaMax);
-
-    /*
-      Untuk harga pasti dan mulai dari.
-    */
+    const hargaNumber = Number(rawHarga);
+    const hargaMinNumber = Number(rawHargaMin);
+    const hargaMaxNumber = Number(rawHargaMax);
 
     if (
       modeHarga === "pasti" ||
       modeHarga === "mulai_dari"
     ) {
       if (
-        hargaNumber === null ||
-        Number.isNaN(hargaNumber)
+        !Number.isFinite(hargaNumber) ||
+        hargaNumber <= 0
       ) {
         setError(
-          "Silakan masukkan angka harga."
+          "Masukkan harga lebih dari Rp0."
         );
         setSaving(false);
         return;
       }
     }
 
-    /*
-      Untuk range harga.
-    */
-
     if (modeHarga === "range") {
       if (
-        hargaMinNumber === null ||
-        Number.isNaN(hargaMinNumber) ||
-        hargaMaxNumber === null ||
-        Number.isNaN(hargaMaxNumber)
+        !Number.isFinite(hargaMinNumber) ||
+        !Number.isFinite(hargaMaxNumber) ||
+        hargaMinNumber <= 0 ||
+        hargaMaxNumber <= 0
       ) {
         setError(
-          "Silakan masukkan harga minimum dan maksimum."
+          "Masukkan harga minimum dan maksimum."
         );
         setSaving(false);
         return;
@@ -242,10 +215,6 @@ export default function HargaProdukPage() {
       return;
     }
 
-    /*
-      Data yang akan disimpan.
-    */
-
     const payload = {
       produk_id: Number(productId),
       variasi_id: null,
@@ -270,10 +239,6 @@ export default function HargaProdukPage() {
       aktif: true,
     };
 
-    /*
-      Simpan langsung ke Supabase.
-    */
-
     const {
       data,
       error: insertError,
@@ -292,7 +257,22 @@ export default function HargaProdukPage() {
       return;
     }
 
+    /*
+      Setelah berhasil, harga baru menjadi
+      harga aktif saat ini.
+    */
+
     setHargaLama(data);
+
+    /*
+      Kosongkan kembali input supaya admin
+      tidak mengira angka tersebut adalah
+      nilai default untuk input berikutnya.
+    */
+
+    setHarga("0");
+    setHargaMin("0");
+    setHargaMax("0");
 
     setMessage(
       "Harga produk berhasil disimpan."
@@ -365,6 +345,46 @@ export default function HargaProdukPage() {
 
         </div>
 
+        {hargaLama && (
+          <div className="admin-current-price">
+
+            <div>
+              <span>
+                Harga aktif saat ini
+              </span>
+
+              <strong>
+
+                {hargaLama.mode_harga ===
+                  "pasti" &&
+                  formatRupiah(
+                    hargaLama.harga
+                  )}
+
+                {hargaLama.mode_harga ===
+                  "mulai_dari" &&
+                  `Mulai ${formatRupiah(
+                    hargaLama.harga
+                  )}`}
+
+                {hargaLama.mode_harga ===
+                  "range" &&
+                  `${formatRupiah(
+                    hargaLama.harga_min
+                  )} - ${formatRupiah(
+                    hargaLama.harga_max
+                  )}`}
+
+                {hargaLama.mode_harga ===
+                  "hubungi" &&
+                  "Hubungi Kami"}
+
+              </strong>
+            </div>
+
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="admin-form"
@@ -372,7 +392,9 @@ export default function HargaProdukPage() {
 
           <div className="admin-form-group">
 
-            <label>Mode Harga *</label>
+            <label>
+              Pilih Mode Harga *
+            </label>
 
             <div className="admin-price-options">
 
@@ -515,8 +537,8 @@ export default function HargaProdukPage() {
 
               <label>
                 {modeHarga === "pasti"
-                  ? "Harga"
-                  : "Harga Mulai"}
+                  ? "Masukkan Harga"
+                  : "Masukkan Harga Mulai"}
               </label>
 
               <div className="admin-price-input">
@@ -528,8 +550,10 @@ export default function HargaProdukPage() {
                   type="number"
                   min="0"
                   step="1"
-                  defaultValue={harga}
-                  placeholder="25000"
+                  value={harga}
+                  onChange={(e) =>
+                    setHarga(e.target.value)
+                  }
                 />
 
               </div>
@@ -545,7 +569,7 @@ export default function HargaProdukPage() {
               <div className="admin-form-group">
 
                 <label>
-                  Harga Minimum
+                  Masukkan Harga Minimum
                 </label>
 
                 <div className="admin-price-input">
@@ -557,8 +581,10 @@ export default function HargaProdukPage() {
                     type="number"
                     min="0"
                     step="1"
-                    defaultValue={hargaMin}
-                    placeholder="20000"
+                    value={hargaMin}
+                    onChange={(e) =>
+                      setHargaMin(e.target.value)
+                    }
                   />
 
                 </div>
@@ -568,7 +594,7 @@ export default function HargaProdukPage() {
               <div className="admin-form-group">
 
                 <label>
-                  Harga Maksimum
+                  Masukkan Harga Maksimum
                 </label>
 
                 <div className="admin-price-input">
@@ -580,8 +606,10 @@ export default function HargaProdukPage() {
                     type="number"
                     min="0"
                     step="1"
-                    defaultValue={hargaMax}
-                    placeholder="30000"
+                    value={hargaMax}
+                    onChange={(e) =>
+                      setHargaMax(e.target.value)
+                    }
                   />
 
                 </div>
@@ -592,42 +620,12 @@ export default function HargaProdukPage() {
 
           )}
 
-          {hargaLama && (
+          {modeHarga === "hubungi" && (
 
-            <div className="admin-current-price">
-
-              <span>
-                Harga aktif saat ini
-              </span>
-
-              <strong>
-
-                {hargaLama.mode_harga ===
-                  "pasti" &&
-                  formatRupiah(
-                    hargaLama.harga
-                  )}
-
-                {hargaLama.mode_harga ===
-                  "mulai_dari" &&
-                  `Mulai ${formatRupiah(
-                    hargaLama.harga
-                  )}`}
-
-                {hargaLama.mode_harga ===
-                  "range" &&
-                  `${formatRupiah(
-                    hargaLama.harga_min
-                  )} - ${formatRupiah(
-                    hargaLama.harga_max
-                  )}`}
-
-                {hargaLama.mode_harga ===
-                  "hubungi" &&
-                  "Hubungi Kami"}
-
-              </strong>
-
+            <div className="admin-message">
+              Harga produk tidak akan ditampilkan
+              kepada pelanggan. Pelanggan akan
+              diarahkan untuk menghubungi toko.
             </div>
 
           )}
