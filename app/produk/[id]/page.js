@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSupabase } from "../../../lib/supabase";
+import AddToCart from "./AddToCart";
 
 export const dynamic = "force-dynamic";
 
@@ -56,12 +57,16 @@ export default async function Page({ params }) {
       <section className="section">
         <div className="wrap">
           <h1>Produk tidak ditemukan</h1>
+
           {errorMessage && (
             <div className="notice">
               <b>Koneksi database:</b> {errorMessage}
             </div>
           )}
-          <Link href="/kategori">← Kembali ke Kategori</Link>
+
+          <Link href="/kategori">
+            ← Kembali ke Kategori
+          </Link>
         </div>
       </section>
     );
@@ -78,7 +83,9 @@ export default async function Page({ params }) {
   return (
     <section className="section">
       <div className="wrap">
-        <Link href="/kategori">← Kembali ke Kategori</Link>
+        <Link href="/kategori">
+          ← Kembali ke Kategori
+        </Link>
 
         <div className="product-detail">
           <div className="product-detail-image">
@@ -97,15 +104,18 @@ export default async function Page({ params }) {
 
             {price?.mode_harga === "pasti" && (
               <div className="price">
-                Rp {Number(price.harga || 0).toLocaleString("id-ID")}
+                Rp{" "}
+                {Number(price.harga || 0).toLocaleString("id-ID")}
               </div>
             )}
 
             {price?.mode_harga === "range" && (
               <div className="price">
-                Rp {Number(price.harga_min || 0).toLocaleString("id-ID")}
+                Rp{" "}
+                {Number(price.harga_min || 0).toLocaleString("id-ID")}
                 {" – "}
-                Rp {Number(price.harga_max || 0).toLocaleString("id-ID")}
+                Rp{" "}
+                {Number(price.harga_max || 0).toLocaleString("id-ID")}
               </div>
             )}
 
@@ -119,11 +129,15 @@ export default async function Page({ params }) {
             )}
 
             {price?.mode_harga === "hubungi" && (
-              <div className="price">Hubungi kami</div>
+              <div className="price">
+                Hubungi kami
+              </div>
             )}
 
             {!price && (
-              <div className="price">Harga tersedia</div>
+              <div className="price">
+                Harga tersedia
+              </div>
             )}
 
             {product.brand?.nama && (
@@ -148,9 +162,17 @@ export default async function Page({ params }) {
               <p>{product.deskripsi}</p>
             )}
 
-            <button className="btn">
-              Tambah ke Troli
-            </button>
+            <AddToCart
+              product={{
+                id: product.id,
+                nama: product.nama,
+                harga: price?.harga || 0,
+                mode_harga: price?.mode_harga || "pasti",
+                harga_min: price?.harga_min || 0,
+                harga_max: price?.harga_max || 0,
+                gambar: mainImage?.url || "",
+              }}
+            />
           </div>
         </div>
       </div>
