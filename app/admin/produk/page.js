@@ -28,30 +28,35 @@ export default function AdminProdukPage() {
       return;
     }
 
-    const { data, error: produkError } = await supabase
-      .from("produk")
-      .select(`
-        id,
-        nama,
-        sku,
-        slug,
-        satuan,
-        stok,
-        aktif,
-        created_at,
-        kategori:kategori_id (
+    const { data, error: produkError } =
+      await supabase
+        .from("produk")
+        .select(`
           id,
-          nama
-        ),
-        brand:brand_id (
-          id,
-          nama
-        )
-      `)
-      .order("id", { ascending: false });
+          nama,
+          sku,
+          slug,
+          satuan,
+          stok,
+          aktif,
+          created_at,
+          kategori:kategori_id (
+            id,
+            nama
+          ),
+          brand:brand_id (
+            id,
+            nama
+          )
+        `)
+        .order("id", { ascending: false });
 
     if (produkError) {
-      console.error("Gagal mengambil produk:", produkError);
+      console.error(
+        "Gagal mengambil produk:",
+        produkError
+      );
+
       setError(produkError.message);
       setLoading(false);
       return;
@@ -61,18 +66,29 @@ export default function AdminProdukPage() {
     setLoading(false);
   }
 
-  const produkFiltered = produk.filter((item) => {
-    const keyword = search.toLowerCase().trim();
+  const produkFiltered = produk.filter(
+    (item) => {
+      const keyword =
+        search.toLowerCase().trim();
 
-    if (!keyword) return true;
+      if (!keyword) return true;
 
-    return (
-      item.nama?.toLowerCase().includes(keyword) ||
-      item.sku?.toLowerCase().includes(keyword) ||
-      item.brand?.nama?.toLowerCase().includes(keyword) ||
-      item.kategori?.nama?.toLowerCase().includes(keyword)
-    );
-  });
+      return (
+        item.nama
+          ?.toLowerCase()
+          .includes(keyword) ||
+        item.sku
+          ?.toLowerCase()
+          .includes(keyword) ||
+        item.brand?.nama
+          ?.toLowerCase()
+          .includes(keyword) ||
+        item.kategori?.nama
+          ?.toLowerCase()
+          .includes(keyword)
+      );
+    }
+  );
 
   return (
     <main className="admin-content">
@@ -80,15 +96,21 @@ export default function AdminProdukPage() {
       <div className="admin-page-header">
         <div>
           <h1>Produk</h1>
+
           <p>
-            Kelola seluruh produk Toko Listrik Sinar Kasih.
+            Kelola seluruh produk
+            Toko Listrik Sinar Kasih.
           </p>
         </div>
 
         <button
           type="button"
           className="admin-primary-button"
-          onClick={() => router.push("/admin/produk/tambah")}
+          onClick={() =>
+            router.push(
+              "/admin/produk/tambah"
+            )
+          }
         >
           + Tambah Produk
         </button>
@@ -100,7 +122,9 @@ export default function AdminProdukPage() {
           type="text"
           placeholder="Cari nama produk, SKU, brand..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
         />
 
         <div className="admin-product-count">
@@ -121,20 +145,27 @@ export default function AdminProdukPage() {
         </div>
       ) : produkFiltered.length === 0 ? (
         <div className="admin-card admin-empty">
+
           <h2>Belum ada produk</h2>
 
           <p>
-            Tambahkan produk pertama melalui tombol
+            Tambahkan produk pertama
+            melalui tombol
             <strong> Tambah Produk</strong>.
           </p>
 
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => router.push("/admin/produk/tambah")}
+            onClick={() =>
+              router.push(
+                "/admin/produk/tambah"
+              )
+            }
           >
             + Tambah Produk
           </button>
+
         </div>
       ) : (
         <div className="admin-product-table-card">
@@ -157,77 +188,84 @@ export default function AdminProdukPage() {
 
               <tbody>
 
-                {produkFiltered.map((item) => (
-                  <tr key={item.id}>
+                {produkFiltered.map(
+                  (item) => (
+                    <tr key={item.id}>
 
-                    <td>
-                      <div className="admin-product-name">
-                        {item.nama}
-                      </div>
+                      <td>
+                        <div className="admin-product-name">
+                          {item.nama}
+                        </div>
 
-                      <div className="admin-product-slug">
-                        /{item.slug}
-                      </div>
-                    </td>
+                        <div className="admin-product-slug">
+                          /{item.slug}
+                        </div>
+                      </td>
 
-                    <td>
-                      {item.sku || "-"}
-                    </td>
+                      <td>
+                        {item.sku || "-"}
+                      </td>
 
-                    <td>
-                      {item.kategori?.nama || "-"}
-                    </td>
+                      <td>
+                        {item.kategori?.nama ||
+                          "-"}
+                      </td>
 
-                    <td>
-                      {item.brand?.nama || "-"}
-                    </td>
+                      <td>
+                        {item.brand?.nama ||
+                          "-"}
+                      </td>
 
-                    <td>
-                      {item.stok ?? 0} {item.satuan || ""}
-                    </td>
+                      <td>
+                        {item.stok ?? 0}{" "}
+                        {item.satuan || ""}
+                      </td>
 
-                    <td>
-                      {item.aktif ? (
-                        <span className="admin-status active">
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="admin-status inactive">
-                          Nonaktif
-                        </span>
-                      )}
-                    </td>
+                      <td>
+                        {item.aktif ? (
+                          <span className="admin-status active">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="admin-status inactive">
+                            Nonaktif
+                          </span>
+                        )}
+                      </td>
 
-                    <td>
-                      <div className="admin-product-actions">
+                      <td>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            alert(
-                              `Edit produk "${item.nama}" akan kita buat pada tahap berikutnya.`
-                            )
-                          }
-                        >
-                          Edit
-                        </button>
+                        <div className="admin-product-actions">
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            router.push(
-                              `/admin/produk/${item.id}/harga`
-                            )
-                          }
-                        >
-                          Harga
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/admin/produk/${item.id}/edit`
+                              )
+                            }
+                          >
+                            Edit
+                          </button>
 
-                      </div>
-                    </td>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/admin/produk/${item.id}/harga`
+                              )
+                            }
+                          >
+                            Harga
+                          </button>
 
-                  </tr>
-                ))}
+                        </div>
+
+                      </td>
+
+                    </tr>
+                  )
+                )}
 
               </tbody>
 
