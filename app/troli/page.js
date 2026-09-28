@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 export default function Page() {
   const [cart, setCart] = useState([]);
@@ -27,7 +26,10 @@ export default function Page() {
     const nextCart = cart
       .map((item) =>
         item.id === id
-          ? { ...item, qty: item.qty + amount }
+          ? {
+              ...item,
+              qty: item.qty + amount,
+            }
           : item
       )
       .filter((item) => item.qty > 0);
@@ -36,20 +38,26 @@ export default function Page() {
   }
 
   function removeItem(id) {
-    saveCart(cart.filter((item) => item.id !== id));
+    const nextCart = cart.filter(
+      (item) => item.id !== id
+    );
+
+    saveCart(nextCart);
   }
 
   function getDisplayPrice(item) {
     if (item.mode_harga === "pasti") {
-      return `Rp ${Number(item.harga || 0).toLocaleString("id-ID")}`;
+      return `Rp ${Number(
+        item.harga || 0
+      ).toLocaleString("id-ID")}`;
     }
 
     if (item.mode_harga === "range") {
-      return `Rp ${Number(item.harga_min || 0).toLocaleString(
-        "id-ID"
-      )} – Rp ${Number(item.harga_max || 0).toLocaleString(
-        "id-ID"
-      )}`;
+      return `Rp ${Number(
+        item.harga_min || 0
+      ).toLocaleString("id-ID")} – Rp ${Number(
+        item.harga_max || 0
+      ).toLocaleString("id-ID")}`;
     }
 
     if (item.mode_harga === "mulai_dari") {
@@ -58,8 +66,17 @@ export default function Page() {
       ).toLocaleString("id-ID")}`;
     }
 
-    return "Hubungi kami";
+    if (item.mode_harga === "hubungi") {
+      return "Hubungi kami";
+    }
+
+    return "Harga tersedia";
   }
+
+  const totalItems = cart.reduce(
+    (total, item) => total + item.qty,
+    0
+  );
 
   return (
     <section className="section">
@@ -71,15 +88,19 @@ export default function Page() {
             Troli masih kosong.
             <br />
             <br />
-            <Link href="/kategori">
+
+            <a href="/kategori">
               ← Belanja Produk
-            </Link>
+            </a>
           </div>
         ) : (
           <>
             <div className="cards">
               {cart.map((item) => (
-                <div className="card" key={item.id}>
+                <div
+                  className="card"
+                  key={item.id}
+                >
                   <div className="img">
                     {item.gambar ? (
                       <img
@@ -97,11 +118,14 @@ export default function Page() {
                     {getDisplayPrice(item)}
                   </div>
 
-                  <p>Jumlah: {item.qty}</p>
+                  <p>
+                    Jumlah: {item.qty}
+                  </p>
 
                   <div>
                     <button
                       className="btn"
+                      type="button"
                       onClick={() =>
                         changeQty(item.id, -1)
                       }
@@ -111,6 +135,7 @@ export default function Page() {
 
                     <button
                       className="btn"
+                      type="button"
                       onClick={() =>
                         changeQty(item.id, 1)
                       }
@@ -120,6 +145,7 @@ export default function Page() {
 
                     <button
                       className="btn"
+                      type="button"
                       onClick={() =>
                         removeItem(item.id)
                       }
@@ -133,16 +159,17 @@ export default function Page() {
 
             <div className="notice">
               <b>Jumlah produk:</b>{" "}
-              {cart.reduce(
-                (total, item) => total + item.qty,
-                0
-              )}
+              {totalItems}
+
               <br />
               <br />
 
-              <button className="btn">
+              <a
+                href="/checkout"
+                className="btn"
+              >
                 Lanjut Checkout
-              </button>
+              </a>
             </div>
           </>
         )}
