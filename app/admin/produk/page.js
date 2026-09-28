@@ -215,8 +215,8 @@ export default function AdminProdukPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            alert(
-                              `Pengaturan harga "${item.nama}" akan kita buat pada tahap berikutnya.`
+                            router.push(
+                              `/admin/produk/${item.id}/harga`
                             )
                           }
                         >
