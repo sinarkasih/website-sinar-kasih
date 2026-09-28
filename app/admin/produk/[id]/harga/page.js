@@ -83,7 +83,6 @@ export default function HargaProdukPage() {
 
     if (hargaData) {
       setHargaLama(hargaData);
-
       setModeHarga(hargaData.mode_harga || "pasti");
 
       setHarga(
@@ -127,20 +126,6 @@ export default function HargaProdukPage() {
     }).format(Number(value));
   }
 
-  function getNumber(value) {
-    if (
-      value === null ||
-      value === undefined
-    ) {
-      return 0;
-    }
-
-    const cleaned = String(value)
-      .replace(/[^\d]/g, "");
-
-    return Number(cleaned);
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -156,21 +141,35 @@ export default function HargaProdukPage() {
       return;
     }
 
-    const hargaNumber = getNumber(harga);
-    const hargaMinNumber = getNumber(hargaMin);
-    const hargaMaxNumber = getNumber(hargaMax);
+    /*
+      Ubah nilai input menjadi angka.
+      Contoh:
+      "25000" -> 25000
+    */
 
-    if (modeHarga === "pasti") {
-      if (!hargaNumber || hargaNumber <= 0) {
-        setError("Masukkan harga yang valid.");
-        setSaving(false);
-        return;
-      }
-    }
+    const hargaNumber =
+      harga === "" ? null : Number(harga);
 
-    if (modeHarga === "mulai_dari") {
-      if (!hargaNumber || hargaNumber <= 0) {
-        setError("Masukkan harga mulai yang valid.");
+    const hargaMinNumber =
+      hargaMin === "" ? null : Number(hargaMin);
+
+    const hargaMaxNumber =
+      hargaMax === "" ? null : Number(hargaMax);
+
+    /*
+      Cek hanya apakah nilai yang dikirim memang angka.
+      Tidak menggunakan validasi pesan lama.
+    */
+
+    if (
+      modeHarga === "pasti" ||
+      modeHarga === "mulai_dari"
+    ) {
+      if (
+        hargaNumber === null ||
+        !Number.isFinite(hargaNumber)
+      ) {
+        setError("Silakan masukkan angka harga.");
         setSaving(false);
         return;
       }
@@ -178,13 +177,13 @@ export default function HargaProdukPage() {
 
     if (modeHarga === "range") {
       if (
-        !hargaMinNumber ||
-        hargaMinNumber <= 0 ||
-        !hargaMaxNumber ||
-        hargaMaxNumber <= 0
+        hargaMinNumber === null ||
+        !Number.isFinite(hargaMinNumber) ||
+        hargaMaxNumber === null ||
+        !Number.isFinite(hargaMaxNumber)
       ) {
         setError(
-          "Masukkan harga minimum dan maksimum."
+          "Silakan masukkan harga minimum dan maksimum."
         );
         setSaving(false);
         return;
@@ -199,9 +198,9 @@ export default function HargaProdukPage() {
       }
     }
 
-    if (modeHarga === "hubungi") {
-      // Tidak membutuhkan nilai harga.
-    }
+    /*
+      Nonaktifkan harga aktif sebelumnya.
+    */
 
     const { error: deactivateError } =
       await supabase
@@ -212,10 +211,17 @@ export default function HargaProdukPage() {
         .eq("aktif", true);
 
     if (deactivateError) {
-      setError(deactivateError.message);
+      setError(
+        "Gagal menonaktifkan harga lama: " +
+          deactivateError.message
+      );
       setSaving(false);
       return;
     }
+
+    /*
+      Siapkan data harga baru.
+    */
 
     const payload = {
       produk_id: Number(productId),
@@ -237,6 +243,10 @@ export default function HargaProdukPage() {
       aktif: true,
     };
 
+    /*
+      Simpan ke Supabase.
+    */
+
     const { data, error: insertError } =
       await supabase
         .from("harga_produk")
@@ -245,7 +255,10 @@ export default function HargaProdukPage() {
         .single();
 
     if (insertError) {
-      setError(insertError.message);
+      setError(
+        "Gagal menyimpan harga: " +
+          insertError.message
+      );
       setSaving(false);
       return;
     }
@@ -283,6 +296,7 @@ export default function HargaProdukPage() {
     <main className="admin-content">
 
       <div className="admin-page-header">
+
         <div>
           <h1>Harga Produk</h1>
 
@@ -301,6 +315,7 @@ export default function HargaProdukPage() {
         >
           ← Kembali
         </button>
+
       </div>
 
       <div className="admin-card">
@@ -461,6 +476,7 @@ export default function HargaProdukPage() {
               </label>
 
             </div>
+
           </div>
 
           {(modeHarga === "pasti" ||
@@ -492,6 +508,7 @@ export default function HargaProdukPage() {
               </div>
 
             </div>
+
           )}
 
           {modeHarga === "range" && (
@@ -549,6 +566,7 @@ export default function HargaProdukPage() {
               </div>
 
             </div>
+
           )}
 
           {hargaLama && (
@@ -588,6 +606,7 @@ export default function HargaProdukPage() {
               </strong>
 
             </div>
+
           )}
 
           {error && (
