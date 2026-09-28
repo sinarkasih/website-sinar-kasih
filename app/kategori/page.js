@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Link from "next/link";
 import { getSupabase } from "../../lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -57,4 +56,3 @@ export default async function Page() {
     </section>
   );
 }
-export default function Page(){return <section className="section"><div className="wrap"><h1>Kategori Produk</h1><div className="list">{cats.map(c=><Link href={"/cari?q="+encodeURIComponent(c)} key={c}>{c} →</Link>)}</div></div></section>}
