@@ -142,23 +142,38 @@ export default function HargaProdukPage() {
     }
 
     /*
-      Ubah nilai input menjadi angka.
-      Contoh:
-      "25000" -> 25000
+      Ambil nilai LANGSUNG dari input form.
+      Jadi tidak bergantung pada state React.
     */
 
+    const form = e.currentTarget;
+
+    const rawHarga =
+      form.elements.harga?.value || "";
+
+    const rawHargaMin =
+      form.elements.harga_min?.value || "";
+
+    const rawHargaMax =
+      form.elements.harga_max?.value || "";
+
     const hargaNumber =
-      harga === "" ? null : Number(harga);
+      rawHarga === ""
+        ? null
+        : Number(rawHarga);
 
     const hargaMinNumber =
-      hargaMin === "" ? null : Number(hargaMin);
+      rawHargaMin === ""
+        ? null
+        : Number(rawHargaMin);
 
     const hargaMaxNumber =
-      hargaMax === "" ? null : Number(hargaMax);
+      rawHargaMax === ""
+        ? null
+        : Number(rawHargaMax);
 
     /*
-      Cek hanya apakah nilai yang dikirim memang angka.
-      Tidak menggunakan validasi pesan lama.
+      Untuk harga pasti dan mulai dari.
     */
 
     if (
@@ -167,20 +182,26 @@ export default function HargaProdukPage() {
     ) {
       if (
         hargaNumber === null ||
-        !Number.isFinite(hargaNumber)
+        Number.isNaN(hargaNumber)
       ) {
-        setError("Silakan masukkan angka harga.");
+        setError(
+          "Silakan masukkan angka harga."
+        );
         setSaving(false);
         return;
       }
     }
 
+    /*
+      Untuk range harga.
+    */
+
     if (modeHarga === "range") {
       if (
         hargaMinNumber === null ||
-        !Number.isFinite(hargaMinNumber) ||
+        Number.isNaN(hargaMinNumber) ||
         hargaMaxNumber === null ||
-        !Number.isFinite(hargaMaxNumber)
+        Number.isNaN(hargaMaxNumber)
       ) {
         setError(
           "Silakan masukkan harga minimum dan maksimum."
@@ -205,14 +226,16 @@ export default function HargaProdukPage() {
     const { error: deactivateError } =
       await supabase
         .from("harga_produk")
-        .update({ aktif: false })
+        .update({
+          aktif: false,
+        })
         .eq("produk_id", productId)
         .is("variasi_id", null)
         .eq("aktif", true);
 
     if (deactivateError) {
       setError(
-        "Gagal menonaktifkan harga lama: " +
+        "Gagal memperbarui harga lama: " +
           deactivateError.message
       );
       setSaving(false);
@@ -220,39 +243,45 @@ export default function HargaProdukPage() {
     }
 
     /*
-      Siapkan data harga baru.
+      Data yang akan disimpan.
     */
 
     const payload = {
       produk_id: Number(productId),
       variasi_id: null,
       mode_harga: modeHarga,
+
       harga:
         modeHarga === "pasti" ||
         modeHarga === "mulai_dari"
           ? hargaNumber
           : null,
+
       harga_min:
         modeHarga === "range"
           ? hargaMinNumber
           : null,
+
       harga_max:
         modeHarga === "range"
           ? hargaMaxNumber
           : null,
+
       aktif: true,
     };
 
     /*
-      Simpan ke Supabase.
+      Simpan langsung ke Supabase.
     */
 
-    const { data, error: insertError } =
-      await supabase
-        .from("harga_produk")
-        .insert(payload)
-        .select()
-        .single();
+    const {
+      data,
+      error: insertError,
+    } = await supabase
+      .from("harga_produk")
+      .insert(payload)
+      .select()
+      .single();
 
     if (insertError) {
       setError(
@@ -495,13 +524,11 @@ export default function HargaProdukPage() {
                 <span>Rp</span>
 
                 <input
+                  name="harga"
                   type="number"
                   min="0"
                   step="1"
-                  value={harga}
-                  onChange={(e) =>
-                    setHarga(e.target.value)
-                  }
+                  defaultValue={harga}
                   placeholder="25000"
                 />
 
@@ -526,13 +553,11 @@ export default function HargaProdukPage() {
                   <span>Rp</span>
 
                   <input
+                    name="harga_min"
                     type="number"
                     min="0"
                     step="1"
-                    value={hargaMin}
-                    onChange={(e) =>
-                      setHargaMin(e.target.value)
-                    }
+                    defaultValue={hargaMin}
                     placeholder="20000"
                   />
 
@@ -551,13 +576,11 @@ export default function HargaProdukPage() {
                   <span>Rp</span>
 
                   <input
+                    name="harga_max"
                     type="number"
                     min="0"
                     step="1"
-                    value={hargaMax}
-                    onChange={(e) =>
-                      setHargaMax(e.target.value)
-                    }
+                    defaultValue={hargaMax}
                     placeholder="30000"
                   />
 
