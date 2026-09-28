@@ -92,7 +92,6 @@ export default function AdminKategoriPage() {
     setGambarFile(null);
     setPreview("");
     setError("");
-    setMessage("");
   }
 
   function mulaiEdit(item) {
@@ -100,11 +99,13 @@ export default function AdminKategoriPage() {
 
     setNama(item.nama || "");
     setSlug(item.slug || "");
+
     setParentId(
       item.parent_id
         ? String(item.parent_id)
         : ""
     );
+
     setDeskripsi(item.deskripsi || "");
     setUrutan(item.urutan ?? 0);
 
@@ -220,6 +221,8 @@ export default function AdminKategoriPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    const sedangEdit = Boolean(editingId);
 
     setSaving(true);
     setError("");
@@ -337,15 +340,33 @@ export default function AdminKategoriPage() {
         setUploading(false);
       }
 
-      setMessage(
-        editingId
-          ? "Kategori berhasil diperbarui."
-          : "Kategori berhasil ditambahkan."
-      );
+      await loadKategori();
 
       resetForm();
 
-      await loadKategori();
+      setMessage(
+        sedangEdit
+          ? "Kategori berhasil diperbarui. Data terbaru sudah ditampilkan di daftar kategori."
+          : "Kategori berhasil ditambahkan."
+      );
+
+      setSaving(false);
+
+      if (sedangEdit) {
+        setTimeout(() => {
+          const daftar =
+            document.getElementById(
+              "daftar-kategori"
+            );
+
+          if (daftar) {
+            daftar.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 300);
+      }
     } catch (submitError) {
       setUploading(false);
 
@@ -353,9 +374,9 @@ export default function AdminKategoriPage() {
         "Gagal menyimpan kategori: " +
           submitError.message
       );
-    }
 
-    setSaving(false);
+      setSaving(false);
+    }
   }
 
   async function hapusGambar(item) {
@@ -368,6 +389,14 @@ export default function AdminKategoriPage() {
     if (!yakin) return;
 
     const supabase = getSupabase();
+
+    if (!supabase) {
+      setError("Koneksi database belum tersedia.");
+      return;
+    }
+
+    setError("");
+    setMessage("");
 
     try {
       await hapusFileStorage(
@@ -520,7 +549,9 @@ export default function AdminKategoriPage() {
             </div>
 
             <div className="admin-form-group">
-              <label>Slug</label>
+              <label>
+                Slug
+              </label>
 
               <input
                 value={slug}
@@ -642,12 +673,17 @@ export default function AdminKategoriPage() {
             />
 
             <small>
-              JPG, PNG atau WEBP. Maksimal 5 MB.
+              JPG, PNG atau WEBP.
+              Maksimal 5 MB.
             </small>
 
             {editingId &&
               gambarUrl && (
-                <div style={{ marginTop: "10px" }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                  }}
+                >
                   <button
                     type="button"
                     className="admin-secondary-button"
@@ -705,7 +741,10 @@ export default function AdminKategoriPage() {
               <button
                 type="button"
                 className="admin-secondary-button"
-                onClick={resetForm}
+                onClick={() => {
+                  resetForm();
+                  setMessage("");
+                }}
               >
                 Batal Edit
               </button>
@@ -718,6 +757,7 @@ export default function AdminKategoriPage() {
       </div>
 
       <div
+        id="daftar-kategori"
         className="admin-card"
         style={{ marginTop: "24px" }}
       >
@@ -753,20 +793,28 @@ export default function AdminKategoriPage() {
         </div>
 
         {loading ? (
-          <div style={{ padding: "20px 0" }}>
+          <div
+            style={{
+              padding: "20px 0",
+            }}
+          >
             Memuat kategori...
           </div>
         ) : filteredKategori.length === 0 ? (
           <div
             className="admin-message"
-            style={{ marginTop: "20px" }}
+            style={{
+              marginTop: "20px",
+            }}
           >
             Belum ada kategori yang sesuai.
           </div>
         ) : (
           <div
             className="admin-product-table-wrapper"
-            style={{ marginTop: "20px" }}
+            style={{
+              marginTop: "20px",
+            }}
           >
 
             <table className="admin-product-table">
