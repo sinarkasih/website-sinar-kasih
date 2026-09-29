@@ -1,12 +1,15 @@
 <div className="topActions">
-  <Link href="/admin/toko/kontak" className="contactButton">
+  <a
+    href="/admin/toko/kontak"
+    className="contactButton"
+  >
     Informasi Toko & Kontak
-  </Link>
+  </a>
 
-  <Link
+  <a
     href="/admin/toko/cabang/tambah"
     className="addButton"
   >
     + Tambah Cabang
-  </Link>
+  </a>
 </div>
