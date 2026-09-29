@@ -1,591 +1,471 @@
-import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
-function normalizeSocialUrl(value, platform) {
-  if (!value) return "";
+function normalizeUrl(value, type) {
+  if (!value) return "#";
 
-  const text = String(value).trim();
+  let url = value.trim();
 
-  if (!text) return "";
+  if (type === "instagram") {
+    if (url.startsWith("@")) {
+      url = url.substring(1);
+    }
 
-  if (/^https?:\/\//i.test(text)) {
-    return text;
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `https://instagram.com/${url}`;
+    }
   }
 
-  if (platform === "instagram") {
-    return `https://instagram.com/${text.replace(/^@/, "")}`;
+  if (type === "tiktok") {
+    if (url.startsWith("@")) {
+      url = url.substring(1);
+    }
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `https://tiktok.com/@${url}`;
+    }
   }
 
-  if (platform === "tiktok") {
-    return `https://tiktok.com/@${text.replace(/^@/, "")}`;
+  if (type === "whatsapp") {
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      const number = url.replace(/\D/g, "");
+      url = `https://wa.me/${number}`;
+    }
   }
 
-  return text;
-}
-
-function normalizeWhatsApp(value) {
-  if (!value) return "";
-
-  let number = String(value).replace(/\D/g, "");
-
-  if (number.startsWith("0")) {
-    number = `62${number.slice(1)}`;
-  }
-
-  if (!number.startsWith("62")) {
-    number = `62${number}`;
-  }
-
-  return number;
+  return url;
 }
 
 function StoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 10v10h16V10" />
-      <path d="M3 10 5 4h14l2 6" />
-      <path d="M3 10c.8 1 1.7 1.5 3 1.5S8.2 11 9 10c.8 1 1.7 1.5 3 1.5s2.2-.5 3-1.5c.8 1 1.7 1.5 3 1.5s2.2-.5 3-1.5" />
-      <path d="M9 20v-5h6v5" />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 10h18" />
+      <path d="M5 10v10h14V10" />
+      <path d="M4 10l1.5-6h13L20 10" />
+      <path d="M8 20v-6h8v6" />
     </svg>
   );
 }
 
 function WhatsAppIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        stroke="none"
-        d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.5 0 .2 5.3.2 11.9c0 2.1.5 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.7 1.5h.1c6.5 0 11.8-5.3 11.8-11.9 0-3.2-1.2-6.2-3.5-8.4Zm-8.4 18.1h-.1a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.5 4.7Zm5.4-7.4c-.3-.2-1.7-.9-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.2-.2.2-.3.3-.5.1-.2.1-.4 0-.5-.1-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4Z"
-      />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 11.5a8.5 8.5 0 0 1-12.7 7.4L4 20l1.1-3.2A8.5 8.5 0 1 1 20 11.5Z" />
+      <path d="M8.5 8.5c.3-.7.6-.7.9-.7h.6c.2 0 .4.1.5.4l.8 1.8c.1.2.1.4-.1.6l-.6.7c-.1.1-.2.3-.1.5.4.8 1 1.4 1.7 1.9.7.5 1.3.8 1.6.9.2.1.4 0 .5-.1l.7-.8c.2-.2.4-.2.6-.1l1.7.8c.2.1.3.3.3.5v.6c0 .3-.1.6-.4.8-.4.3-1 .5-1.6.4-1.1-.2-2.3-.8-3.5-1.8-1.1-.9-2.1-2.1-2.8-3.2-.7-1.1-1-2.1-.8-3.2.1-.5.3-1 .5-1.3Z" />
     </svg>
   );
 }
 
 function InstagramIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="18"
-        rx="5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <circle
-        cx="17.5"
-        cy="6.5"
-        r="1"
-        fill="currentColor"
-        stroke="none"
-      />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
 
 function TikTokIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        stroke="none"
-        d="M16.7 3c.2 1.8 1.2 3.2 3.1 4v3.1c-1.4 0-2.8-.4-4-1.2v6.3a5.8 5.8 0 1 1-5-5.7v3.2a2.7 2.7 0 1 0 1.9 2.5V3h4Z"
-      />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 4c.3 2 1.4 3.3 3.5 3.6" />
+      <path d="M15 4v10.2a4.2 4.2 0 1 1-3.8-4.2" />
+      <path d="M15 4c.8 1.4 1.8 2.2 3.5 2.6" />
     </svg>
   );
 }
 
 function InfoIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M12 10.5v6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <circle
-        cx="12"
-        cy="7.2"
-        r="1"
-        fill="currentColor"
-        stroke="none"
-      />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v6" />
+      <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
 
 function CartIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M3 4h2l2.1 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L20 8H6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx="10"
-        cy="20"
-        r="1.3"
-        fill="currentColor"
-      />
-      <circle
-        cx="17"
-        cy="20"
-        r="1.3"
-        fill="currentColor"
-      />
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H6" />
+      <circle cx="10" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
     </svg>
   );
 }
 
 function ArrowIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M5 12h13M13 6l6 6-6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
     </svg>
   );
 }
 
-function MenuCard({
-  href,
-  icon,
-  title,
-  description,
-  external = false,
-  disabled = false,
-  iconClass = "",
-}) {
-  const content = (
-    <>
-      <div className={`menuIcon ${iconClass}`}>
-        {icon}
-      </div>
-
-      <div className="menuText">
-        <strong>{title}</strong>
-        <span>{description}</span>
-      </div>
-
-      <div className="menuArrow">
-        <ArrowIcon />
-      </div>
-    </>
-  );
-
-  if (disabled) {
-    return (
-      <div className="menuCard disabled">
-        {content}
-      </div>
-    );
-  }
-
-  if (external) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="menuCard"
-      >
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className="menuCard">
-      {content}
-    </Link>
-  );
-}
-
-export default async function Page() {
-  let kontak = {
-    whatsapp: "",
-    instagram: "",
-    tiktok: "",
-    email: "",
-  };
-
+export default async function LainnyaPage() {
   const supabase = getSupabase();
 
-  if (supabase) {
-    const { data } = await supabase
-      .from("kontak_toko")
-      .select("whatsapp, instagram, tiktok, email")
-      .order("id", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+  const { data: kontak } = await supabase
+    .from("kontak_toko")
+    .select("whatsapp, instagram, tiktok, email")
+    .limit(1)
+    .maybeSingle();
 
-    if (data) {
-      kontak = {
-        whatsapp: data.whatsapp || "",
-        instagram: data.instagram || "",
-        tiktok: data.tiktok || "",
-        email: data.email || "",
-      };
-    }
-  }
+  const whatsappUrl = normalizeUrl(kontak?.whatsapp, "whatsapp");
+  const instagramUrl = normalizeUrl(kontak?.instagram, "instagram");
+  const tiktokUrl = normalizeUrl(kontak?.tiktok, "tiktok");
 
-  const whatsappNumber = normalizeWhatsApp(
-    kontak.whatsapp
-  );
-
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "";
-
-  const instagramUrl = normalizeSocialUrl(
-    kontak.instagram,
-    "instagram"
-  );
-
-  const tiktokUrl = normalizeSocialUrl(
-    kontak.tiktok,
-    "tiktok"
-  );
+  const items = [
+    {
+      href: "/toko",
+      title: "Toko Kami",
+      description:
+        "Lihat lokasi, alamat, nomor telepon, Google Maps, dan Google Review toko kami.",
+      icon: <StoreIcon />,
+      external: false,
+    },
+    {
+      href: whatsappUrl,
+      title: "WhatsApp",
+      description:
+        "Hubungi kami langsung melalui WhatsApp untuk bertanya tentang produk dan pesanan.",
+      icon: <WhatsAppIcon />,
+      external: true,
+    },
+    {
+      href: instagramUrl,
+      title: "Instagram",
+      description:
+        "Ikuti Instagram Sinar Kasih untuk melihat produk, promo, dan informasi terbaru.",
+      icon: <InstagramIcon />,
+      external: true,
+    },
+    {
+      href: tiktokUrl,
+      title: "TikTok",
+      description:
+        "Lihat video produk dan informasi terbaru Toko Listrik Sinar Kasih.",
+      icon: <TikTokIcon />,
+      external: true,
+    },
+    {
+      href: "/tentang",
+      title: "Tentang Sinar Kasih",
+      description:
+        "Kenali Toko Listrik Sinar Kasih dan berbagai kebutuhan listrik yang kami sediakan.",
+      icon: <InfoIcon />,
+      external: false,
+    },
+    {
+      href: "/cara-pesan",
+      title: "Cara Pesan",
+      description:
+        "Pelajari cara memilih produk dan melakukan pemesanan dengan mudah.",
+      icon: <CartIcon />,
+      external: false,
+    },
+  ];
 
   return (
     <>
-      <section className="section">
-        <div className="wrap lainnyaWrap">
-          <div className="lainnyaHeader">
-            <span className="eyebrow">
-              SINAR KASIH
-            </span>
-
-            <h1>Lainnya</h1>
-
+      <main className="lainnyaPage">
+        <div className="lainnyaContainer">
+          <header className="lainnyaHeader">
+            <h1>Informasi &amp; Layanan</h1>
             <p>
-              Temukan informasi, lokasi toko, dan
-              layanan Toko Listrik Sinar Kasih.
+              Temukan informasi toko, layanan, media sosial, dan cara
+              berbelanja di Toko Listrik Sinar Kasih.
             </p>
-          </div>
+          </header>
 
-          <div className="menuGrid">
-            <MenuCard
-              href="/toko"
-              icon={<StoreIcon />}
-              title="Toko Kami"
-              description="Lihat lokasi dan informasi cabang toko"
-              iconClass="storeIcon"
-            />
+          <section className="lainnyaGrid">
+            {items.map((item) => (
+              <a
+                key={item.title}
+                href={item.href}
+                className="lainnyaCard"
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
+              >
+                <div className="lainnyaIcon">{item.icon}</div>
 
-            {whatsappUrl ? (
-              <MenuCard
-                href={whatsappUrl}
-                external
-                icon={<WhatsAppIcon />}
-                title="WhatsApp"
-                description="Hubungi kami untuk bertanya atau pesan"
-                iconClass="whatsappIcon"
-              />
-            ) : (
-              <MenuCard
-                disabled
-                icon={<WhatsAppIcon />}
-                title="WhatsApp"
-                description="Kontak WhatsApp belum tersedia"
-                iconClass="whatsappIcon"
-              />
-            )}
+                <div className="lainnyaContent">
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                </div>
 
-            {instagramUrl ? (
-              <MenuCard
-                href={instagramUrl}
-                external
-                icon={<InstagramIcon />}
-                title="Instagram"
-                description="Ikuti informasi dan produk terbaru kami"
-                iconClass="instagramIcon"
-              />
-            ) : (
-              <MenuCard
-                disabled
-                icon={<InstagramIcon />}
-                title="Instagram"
-                description="Instagram belum tersedia"
-                iconClass="instagramIcon"
-              />
-            )}
-
-            {tiktokUrl ? (
-              <MenuCard
-                href={tiktokUrl}
-                external
-                icon={<TikTokIcon />}
-                title="TikTok"
-                description="Lihat video dan konten terbaru kami"
-                iconClass="tiktokIcon"
-              />
-            ) : (
-              <MenuCard
-                disabled
-                icon={<TikTokIcon />}
-                title="TikTok"
-                description="TikTok belum tersedia"
-                iconClass="tiktokIcon"
-              />
-            )}
-
-            <MenuCard
-              href="/tentang-sinar-kasih"
-              icon={<InfoIcon />}
-              title="Tentang Sinar Kasih"
-              description="Kenali Toko Listrik Sinar Kasih lebih dekat"
-              iconClass="infoIcon"
-            />
-
-            <MenuCard
-              href="/cara-pesan"
-              icon={<CartIcon />}
-              title="Cara Pesan"
-              description="Panduan mudah untuk melakukan pemesanan"
-              iconClass="cartIcon"
-            />
-          </div>
+                <div className="lainnyaArrow">
+                  <ArrowIcon />
+                </div>
+              </a>
+            ))}
+          </section>
         </div>
-      </section>
+      </main>
 
       <style>{`
-        .lainnyaWrap {
-          max-width: 1050px;
+        .lainnyaPage {
+          min-height: calc(100vh - 64px);
+          padding: 46px 20px 70px;
+          background: #fffaf3;
+        }
+
+        .lainnyaContainer {
+          width: 100%;
+          max-width: 1080px;
           margin: 0 auto;
         }
 
         .lainnyaHeader {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
           text-align: center;
           margin-bottom: 34px;
         }
 
-        .eyebrow {
-          display: inline-block;
-          margin-bottom: 8px;
-          color: #9a806a;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.14em;
-        }
-
         .lainnyaHeader h1 {
-          margin: 0 0 8px;
-          color: #3f2f24;
-          font-size: 42px;
-          line-height: 1.1;
+          width: 100%;
+          margin: 0 0 10px;
+          font-size: 34px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #4b2418;
+          text-align: center !important;
         }
 
         .lainnyaHeader p {
+          width: 100%;
           max-width: 560px;
           margin: 0 auto;
-          color: #76685d;
           font-size: 15px;
-          line-height: 1.6;
+          line-height: 1.7;
+          color: #725f57;
+          text-align: center;
         }
 
-        .menuGrid {
+        .lainnyaGrid {
           display: grid;
-          grid-template-columns: repeat(
-            2,
-            minmax(0, 1fr)
-          );
-          gap: 16px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
         }
 
-        .menuCard {
-          min-height: 108px;
+        .lainnyaCard {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: 17px;
-          padding: 18px 20px;
-          box-sizing: border-box;
-
-          border: 1px solid #e3d8cc;
-          border-radius: 16px;
+          gap: 18px;
+          min-height: 150px;
+          padding: 24px 25px;
+          border: 1px solid #eadfd5;
+          border-radius: 18px;
           background: #ffffff;
-
-          color: #3f2f24;
           text-decoration: none;
-
-          box-shadow:
-            0 5px 18px rgba(75, 51, 38, 0.055);
-
+          box-shadow: 0 8px 24px rgba(75, 36, 24, 0.06);
           transition:
-            transform 0.18s ease,
-            box-shadow 0.18s ease,
-            border-color 0.18s ease;
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
         }
 
-        .menuCard:hover {
-          transform: translateY(-3px);
-          border-color: #cdbba8;
-          box-shadow:
-            0 10px 26px rgba(75, 51, 38, 0.11);
+        .lainnyaCard:hover {
+          transform: translateY(-4px);
+          border-color: #d7c4b7;
+          box-shadow: 0 14px 32px rgba(75, 36, 24, 0.11);
         }
 
-        .menuCard.disabled {
-          opacity: 0.58;
-          cursor: default;
-        }
-
-        .menuIcon {
-          width: 54px;
-          height: 54px;
-          flex: 0 0 54px;
-
+        .lainnyaIcon {
+          width: 62px;
+          height: 62px;
+          min-width: 62px;
           display: flex;
           align-items: center;
           justify-content: center;
-
-          border-radius: 15px;
+          border-radius: 16px;
+          background: #f8eee5;
+          color: #7a3e28;
         }
 
-        .menuIcon svg {
-          width: 27px;
-          height: 27px;
-        }
-
-        .storeIcon {
-          background: #f2e7da;
-          color: #79563b;
-        }
-
-        .whatsappIcon {
-          background: #e8f5eb;
-          color: #3b8c4c;
-        }
-
-        .instagramIcon {
-          background: #f5e7ef;
-          color: #bd4777;
-        }
-
-        .tiktokIcon {
-          background: #ece9ee;
-          color: #18151a;
-        }
-
-        .infoIcon {
-          background: #e8eef7;
-          color: #4d6f9e;
-        }
-
-        .cartIcon {
-          background: #f5eee1;
-          color: #8a6439;
-        }
-
-        .menuText {
-          min-width: 0;
+        .lainnyaContent {
           flex: 1;
+          min-width: 0;
+          padding-right: 20px;
         }
 
-        .menuText strong {
-          display: block;
-          margin-bottom: 5px;
-          color: #3f2f24;
-          font-size: 16px;
-          line-height: 1.2;
+        .lainnyaContent h2 {
+          margin: 0 0 7px;
+          font-size: 18px;
+          line-height: 1.3;
+          font-weight: 700;
+          color: #4b2418;
         }
 
-        .menuText span {
-          display: block;
-          color: #817368;
-          font-size: 13px;
-          line-height: 1.45;
+        .lainnyaContent p {
+          margin: 0;
+          font-size: 13.5px;
+          line-height: 1.65;
+          color: #76645c;
         }
 
-        .menuArrow {
-          width: 32px;
-          height: 32px;
-          flex: 0 0 32px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border-radius: 50%;
-          background: #f7f1eb;
-          color: #77563c;
+        .lainnyaArrow {
+          position: absolute;
+          right: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #9a7969;
+          transition: transform 0.2s ease;
         }
 
-        .menuArrow svg {
-          width: 17px;
-          height: 17px;
+        .lainnyaCard:hover .lainnyaArrow {
+          transform: translate(4px, -50%);
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 760px) {
+          .lainnyaPage {
+            padding: 34px 16px 55px;
+          }
+
+          .lainnyaHeader {
+            margin-bottom: 26px;
+          }
+
           .lainnyaHeader h1 {
-            font-size: 34px;
+            font-size: 28px;
           }
 
-          .menuGrid {
+          .lainnyaHeader p {
+            font-size: 14px;
+            line-height: 1.65;
+          }
+
+          .lainnyaGrid {
             grid-template-columns: 1fr;
+            gap: 14px;
+          }
+
+          .lainnyaCard {
+            min-height: 132px;
+            padding: 20px;
+            gap: 15px;
+          }
+
+          .lainnyaIcon {
+            width: 54px;
+            height: 54px;
+            min-width: 54px;
+            border-radius: 14px;
+          }
+
+          .lainnyaIcon svg {
+            width: 27px;
+            height: 27px;
+          }
+
+          .lainnyaContent {
+            padding-right: 18px;
+          }
+
+          .lainnyaContent h2 {
+            font-size: 17px;
+          }
+
+          .lainnyaContent p {
+            font-size: 13px;
+          }
+
+          .lainnyaArrow {
+            right: 15px;
           }
         }
 
-        @media (max-width: 480px) {
-          .menuCard {
-            min-height: 96px;
-            padding: 15px;
-            gap: 13px;
+        @media (max-width: 420px) {
+          .lainnyaHeader h1 {
+            font-size: 25px;
           }
 
-          .menuIcon {
-            width: 48px;
-            height: 48px;
-            flex-basis: 48px;
-            border-radius: 13px;
+          .lainnyaCard {
+            padding: 18px;
           }
 
-          .menuIcon svg {
-            width: 24px;
-            height: 24px;
+          .lainnyaIcon {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
           }
 
-          .menuText strong {
-            font-size: 15px;
+          .lainnyaContent h2 {
+            font-size: 16px;
           }
 
-          .menuText span {
-            font-size: 12px;
-          }
-
-          .menuArrow {
-            width: 29px;
-            height: 29px;
-            flex-basis: 29px;
+          .lainnyaContent p {
+            font-size: 12.5px;
           }
         }
       `}</style>
