@@ -11,6 +11,7 @@ export default function AdminProdukPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
     loadProduk();
@@ -39,6 +40,7 @@ export default function AdminProdukPage() {
           satuan,
           stok,
           aktif,
+          deleted_at,
           created_at,
           kategori:kategori_id (
             id,
@@ -49,6 +51,7 @@ export default function AdminProdukPage() {
             nama
           )
         `)
+        .is("deleted_at", null)
         .order("id", { ascending: false });
 
     if (produkError) {
@@ -64,6 +67,60 @@ export default function AdminProdukPage() {
 
     setProduk(data || []);
     setLoading(false);
+  }
+
+  async function pindahkanKeTrash(item) {
+    const konfirmasi = window.confirm(
+      `Pindahkan produk "${item.nama}" ke Trash?\n\n` +
+      `Produk akan disembunyikan dari daftar produk aktif dan tidak tampil di katalog pelanggan.`
+    );
+
+    if (!konfirmasi) {
+      return;
+    }
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      setError("Koneksi database belum tersedia.");
+      return;
+    }
+
+    setProcessingId(item.id);
+    setError("");
+
+    const { error: updateError } =
+      await supabase
+        .from("produk")
+        .update({
+          deleted_at: new Date().toISOString(),
+          aktif: false,
+        })
+        .eq("id", item.id)
+        .is("deleted_at", null);
+
+    if (updateError) {
+      console.error(
+        "Gagal memindahkan produk ke Trash:",
+        updateError
+      );
+
+      setError(
+        `Gagal memindahkan "${item.nama}" ke Trash: ${updateError.message}`
+      );
+
+      setProcessingId(null);
+      return;
+    }
+
+    setProduk((current) =>
+      current.filter(
+        (produkItem) =>
+          produkItem.id !== item.id
+      )
+    );
+
+    setProcessingId(null);
   }
 
   const produkFiltered = produk.filter(
@@ -200,25 +257,37 @@ export default function AdminProdukPage() {
       ) : produkFiltered.length === 0 ? (
         <div className="admin-card admin-empty">
 
-          <h2>Belum ada produk</h2>
+          <h2>
+            {search.trim()
+              ? "Produk tidak ditemukan"
+              : "Belum ada produk"}
+          </h2>
 
           <p>
-            Tambahkan produk pertama
-            melalui tombol
-            <strong> Tambah Produk</strong>.
+            {search.trim()
+              ? "Coba gunakan kata pencarian yang berbeda."
+              : (
+                <>
+                  Tambahkan produk pertama
+                  melalui tombol
+                  <strong> Tambah Produk</strong>.
+                </>
+              )}
           </p>
 
-          <button
-            type="button"
-            className="admin-primary-button"
-            onClick={() =>
-              router.push(
-                "/admin/produk/tambah"
-              )
-            }
-          >
-            + Tambah Produk
-          </button>
+          {!search.trim() && (
+            <button
+              type="button"
+              className="admin-primary-button"
+              onClick={() =>
+                router.push(
+                  "/admin/produk/tambah"
+                )
+              }
+            >
+              + Tambah Produk
+            </button>
+          )}
 
         </div>
       ) : (
@@ -289,7 +358,14 @@ export default function AdminProdukPage() {
 
                       <td>
 
-                        <div className="admin-product-actions">
+                        <div
+                          className="admin-product-actions"
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "8px",
+                          }}
+                        >
 
                           <button
                             type="button"
@@ -312,6 +388,29 @@ export default function AdminProdukPage() {
                           >
                             Harga
                           </button>
+
+                          {item.aktif && (
+                            <button
+                              type="button"
+                              disabled={
+                                processingId ===
+                                item.id
+                              }
+                              onClick={() =>
+                                pindahkanKeTrash(
+                                  item
+                                )
+                              }
+                              style={{
+                                color: "#8b3a3a",
+                              }}
+                            >
+                              {processingId ===
+                              item.id
+                                ? "Memindahkan..."
+                                : "Pindahkan ke Trash"}
+                            </button>
+                          )}
 
                         </div>
 
