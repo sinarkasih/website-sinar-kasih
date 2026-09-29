@@ -167,31 +167,43 @@ export default function KontakTokoPage() {
     }));
 
     setMessage("Informasi toko & kontak berhasil disimpan.");
+    setSaving(false);
 
-    /*
-     * Setelah berhasil disimpan,
-     * otomatis kembali ke halaman Toko & Kontak.
-     */
+    // Otomatis kembali ke halaman Toko & Kontak
     setTimeout(() => {
       router.push("/admin/toko");
     }, 700);
   }
 
-  const backButtonStyle = {
+  const buttonBaseStyle = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
+    minWidth: "150px",
     minHeight: "42px",
-    padding: "0 16px",
+    padding: "0 18px",
     borderRadius: "8px",
+    boxSizing: "border-box",
+    fontSize: "15px",
+    fontWeight: 700,
+    textAlign: "center",
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+  };
+
+  const backButtonStyle = {
+    ...buttonBaseStyle,
     background: "#ffffff",
     border: "1px solid #d7c8b8",
     color: "#4b3326",
-    textDecoration: "none",
-    fontWeight: 700,
-    whiteSpace: "nowrap",
-    cursor: "pointer",
-    boxSizing: "border-box",
+  };
+
+  const cancelButtonStyle = {
+    ...buttonBaseStyle,
+    background: "#ffffff",
+    border: "1px solid #cfc1b1",
+    color: "#4b3326",
   };
 
   const socialLinkStyle = {
@@ -352,7 +364,6 @@ export default function KontakTokoPage() {
                 </p>
               </div>
 
-              {/* TOMBOL KEMBALI */}
               <Link
                 href="/admin/toko"
                 style={backButtonStyle}
@@ -494,10 +505,10 @@ export default function KontakTokoPage() {
 
               <div className="actions">
 
-                {/* BATAL SEKARANG BERUPA TOMBOL */}
+                {/* BATAL SEKARANG BENAR-BENAR TOMBOL */}
                 <Link
                   href="/admin/toko"
-                  className="cancelButton"
+                  style={cancelButtonStyle}
                 >
                   Batal
                 </Link>
@@ -675,7 +686,6 @@ export default function KontakTokoPage() {
           border-top: 1px solid #eee5dc;
         }
 
-        .cancelButton,
         button {
           min-width: 150px;
           min-height: 42px;
@@ -685,24 +695,7 @@ export default function KontakTokoPage() {
           font-weight: 700;
           cursor: pointer;
           text-align: center;
-          text-decoration: none;
           box-sizing: border-box;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .cancelButton {
-          background: #fff;
-          border: 1px solid #cfc1b1;
-          color: #4b3326;
-        }
-
-        .cancelButton:hover {
-          background: #f3eadf;
-        }
-
-        button {
           border: none;
           background: #4b3326;
           color: #fff;
@@ -739,7 +732,6 @@ export default function KontakTokoPage() {
 
           .topbar > a {
             width: 100%;
-            box-sizing: border-box;
           }
 
           .grid {
@@ -750,8 +742,8 @@ export default function KontakTokoPage() {
             flex-direction: column;
           }
 
-          .cancelButton,
-          button {
+          .actions a,
+          .actions button {
             width: 100%;
           }
         }
