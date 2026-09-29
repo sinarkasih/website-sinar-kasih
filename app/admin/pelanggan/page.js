@@ -2,18 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { getSupabase } from "../../../lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
-export default function PelangganPage() {
+export default function Page() {
   const [pelanggan, setPelanggan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filterTipe, setFilterTipe] = useState("semua");
-
-  useEffect(() => {
-    loadPelanggan();
-  }, []);
+  const [filter, setFilter] = useState("semua");
 
   async function loadPelanggan() {
     setLoading(true);
@@ -22,36 +18,20 @@ export default function PelangganPage() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError("Konfigurasi Supabase belum tersedia.");
       setLoading(false);
       return;
     }
 
-    const { data, error: queryError } =
-      await supabase
-        .from("pelanggan")
-        .select(`
-          id,
-          created_at,
-          nama,
-          email,
-          telepon,
-          tipe,
-          alamat,
-          aktif
-        `)
-        .order("created_at", {
-          ascending: false,
-        });
+    const { data, error: loadError } = await supabase
+      .from("pelanggan")
+      .select(
+        "id, created_at, nama, email, telepon, tipe, alamat, aktif"
+      )
+      .order("created_at", { ascending: false });
 
-    if (queryError) {
-      console.error(
-        "Gagal mengambil pelanggan:",
-        queryError
-      );
-
-      setError(queryError.message);
-      setPelanggan([]);
+    if (loadError) {
+      setError(loadError.message);
       setLoading(false);
       return;
     }
@@ -60,602 +40,539 @@ export default function PelangganPage() {
     setLoading(false);
   }
 
+  useEffect(() => {
+    loadPelanggan();
+  }, []);
+
   const filteredPelanggan = useMemo(() => {
-    const keyword = search
-      .trim()
-      .toLowerCase();
+    const keyword = search.trim().toLowerCase();
 
     return pelanggan.filter((item) => {
-      const cocokTipe =
-        filterTipe === "semua" ||
-        item.tipe === filterTipe;
+      const sesuaiFilter =
+        filter === "semua" ||
+        (filter === "aktif" && item.aktif === true) ||
+        (filter === "nonaktif" && item.aktif === false);
 
-      if (!cocokTipe) {
-        return false;
-      }
+      if (!sesuaiFilter) return false;
 
-      if (!keyword) {
-        return true;
-      }
+      if (!keyword) return true;
 
-      const text = `
-        ${item.nama || ""}
-        ${item.email || ""}
-        ${item.telepon || ""}
-        ${item.alamat || ""}
-        ${item.tipe || ""}
-      `.toLowerCase();
-
-      return text.includes(keyword);
+      return [
+        item.nama,
+        item.email,
+        item.telepon,
+        item.alamat,
+        item.tipe,
+      ]
+        .filter(Boolean)
+        .some((value) =>
+          String(value).toLowerCase().includes(keyword)
+        );
     });
-  }, [pelanggan, search, filterTipe]);
+  }, [pelanggan, search, filter]);
 
-  function hapusPencarian() {
+  const total = pelanggan.length;
+  const aktif = pelanggan.filter((item) => item.aktif === true).length;
+  const nonaktif = pelanggan.filter(
+    (item) => item.aktif === false
+  ).length;
+
+  const guest = pelanggan.filter(
+    (item) => item.tipe === "guest"
+  ).length;
+
+  const terdaftar = pelanggan.filter(
+    (item) =>
+      item.tipe === "terdaftar" ||
+      item.tipe === "registered"
+  ).length;
+
+  function clearSearch() {
     setSearch("");
   }
 
-  function labelTipe(tipe) {
-    if (tipe === "registered") {
-      return "Terdaftar";
-    }
-
-    if (tipe === "guest") {
-      return "Guest";
-    }
-
-    return tipe || "-";
-  }
-
-  function classTipe(tipe) {
-    if (tipe === "registered") {
-      return "registered";
-    }
-
-    if (tipe === "guest") {
-      return "guest";
-    }
-
-    return "lainnya";
-  }
-
   return (
-    <main className="admin-content">
+    <section className="dash pelanggan-page">
+      <div className="page-head">
+        <div>
+          <h1>Pelanggan</h1>
+          <p>
+            Kelola data pelanggan dan pelanggan guest dari website.
+          </p>
+        </div>
+      </div>
+
+      {error && <div className="error-box">{error}</div>}
+
+      <div className="summary-grid">
+        <div className="summary-card">
+          <span>Total Pelanggan</span>
+          <strong>{total}</strong>
+        </div>
+
+        <div className="summary-card">
+          <span>Pelanggan Aktif</span>
+          <strong>{aktif}</strong>
+        </div>
+
+        <div className="summary-card">
+          <span>Pelanggan Nonaktif</span>
+          <strong>{nonaktif}</strong>
+        </div>
+
+        <div className="summary-card">
+          <span>Pelanggan Guest</span>
+          <strong>{guest}</strong>
+        </div>
+
+        <div className="summary-card">
+          <span>Pelanggan Terdaftar</span>
+          <strong>{terdaftar}</strong>
+        </div>
+      </div>
+
+      <div className="content-card">
+        <div className="toolbar">
+          <div className="search-box">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Cari nama, WhatsApp, email..."
+            />
+
+            {search && (
+              <button
+                type="button"
+                className="clear-search"
+                onClick={clearSearch}
+                aria-label="Hapus pencarian"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div className="filters">
+            <button
+              type="button"
+              className={
+                filter === "semua"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setFilter("semua")}
+            >
+              Semua
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "aktif"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setFilter("aktif")}
+            >
+              Aktif
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "nonaktif"
+                  ? "filter-btn active"
+                  : "filter-btn"
+              }
+              onClick={() => setFilter("nonaktif")}
+            >
+              Nonaktif
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="empty-state">
+            Memuat data pelanggan...
+          </div>
+        ) : filteredPelanggan.length === 0 ? (
+          <div className="empty-state">
+            Tidak ada pelanggan yang sesuai.
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Kontak</th>
+                  <th>Tipe</th>
+                  <th>Alamat</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredPelanggan.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="customer-name">
+                        <strong>{item.nama || "-"}</strong>
+                        <small>ID: {item.id}</small>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div className="contact">
+                        <span>{item.telepon || "-"}</span>
+
+                        {item.email && (
+                          <small>{item.email}</small>
+                        )}
+                      </div>
+                    </td>
+
+                    <td>
+                      <span className="type-badge">
+                        {item.tipe === "guest"
+                          ? "Guest"
+                          : item.tipe === "terdaftar" ||
+                            item.tipe === "registered"
+                          ? "Terdaftar"
+                          : item.tipe || "-"}
+                      </span>
+                    </td>
+
+                    <td>{item.alamat || "-"}</td>
+
+                    <td>
+                      <span
+                        className={
+                          item.aktif
+                            ? "status aktif"
+                            : "status nonaktif"
+                        }
+                      >
+                        {item.aktif ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+
+                    <td>
+                      <Link
+                        href={`/admin/pelanggan/${item.id}`}
+                        className="detail-link"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && filteredPelanggan.length > 0 && (
+          <div className="table-footer">
+            Menampilkan {filteredPelanggan.length} dari {total} pelanggan
+          </div>
+        )}
+      </div>
+
       <style jsx>{`
-        .customer-page {
+        .pelanggan-page {
           width: 100%;
+          max-width: none;
+          box-sizing: border-box;
         }
 
-        .customer-header {
+        .page-head {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 20px;
           margin-bottom: 22px;
         }
 
-        .customer-header h1 {
+        .page-head h1 {
           margin: 0 0 6px;
-          color: #3f2b20;
+          font-size: 36px;
+          line-height: 1.15;
+          color: #3d2b20;
         }
 
-        .customer-header p {
+        .page-head p {
           margin: 0;
-          color: #75685e;
+          color: #766d65;
         }
 
-        .customer-summary {
+        .summary-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: 14px;
           margin-bottom: 20px;
         }
 
         .summary-card {
-          padding: 18px;
           background: #fff;
-          border: 1px solid #e2ddd6;
-          border-radius: 10px;
+          border: 1px solid #e2d9cf;
+          border-radius: 12px;
+          padding: 18px;
+          min-height: 92px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
 
-        .summary-label {
-          color: #80736a;
+        .summary-card span {
+          color: #766d65;
           font-size: 13px;
+          margin-bottom: 8px;
         }
 
-        .summary-value {
-          margin-top: 6px;
-          color: #3f2b20;
-          font-size: 24px;
-          font-weight: 800;
+        .summary-card strong {
+          color: #3d2b20;
+          font-size: 27px;
         }
 
-        .customer-toolbar {
+        .content-card {
+          width: 100%;
+          background: #fff;
+          border: 1px solid #e2d9cf;
+          border-radius: 14px;
+          padding: 22px;
+          box-sizing: border-box;
+        }
+
+        .toolbar {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: 16px;
+          gap: 18px;
           margin-bottom: 20px;
-          flex-wrap: wrap;
         }
 
-        .customer-search {
+        .search-box {
           position: relative;
-          width: 100%;
-          max-width: 440px;
+          width: min(440px, 100%);
         }
 
-        .customer-search input {
+        .search-box input {
           width: 100%;
-          height: 44px;
           box-sizing: border-box;
-          padding: 0 42px 0 14px;
-          border: 1px solid #d7d0c7;
-          border-radius: 8px;
-          background: #fff;
+          padding: 12px 42px 12px 14px;
+          border: 1px solid #d8ccc0;
+          border-radius: 9px;
           font-size: 14px;
+          color: #3d2b20;
+          background: #fff;
+        }
+
+        .search-box input:focus {
           outline: none;
+          border-color: #8a654a;
         }
 
-        .customer-search input:focus {
-          border-color: #9a7657;
-        }
-
-        .customer-clear {
+        .clear-search {
           position: absolute;
           right: 8px;
           top: 50%;
           transform: translateY(-50%);
           width: 28px;
           height: 28px;
-          padding: 0;
-          border: none;
-          border-radius: 50%;
-          background: #e8dfd3;
-          color: #4a372d;
-          font-size: 20px;
-          line-height: 28px;
+          border: 0;
+          background: transparent;
+          color: #766d65;
+          font-size: 22px;
+          line-height: 1;
           cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border-radius: 50%;
         }
 
-        .customer-filter {
+        .clear-search:hover {
+          background: #f3eee9;
+        }
+
+        .filters {
           display: flex;
           gap: 8px;
           flex-wrap: wrap;
         }
 
-        .filter-button {
-          min-height: 40px;
-          padding: 8px 14px;
-          border: 1px solid #d7d0c7;
-          border-radius: 8px;
+        .filter-btn {
+          border: 1px solid #d9cbbd;
           background: #fff;
-          color: #5f5046;
-          cursor: pointer;
+          color: #6f6258;
+          border-radius: 9px;
+          padding: 10px 15px;
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
+          cursor: pointer;
         }
 
-        .filter-button:hover {
-          background: #f7f3ed;
-        }
-
-        .filter-button.active {
-          background: #76563f;
-          border-color: #76563f;
+        .filter-btn.active {
+          background: #765238;
           color: #fff;
+          border-color: #765238;
         }
 
-        .customer-table-wrapper {
+        .table-wrap {
           width: 100%;
           overflow-x: auto;
-          border: 1px solid #e2ddd6;
+          border: 1px solid #e5ddd4;
           border-radius: 10px;
         }
 
-        .customer-table {
+        table {
           width: 100%;
           min-width: 950px;
           border-collapse: collapse;
-          table-layout: fixed;
         }
 
-        .customer-table th {
-          padding: 13px 14px;
-          background: #f7f3ed;
-          border-bottom: 1px solid #ddd6ce;
+        th {
           text-align: left;
+          background: #f7f3ee;
+          color: #4a4039;
           font-size: 13px;
+          padding: 14px;
+          border-bottom: 1px solid #ded5cc;
+          white-space: nowrap;
+        }
+
+        td {
+          padding: 15px 14px;
+          border-bottom: 1px solid #eee7df;
+          color: #514941;
+          font-size: 14px;
+        }
+
+        tbody tr:last-child td {
+          border-bottom: 0;
+        }
+
+        tbody tr:hover {
+          background: #fcfaf8;
+        }
+
+        .customer-name,
+        .contact {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .customer-name strong {
+          color: #3d2b20;
+        }
+
+        .customer-name small,
+        .contact small {
+          color: #8a8179;
+          font-size: 12px;
+        }
+
+        .type-badge {
+          display: inline-block;
+          padding: 5px 9px;
+          border-radius: 999px;
+          background: #f4ede5;
+          color: #6f4f39;
+          font-size: 12px;
           font-weight: 700;
           white-space: nowrap;
         }
 
-        .customer-table td {
-          padding: 14px;
-          border-bottom: 1px solid #eee9e3;
-          vertical-align: middle;
-          font-size: 14px;
-          line-height: 1.45;
-          word-break: break-word;
-        }
-
-        .customer-table tbody tr:last-child td {
-          border-bottom: none;
-        }
-
-        .customer-table tbody tr:hover {
-          background: #fcfaf7;
-        }
-
-        .col-name {
-          width: 19%;
-        }
-
-        .col-contact {
-          width: 19%;
-        }
-
-        .col-type {
-          width: 12%;
-        }
-
-        .col-address {
-          width: 23%;
-        }
-
-        .col-status {
-          width: 12%;
-        }
-
-        .col-action {
-          width: 15%;
-        }
-
-        .customer-name {
-          color: #3f2b20;
-          font-weight: 700;
-        }
-
-        .customer-subtext {
-          margin-top: 3px;
-          color: #80736a;
-          font-size: 12px;
-        }
-
-        .type-badge,
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 28px;
-          padding: 4px 10px;
+        .status {
+          display: inline-block;
+          padding: 5px 9px;
           border-radius: 999px;
           font-size: 12px;
           font-weight: 700;
+          white-space: nowrap;
         }
 
-        .type-badge.registered {
-          background: #eaf2ff;
-          color: #315d91;
+        .status.aktif {
+          background: #e6f5ea;
+          color: #277442;
         }
 
-        .type-badge.guest {
-          background: #f4ede3;
-          color: #76563f;
+        .status.nonaktif {
+          background: #fde9e7;
+          color: #a13a31;
         }
 
-        .type-badge.lainnya {
-          background: #f0ece8;
-          color: #66584e;
-        }
-
-        .status-badge.active {
-          background: #eaf7ed;
-          color: #347045;
-        }
-
-        .status-badge.inactive {
-          background: #fbecec;
-          color: #943f3f;
-        }
-
-        .detail-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 36px;
-          padding: 7px 12px;
-          border: 1px solid #76563f;
-          border-radius: 7px;
-          background: #fff;
-          color: #76563f;
+        .detail-link {
+          color: #6f4f39;
+          font-weight: 700;
           text-decoration: none;
-          font-size: 13px;
-          font-weight: 600;
         }
 
-        .detail-button:hover {
-          background: #f7f3ed;
+        .detail-link:hover {
+          text-decoration: underline;
         }
 
-        .customer-empty {
-          padding: 55px 20px;
+        .empty-state {
+          padding: 50px 20px;
           text-align: center;
-          color: #777;
+          color: #766d65;
+          background: #faf8f5;
+          border: 1px dashed #d9cfc5;
+          border-radius: 10px;
         }
 
-        .customer-empty strong {
-          display: block;
-          margin-bottom: 7px;
-          color: #4a372d;
-          font-size: 16px;
+        .table-footer {
+          padding-top: 14px;
+          color: #766d65;
+          font-size: 13px;
         }
 
-        @media (max-width: 800px) {
-          .customer-summary {
-            grid-template-columns: 1fr;
+        .error-box {
+          padding: 14px 16px;
+          border-radius: 9px;
+          background: #fde9e7;
+          color: #9b332a;
+          border: 1px solid #efc8c3;
+          margin-bottom: 18px;
+        }
+
+        @media (max-width: 1100px) {
+          .summary-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
           }
 
-          .customer-header {
+          .toolbar {
+            align-items: flex-start;
             flex-direction: column;
           }
 
-          .customer-search {
-            max-width: none;
+          .search-box {
+            width: 100%;
+            max-width: 500px;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .page-head h1 {
+            font-size: 30px;
+          }
+
+          .content-card {
+            padding: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .summary-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
-
-      <div className="customer-page">
-        <div className="customer-header">
-          <div>
-            <h1>Pelanggan</h1>
-            <p>
-              Kelola data pelanggan dan pelanggan
-              guest dari website.
-            </p>
-          </div>
-        </div>
-
-        <div className="customer-summary">
-          <div className="summary-card">
-            <div className="summary-label">
-              Total Pelanggan
-            </div>
-
-            <div className="summary-value">
-              {pelanggan.length}
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-label">
-              Pelanggan Terdaftar
-            </div>
-
-            <div className="summary-value">
-              {
-                pelanggan.filter(
-                  (item) =>
-                    item.tipe === "registered"
-                ).length
-              }
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-label">
-              Pelanggan Guest
-            </div>
-
-            <div className="summary-value">
-              {
-                pelanggan.filter(
-                  (item) =>
-                    item.tipe === "guest"
-                ).length
-              }
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="customer-toolbar">
-            <div className="customer-search">
-              <input
-                type="search"
-                placeholder="Cari nama, WhatsApp, email..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                autoComplete="off"
-              />
-
-              {search.trim() !== "" && (
-                <button
-                  type="button"
-                  className="customer-clear"
-                  onClick={hapusPencarian}
-                  aria-label="Hapus pencarian"
-                  title="Hapus pencarian"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            <div className="customer-filter">
-              <button
-                type="button"
-                className={`filter-button ${
-                  filterTipe === "semua"
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  setFilterTipe("semua")
-                }
-              >
-                Semua
-              </button>
-
-              <button
-                type="button"
-                className={`filter-button ${
-                  filterTipe === "registered"
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  setFilterTipe("registered")
-                }
-              >
-                Terdaftar
-              </button>
-
-              <button
-                type="button"
-                className={`filter-button ${
-                  filterTipe === "guest"
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  setFilterTipe("guest")
-                }
-              >
-                Guest
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="admin-message admin-message-error">
-              {error}
-            </div>
-          )}
-
-          {loading ? (
-            <div className="customer-empty">
-              Memuat data pelanggan...
-            </div>
-          ) : filteredPelanggan.length === 0 ? (
-            <div className="customer-empty">
-              <strong>
-                Tidak ada pelanggan
-              </strong>
-              Belum ada data pelanggan yang
-              sesuai dengan pencarian atau filter.
-            </div>
-          ) : (
-            <div className="customer-table-wrapper">
-              <table className="customer-table">
-                <thead>
-                  <tr>
-                    <th className="col-name">
-                      Nama
-                    </th>
-
-                    <th className="col-contact">
-                      Kontak
-                    </th>
-
-                    <th className="col-type">
-                      Tipe
-                    </th>
-
-                    <th className="col-address">
-                      Alamat
-                    </th>
-
-                    <th className="col-status">
-                      Status
-                    </th>
-
-                    <th className="col-action">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredPelanggan.map(
-                    (item) => (
-                      <tr key={item.id}>
-                        <td>
-                          <div className="customer-name">
-                            {item.nama ||
-                              "Tanpa Nama"}
-                          </div>
-
-                          <div className="customer-subtext">
-                            ID: {item.id}
-                          </div>
-                        </td>
-
-                        <td>
-                          <div>
-                            {item.telepon ||
-                              "-"}
-                          </div>
-
-                          {item.email && (
-                            <div className="customer-subtext">
-                              {item.email}
-                            </div>
-                          )}
-                        </td>
-
-                        <td>
-                          <span
-                            className={`type-badge ${classTipe(
-                              item.tipe
-                            )}`}
-                          >
-                            {labelTipe(
-                              item.tipe
-                            )}
-                          </span>
-                        </td>
-
-                        <td>
-                          {item.alamat || "-"}
-                        </td>
-
-                        <td>
-                          <span
-                            className={`status-badge ${
-                              item.aktif
-                                ? "active"
-                                : "inactive"
-                            }`}
-                          >
-                            {item.aktif
-                              ? "Aktif"
-                              : "Nonaktif"}
-                          </span>
-                        </td>
-
-                        <td>
-                          <Link
-                            href={`/admin/pelanggan/${item.id}`}
-                            className="detail-button"
-                          >
-                            Detail
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </main>
+    </section>
   );
 }
