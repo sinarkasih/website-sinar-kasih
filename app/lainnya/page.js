@@ -25,13 +25,6 @@ function normalizeUrl(value, type) {
     }
   }
 
-  if (type === "whatsapp") {
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      const number = url.replace(/\D/g, "");
-      url = `https://wa.me/${number}`;
-    }
-  }
-
   return url;
 }
 
@@ -60,7 +53,13 @@ function InstagramIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3" y="3" width="18" height="18" rx="5" />
       <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      <circle
+        cx="17.5"
+        cy="6.5"
+        r="1"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
@@ -80,7 +79,13 @@ function InfoIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 10v6" />
-      <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none" />
+      <circle
+        cx="12"
+        cy="7"
+        r="1"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
@@ -109,13 +114,22 @@ export default async function LainnyaPage() {
 
   const { data: kontak } = await supabase
     .from("kontak_toko")
-    .select("whatsapp, instagram, tiktok, email")
+    .select("instagram, tiktok, email")
     .limit(1)
     .maybeSingle();
 
-  const whatsappUrl = normalizeUrl(kontak?.whatsapp, "whatsapp");
-  const instagramUrl = normalizeUrl(kontak?.instagram, "instagram");
-  const tiktokUrl = normalizeUrl(kontak?.tiktok, "tiktok");
+  // Nomor WhatsApp resmi Toko Listrik Sinar Kasih
+  const whatsappUrl = "https://wa.me/6281285750033";
+
+  const instagramUrl = normalizeUrl(
+    kontak?.instagram,
+    "instagram"
+  );
+
+  const tiktokUrl = normalizeUrl(
+    kontak?.tiktok,
+    "tiktok"
+  );
 
   const menuItems = [
     {
@@ -195,7 +209,11 @@ export default async function LainnyaPage() {
                 href={item.href}
                 className="menuCard"
                 target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
+                rel={
+                  item.external
+                    ? "noopener noreferrer"
+                    : undefined
+                }
               >
                 <div className={`menuIcon ${item.iconClass}`}>
                   {item.icon}
@@ -308,8 +326,6 @@ export default async function LainnyaPage() {
           stroke-linecap: round;
           stroke-linejoin: round;
         }
-
-        /* Warna ikon dibuat berbeda-beda seperti versi sebelumnya */
 
         .storeIcon {
           background: #fff0d9;
