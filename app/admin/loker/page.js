@@ -119,10 +119,13 @@ export default function AdminLokerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [processingId, setProcessingId] = useState(null);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("semua");
 
@@ -168,11 +171,19 @@ export default function AdminLokerPage() {
   }
 
   function handleChange(event) {
-    const { name, value, type, checked } = event.target;
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = event.target;
 
     setForm((current) => ({
       ...current,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : value,
     }));
   }
 
@@ -183,6 +194,7 @@ export default function AdminLokerPage() {
 
   function openAddForm() {
     resetForm();
+
     setSuccess("");
     setError("");
     setShowForm(true);
@@ -200,13 +212,17 @@ export default function AdminLokerPage() {
       deskripsi: item.deskripsi || "",
       persyaratan: item.persyaratan || "",
       lokasi: item.lokasi || "",
-      google_form_url: item.google_form_url || "",
+      google_form_url:
+        item.google_form_url || "",
       status: item.status || "draft",
       tahap_seleksi:
         item.tahap_seleksi || "pendaftaran",
-      tanggal_buka: item.tanggal_buka || "",
-      tanggal_tutup: item.tanggal_tutup || "",
-      pengumuman: item.pengumuman || "",
+      tanggal_buka:
+        item.tanggal_buka || "",
+      tanggal_tutup:
+        item.tanggal_tutup || "",
+      pengumuman:
+        item.pengumuman || "",
       aktif: Boolean(item.aktif),
       urutan: item.urutan ?? 0,
     });
@@ -229,14 +245,18 @@ export default function AdminLokerPage() {
     setSuccess("");
 
     if (!form.posisi.trim()) {
-      setError("Nama posisi lowongan wajib diisi.");
+      setError(
+        "Nama posisi lowongan wajib diisi."
+      );
       return;
     }
 
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi Supabase belum tersedia.");
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
       return;
     }
 
@@ -244,19 +264,40 @@ export default function AdminLokerPage() {
 
     const payload = {
       posisi: form.posisi.trim(),
-      gambar_url: form.gambar_url.trim() || null,
-      deskripsi: form.deskripsi.trim() || null,
-      persyaratan: form.persyaratan.trim() || null,
-      lokasi: form.lokasi.trim() || null,
+
+      gambar_url:
+        form.gambar_url.trim() || null,
+
+      deskripsi:
+        form.deskripsi.trim() || null,
+
+      persyaratan:
+        form.persyaratan.trim() || null,
+
+      lokasi:
+        form.lokasi.trim() || null,
+
       google_form_url:
         form.google_form_url.trim() || null,
+
       status: form.status,
-      tahap_seleksi: form.tahap_seleksi,
-      tanggal_buka: form.tanggal_buka || null,
-      tanggal_tutup: form.tanggal_tutup || null,
-      pengumuman: form.pengumuman.trim() || null,
+
+      tahap_seleksi:
+        form.tahap_seleksi,
+
+      tanggal_buka:
+        form.tanggal_buka || null,
+
+      tanggal_tutup:
+        form.tanggal_tutup || null,
+
+      pengumuman:
+        form.pengumuman.trim() || null,
+
       aktif: Boolean(form.aktif),
-      urutan: Number(form.urutan) || 0,
+
+      urutan:
+        Number(form.urutan) || 0,
     };
 
     let result;
@@ -286,9 +327,13 @@ export default function AdminLokerPage() {
     setSaving(false);
 
     if (editingId) {
-      setSuccess("Lowongan berhasil diperbarui.");
+      setSuccess(
+        "Lowongan berhasil diperbarui."
+      );
     } else {
-      setSuccess("Lowongan berhasil ditambahkan.");
+      setSuccess(
+        "Lowongan berhasil ditambahkan."
+      );
     }
 
     resetForm();
@@ -311,15 +356,18 @@ export default function AdminLokerPage() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi Supabase belum tersedia.");
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
       setProcessingId(null);
       return;
     }
 
-    const { error: deleteError } = await supabase
-      .from("lowongan_kerja")
-      .delete()
-      .eq("id", item.id);
+    const { error: deleteError } =
+      await supabase
+        .from("lowongan_kerja")
+        .delete()
+        .eq("id", item.id);
 
     if (deleteError) {
       console.error(deleteError);
@@ -334,12 +382,16 @@ export default function AdminLokerPage() {
 
     setLowongan((current) =>
       current.filter(
-        (itemLowongan) => itemLowongan.id !== item.id
+        (itemLowongan) =>
+          itemLowongan.id !== item.id
       )
     );
 
     setProcessingId(null);
-    setSuccess("Lowongan berhasil dihapus.");
+
+    setSuccess(
+      "Lowongan berhasil dihapus."
+    );
   }
 
   async function toggleAktif(item) {
@@ -350,17 +402,21 @@ export default function AdminLokerPage() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi Supabase belum tersedia.");
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
+
       setProcessingId(null);
       return;
     }
 
-    const { error: updateError } = await supabase
-      .from("lowongan_kerja")
-      .update({
-        aktif: !item.aktif,
-      })
-      .eq("id", item.id);
+    const { error: updateError } =
+      await supabase
+        .from("lowongan_kerja")
+        .update({
+          aktif: !item.aktif,
+        })
+        .eq("id", item.id);
 
     if (updateError) {
       console.error(updateError);
@@ -393,46 +449,60 @@ export default function AdminLokerPage() {
     );
   }
 
-  const filteredLowongan = lowongan.filter((item) => {
-    const keyword = search.trim().toLowerCase();
+  const filteredLowongan =
+    lowongan.filter((item) => {
+      const keyword =
+        search.trim().toLowerCase();
 
-    const matchesSearch =
-      !keyword ||
-      (item.posisi || "")
-        .toLowerCase()
-        .includes(keyword) ||
-      (item.lokasi || "")
-        .toLowerCase()
-        .includes(keyword);
+      const matchesSearch =
+        !keyword ||
+        (item.posisi || "")
+          .toLowerCase()
+          .includes(keyword) ||
+        (item.lokasi || "")
+          .toLowerCase()
+          .includes(keyword);
 
-    const matchesFilter =
-      filter === "semua" ||
-      (filter === "aktif" && item.aktif) ||
-      (filter === "nonaktif" && !item.aktif) ||
-      (filter === "dibuka" && item.status === "dibuka") ||
-      (filter === "proses" &&
-        item.status === "proses_seleksi");
+      const matchesFilter =
+        filter === "semua" ||
+        (filter === "aktif" &&
+          item.aktif) ||
+        (filter === "nonaktif" &&
+          !item.aktif) ||
+        (filter === "dibuka" &&
+          item.status === "dibuka") ||
+        (filter === "proses" &&
+          item.status ===
+            "proses_seleksi");
 
-    return matchesSearch && matchesFilter;
-  });
+      return (
+        matchesSearch &&
+        matchesFilter
+      );
+    });
 
-  const totalLowongan = lowongan.length;
+  const totalLowongan =
+    lowongan.length;
 
-  const aktif = lowongan.filter(
-    (item) => item.aktif
-  ).length;
+  const aktif =
+    lowongan.filter(
+      (item) => item.aktif
+    ).length;
 
-  const dibuka = lowongan.filter(
-    (item) =>
-      item.status === "dibuka" && item.aktif
-  ).length;
+  const dibuka =
+    lowongan.filter(
+      (item) =>
+        item.status === "dibuka" &&
+        item.aktif
+    ).length;
 
-  const nonaktif = lowongan.filter(
-    (item) => !item.aktif
-  ).length;
+  const nonaktif =
+    lowongan.filter(
+      (item) => !item.aktif
+    ).length;
 
   return (
-    <div className="lokerPage">
+    <main className="lokerAdminPage">
       <div className="page">
         <div className="topbar">
           <div>
@@ -443,8 +513,9 @@ export default function AdminLokerPage() {
             <h1>Lowongan Kerja</h1>
 
             <p>
-              Kelola informasi lowongan kerja yang
-              ditampilkan pada halaman publik.
+              Kelola informasi lowongan kerja
+              yang ditampilkan pada halaman
+              publik.
             </p>
           </div>
 
@@ -481,23 +552,39 @@ export default function AdminLokerPage() {
 
         <div className="summary">
           <div className="summaryCard">
-            <span>Total Lowongan</span>
-            <strong>{totalLowongan}</strong>
+            <span>
+              Total Lowongan
+            </span>
+
+            <strong>
+              {totalLowongan}
+            </strong>
           </div>
 
           <div className="summaryCard">
             <span>Aktif</span>
-            <strong>{aktif}</strong>
+
+            <strong>
+              {aktif}
+            </strong>
           </div>
 
           <div className="summaryCard">
-            <span>Pendaftaran Dibuka</span>
-            <strong>{dibuka}</strong>
+            <span>
+              Pendaftaran Dibuka
+            </span>
+
+            <strong>
+              {dibuka}
+            </strong>
           </div>
 
           <div className="summaryCard">
             <span>Nonaktif</span>
-            <strong>{nonaktif}</strong>
+
+            <strong>
+              {nonaktif}
+            </strong>
           </div>
         </div>
 
@@ -518,8 +605,9 @@ export default function AdminLokerPage() {
                 </h2>
 
                 <p>
-                  Isi informasi lowongan yang akan
-                  ditampilkan kepada calon pelamar.
+                  Isi informasi lowongan
+                  yang akan ditampilkan
+                  kepada calon pelamar.
                 </p>
               </div>
 
@@ -535,7 +623,9 @@ export default function AdminLokerPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form
+              onSubmit={handleSubmit}
+            >
               <div className="formGrid">
                 <div className="field full">
                   <label htmlFor="posisi">
@@ -546,7 +636,9 @@ export default function AdminLokerPage() {
                     id="posisi"
                     name="posisi"
                     value={form.posisi}
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Contoh: Staff Toko"
                     required
                   />
@@ -561,7 +653,9 @@ export default function AdminLokerPage() {
                     id="lokasi"
                     name="lokasi"
                     value={form.lokasi}
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Contoh: Sinar Kasih Kota"
                   />
                 </div>
@@ -577,7 +671,9 @@ export default function AdminLokerPage() {
                     type="number"
                     min="0"
                     value={form.urutan}
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                   />
                 </div>
 
@@ -590,16 +686,24 @@ export default function AdminLokerPage() {
                     id="status"
                     name="status"
                     value={form.status}
-                    onChange={handleChange}
+                    onChange={
+                      handleChange
+                    }
                   >
-                    {statusOptions.map((option) => (
-                      <option
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </option>
-                    ))}
+                    {statusOptions.map(
+                      (option) => (
+                        <option
+                          key={
+                            option.value
+                          }
+                          value={
+                            option.value
+                          }
+                        >
+                          {option.label}
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
 
@@ -611,17 +715,24 @@ export default function AdminLokerPage() {
                   <select
                     id="tahap_seleksi"
                     name="tahap_seleksi"
-                    value={form.tahap_seleksi}
-                    onChange={handleChange}
+                    value={
+                      form.tahap_seleksi
+                    }
+                    onChange={
+                      handleChange
+                    }
                   >
-                    {tahapSeleksi.map((item) => (
-                      <option
-                        key={item.key}
-                        value={item.key}
-                      >
-                        {item.nomor} — {item.judul}
-                      </option>
-                    ))}
+                    {tahapSeleksi.map(
+                      (item) => (
+                        <option
+                          key={item.key}
+                          value={item.key}
+                        >
+                          {item.nomor} —{" "}
+                          {item.judul}
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
 
@@ -634,8 +745,12 @@ export default function AdminLokerPage() {
                     id="tanggal_buka"
                     name="tanggal_buka"
                     type="date"
-                    value={form.tanggal_buka}
-                    onChange={handleChange}
+                    value={
+                      form.tanggal_buka
+                    }
+                    onChange={
+                      handleChange
+                    }
                   />
                 </div>
 
@@ -648,8 +763,12 @@ export default function AdminLokerPage() {
                     id="tanggal_tutup"
                     name="tanggal_tutup"
                     type="date"
-                    value={form.tanggal_tutup}
-                    onChange={handleChange}
+                    value={
+                      form.tanggal_tutup
+                    }
+                    onChange={
+                      handleChange
+                    }
                   />
                 </div>
 
@@ -661,13 +780,18 @@ export default function AdminLokerPage() {
                   <input
                     id="gambar_url"
                     name="gambar_url"
-                    value={form.gambar_url}
-                    onChange={handleChange}
+                    value={
+                      form.gambar_url
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="https://..."
                   />
 
                   <small>
-                    Masukkan URL gambar jika tersedia.
+                    Masukkan URL gambar
+                    jika tersedia.
                   </small>
                 </div>
 
@@ -680,8 +804,12 @@ export default function AdminLokerPage() {
                     id="deskripsi"
                     name="deskripsi"
                     rows="6"
-                    value={form.deskripsi}
-                    onChange={handleChange}
+                    value={
+                      form.deskripsi
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
                   />
                 </div>
@@ -695,17 +823,21 @@ export default function AdminLokerPage() {
                     id="persyaratan"
                     name="persyaratan"
                     rows="7"
-                    value={form.persyaratan}
-                    onChange={handleChange}
-                    placeholder={`Contoh:
-Usia maksimal 30 tahun
-Pendidikan minimal SMA/SMK
-Mampu bekerja dalam tim`}
+                    value={
+                      form.persyaratan
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder={
+                      "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
+                    }
                   />
 
                   <small>
-                    Gunakan baris baru untuk setiap
-                    persyaratan agar lebih mudah dibaca.
+                    Gunakan baris baru untuk
+                    setiap persyaratan agar
+                    lebih mudah dibaca.
                   </small>
                 </div>
 
@@ -718,14 +850,19 @@ Mampu bekerja dalam tim`}
                     id="google_form_url"
                     name="google_form_url"
                     type="url"
-                    value={form.google_form_url}
-                    onChange={handleChange}
+                    value={
+                      form.google_form_url
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="https://forms.google.com/..."
                   />
 
                   <small>
-                    Tombol lamaran pada website akan
-                    menggunakan link ini.
+                    Tombol lamaran pada
+                    website akan menggunakan
+                    link ini.
                   </small>
                 </div>
 
@@ -738,8 +875,12 @@ Mampu bekerja dalam tim`}
                     id="pengumuman"
                     name="pengumuman"
                     rows="4"
-                    value={form.pengumuman}
-                    onChange={handleChange}
+                    value={
+                      form.pengumuman
+                    }
+                    onChange={
+                      handleChange
+                    }
                     placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
                   />
                 </div>
@@ -750,12 +891,15 @@ Mampu bekerja dalam tim`}
                       type="checkbox"
                       name="aktif"
                       checked={form.aktif}
-                      onChange={handleChange}
+                      onChange={
+                        handleChange
+                      }
                     />
 
                     <span>
-                      Tampilkan lowongan ini di
-                      website publik
+                      Tampilkan lowongan
+                      ini di website
+                      publik
                     </span>
                   </label>
                 </div>
@@ -797,7 +941,9 @@ Mampu bekerja dalam tim`}
               placeholder="Cari posisi atau lokasi..."
               value={search}
               onChange={(event) =>
-                setSearch(event.target.value)
+                setSearch(
+                  event.target.value
+                )
               }
             />
 
@@ -805,7 +951,9 @@ Mampu bekerja dalam tim`}
               <button
                 type="button"
                 className="clearSearch"
-                onClick={() => setSearch("")}
+                onClick={() =>
+                  setSearch("")
+                }
                 aria-label="Hapus pencarian"
               >
                 ×
@@ -821,7 +969,9 @@ Mampu bekerja dalam tim`}
                   ? "filter active"
                   : "filter"
               }
-              onClick={() => setFilter("semua")}
+              onClick={() =>
+                setFilter("semua")
+              }
             >
               Semua
             </button>
@@ -833,7 +983,9 @@ Mampu bekerja dalam tim`}
                   ? "filter active"
                   : "filter"
               }
-              onClick={() => setFilter("aktif")}
+              onClick={() =>
+                setFilter("aktif")
+              }
             >
               Aktif
             </button>
@@ -845,7 +997,9 @@ Mampu bekerja dalam tim`}
                   ? "filter active"
                   : "filter"
               }
-              onClick={() => setFilter("dibuka")}
+              onClick={() =>
+                setFilter("dibuka")
+              }
             >
               Dibuka
             </button>
@@ -857,7 +1011,9 @@ Mampu bekerja dalam tim`}
                   ? "filter active"
                   : "filter"
               }
-              onClick={() => setFilter("proses")}
+              onClick={() =>
+                setFilter("proses")
+              }
             >
               Proses Seleksi
             </button>
@@ -869,7 +1025,9 @@ Mampu bekerja dalam tim`}
                   ? "filter active"
                   : "filter"
               }
-              onClick={() => setFilter("nonaktif")}
+              onClick={() =>
+                setFilter("nonaktif")
+              }
             >
               Nonaktif
             </button>
@@ -881,20 +1039,23 @@ Mampu bekerja dalam tim`}
             <div className="empty">
               Memuat data lowongan...
             </div>
-          ) : filteredLowongan.length === 0 ? (
+          ) : filteredLowongan.length ===
+            0 ? (
             <div className="empty">
               <div className="emptyIcon">
                 💼
               </div>
 
               <strong>
-                {search || filter !== "semua"
+                {search ||
+                filter !== "semua"
                   ? "Tidak ada lowongan yang sesuai."
                   : "Belum ada data lowongan."}
               </strong>
 
               <p>
-                {search || filter !== "semua"
+                {search ||
+                filter !== "semua"
                   ? "Coba ubah pencarian atau filter."
                   : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
               </p>
@@ -916,126 +1077,142 @@ Mampu bekerja dalam tim`}
                 </thead>
 
                 <tbody>
-                  {filteredLowongan.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        {item.urutan ?? 0}
-                      </td>
+                  {filteredLowongan.map(
+                    (item) => (
+                      <tr key={item.id}>
+                        <td>
+                          {item.urutan ??
+                            0}
+                        </td>
 
-                      <td>
-                        <div className="positionCell">
-                          {item.gambar_url ? (
-                            <img
-                              src={item.gambar_url}
-                              alt=""
-                              className="thumb"
-                            />
-                          ) : (
-                            <div className="thumbPlaceholder">
-                              💼
+                        <td>
+                          <div className="positionCell">
+                            {item.gambar_url ? (
+                              <img
+                                src={
+                                  item.gambar_url
+                                }
+                                alt=""
+                                className="thumb"
+                              />
+                            ) : (
+                              <div className="thumbPlaceholder">
+                                💼
+                              </div>
+                            )}
+
+                            <div>
+                              <strong>
+                                {item.posisi ||
+                                  "-"}
+                              </strong>
+
+                              <small>
+                                ID #{item.id}
+                              </small>
                             </div>
-                          )}
-
-                          <div>
-                            <strong>
-                              {item.posisi || "-"}
-                            </strong>
-
-                            <small>
-                              ID #{item.id}
-                            </small>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td>
-                        {item.lokasi || "-"}
-                      </td>
+                        <td>
+                          {item.lokasi ||
+                            "-"}
+                        </td>
 
-                      <td>
-                        <span
-                          className={`status status-${item.status}`}
-                        >
-                          {getStatusLabel(
-                            item.status
-                          )}
-                        </span>
-                      </td>
-
-                      <td>
-                        {getTahapLabel(
-                          item.tahap_seleksi
-                        )}
-                      </td>
-
-                      <td>
-                        <div className="dateCell">
-                          <span>
-                            {formatTanggal(
-                              item.tanggal_buka
+                        <td>
+                          <span
+                            className={`status status-${item.status}`}
+                          >
+                            {getStatusLabel(
+                              item.status
                             )}
                           </span>
+                        </td>
 
-                          <small>
-                            sampai{" "}
-                            {formatTanggal(
-                              item.tanggal_tutup
-                            )}
-                          </small>
-                        </div>
-                      </td>
+                        <td>
+                          {getTahapLabel(
+                            item.tahap_seleksi
+                          )}
+                        </td>
 
-                      <td>
-                        <button
-                          type="button"
-                          className={
-                            item.aktif
-                              ? "toggle active"
-                              : "toggle"
-                          }
-                          onClick={() =>
-                            toggleAktif(item)
-                          }
-                          disabled={
-                            processingId === item.id
-                          }
-                        >
-                          {item.aktif
-                            ? "Aktif"
-                            : "Nonaktif"}
-                        </button>
-                      </td>
+                        <td>
+                          <div className="dateCell">
+                            <span>
+                              {formatTanggal(
+                                item.tanggal_buka
+                              )}
+                            </span>
 
-                      <td>
-                        <div className="actions">
+                            <small>
+                              sampai{" "}
+                              {formatTanggal(
+                                item.tanggal_tutup
+                              )}
+                            </small>
+                          </div>
+                        </td>
+
+                        <td>
                           <button
                             type="button"
-                            className="editButton"
-                            onClick={() =>
-                              openEditForm(item)
+                            className={
+                              item.aktif
+                                ? "toggle active"
+                                : "toggle"
                             }
-                          >
-                            Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            className="deleteButton"
                             onClick={() =>
-                              hapusLowongan(item)
+                              toggleAktif(
+                                item
+                              )
                             }
                             disabled={
-                              processingId === item.id
+                              processingId ===
+                              item.id
                             }
                           >
-                            {processingId === item.id
-                              ? "..."
-                              : "Hapus"}
+                            {item.aktif
+                              ? "Aktif"
+                              : "Nonaktif"}
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        <td>
+                          <div className="actions">
+                            <button
+                              type="button"
+                              className="editButton"
+                              onClick={() =>
+                                openEditForm(
+                                  item
+                                )
+                              }
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              className="deleteButton"
+                              onClick={() =>
+                                hapusLowongan(
+                                  item
+                                )
+                              }
+                              disabled={
+                                processingId ===
+                                item.id
+                              }
+                            >
+                              {processingId ===
+                              item.id
+                                ? "..."
+                                : "Hapus"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1044,15 +1221,16 @@ Mampu bekerja dalam tim`}
       </div>
 
       <style>{`
-        .lokerPage {
+        .lokerAdminPage {
           width: 100%;
+          min-height: 100%;
           color: #3f2f24;
         }
 
         .page {
           width: 100%;
-          max-width: 1500px;
-          margin: 0 auto;
+          max-width: none;
+          margin: 0;
         }
 
         .topbar {
@@ -1071,10 +1249,11 @@ Mampu bekerja dalam tim`}
           letter-spacing: 0.08em;
         }
 
-        .topbar h1 {
+        h1 {
           margin: 0 0 7px;
           color: #3f2f24;
           font-size: 30px;
+          line-height: 1.2;
         }
 
         .topbar p {
@@ -1147,7 +1326,8 @@ Mampu bekerja dalam tim`}
 
         .summary {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns:
+            repeat(4, minmax(0, 1fr));
           gap: 18px;
           margin-bottom: 22px;
         }
@@ -1177,7 +1357,9 @@ Mampu bekerja dalam tim`}
           background: #fff;
           border: 1px solid #dfd2c3;
           border-radius: 14px;
-          box-shadow: 0 8px 25px rgba(75, 51, 38, 0.05);
+          box-shadow:
+            0 8px 25px
+            rgba(75, 51, 38, 0.05);
         }
 
         .formHeader {
@@ -1186,7 +1368,8 @@ Mampu bekerja dalam tim`}
           gap: 20px;
           margin-bottom: 24px;
           padding-bottom: 18px;
-          border-bottom: 1px solid #eee5dc;
+          border-bottom:
+            1px solid #eee5dc;
         }
 
         .formHeader h2 {
@@ -1220,7 +1403,8 @@ Mampu bekerja dalam tim`}
 
         .formGrid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
           gap: 18px;
         }
 
@@ -1264,7 +1448,9 @@ Mampu bekerja dalam tim`}
         .field select:focus,
         .field textarea:focus {
           border-color: #8d6c53;
-          box-shadow: 0 0 0 3px rgba(141, 108, 83, 0.1);
+          box-shadow:
+            0 0 0 3px
+            rgba(141, 108, 83, 0.1);
         }
 
         .field small {
@@ -1296,7 +1482,8 @@ Mampu bekerja dalam tim`}
           gap: 10px;
           margin-top: 24px;
           padding-top: 20px;
-          border-top: 1px solid #eee5dc;
+          border-top:
+            1px solid #eee5dc;
         }
 
         .cancelButton,
@@ -1343,7 +1530,8 @@ Mampu bekerja dalam tim`}
         .searchWrap input {
           width: 100%;
           box-sizing: border-box;
-          padding: 12px 42px 12px 14px;
+          padding:
+            12px 42px 12px 14px;
           border: 1px solid #cfc1b1;
           border-radius: 8px;
           background: #fff;
@@ -1355,7 +1543,8 @@ Mampu bekerja dalam tim`}
           position: absolute;
           right: 8px;
           top: 50%;
-          transform: translateY(-50%);
+          transform:
+            translateY(-50%);
           width: 28px;
           height: 28px;
           border: none;
@@ -1410,7 +1599,8 @@ Mampu bekerja dalam tim`}
         th,
         td {
           padding: 14px;
-          border-bottom: 1px solid #eee5dc;
+          border-bottom:
+            1px solid #eee5dc;
           text-align: left;
           vertical-align: middle;
         }
@@ -1597,7 +1787,8 @@ Mampu bekerja dalam tim`}
 
         @media (max-width: 1100px) {
           .summary {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
           }
 
           .topbar {
@@ -1651,7 +1842,7 @@ Mampu bekerja dalam tim`}
         }
 
         @media (max-width: 520px) {
-          .topbar h1 {
+          h1 {
             font-size: 26px;
           }
 
@@ -1679,6 +1870,6 @@ Mampu bekerja dalam tim`}
           }
         }
       `}</style>
-    </div>
+    </main>
   );
 }
