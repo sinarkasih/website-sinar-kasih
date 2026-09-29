@@ -167,14 +167,22 @@ export default function KontakTokoPage() {
     }));
 
     setMessage("Informasi toko & kontak berhasil disimpan.");
-    setSaving(false);
+
+    /*
+     * Setelah berhasil disimpan,
+     * otomatis kembali ke halaman Toko & Kontak.
+     */
+    setTimeout(() => {
+      router.push("/admin/toko");
+    }, 700);
   }
 
   const backButtonStyle = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "11px 16px",
+    minHeight: "42px",
+    padding: "0 16px",
     borderRadius: "8px",
     background: "#ffffff",
     border: "1px solid #d7c8b8",
@@ -183,6 +191,7 @@ export default function KontakTokoPage() {
     fontWeight: 700,
     whiteSpace: "nowrap",
     cursor: "pointer",
+    boxSizing: "border-box",
   };
 
   const socialLinkStyle = {
@@ -485,6 +494,7 @@ export default function KontakTokoPage() {
 
               <div className="actions">
 
+                {/* BATAL SEKARANG BERUPA TOMBOL */}
                 <Link
                   href="/admin/toko"
                   className="cancelButton"
@@ -668,7 +678,8 @@ export default function KontakTokoPage() {
         .cancelButton,
         button {
           min-width: 150px;
-          padding: 12px 18px;
+          min-height: 42px;
+          padding: 0 18px;
           border-radius: 8px;
           font-size: 15px;
           font-weight: 700;
@@ -676,6 +687,9 @@ export default function KontakTokoPage() {
           text-align: center;
           text-decoration: none;
           box-sizing: border-box;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .cancelButton {
