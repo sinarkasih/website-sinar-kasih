@@ -48,6 +48,7 @@ export default function DetailPesananPage() {
           total,
           catatan,
           whatsapp,
+          deleted_at,
           pelanggan:pelanggan_id (
             id,
             nama,
@@ -268,11 +269,6 @@ export default function DetailPesananPage() {
       })
       .eq("id", pesanan.id);
 
-    /*
-      Menjaga alur status supaya status tidak
-      berubah sembarangan jika halaman dibuka
-      bersamaan dari perangkat lain.
-    */
     if (statusBaru === "diproses") {
       request = request.eq("status", "baru");
     }
@@ -289,7 +285,7 @@ export default function DetailPesananPage() {
     }
 
     const { data, error: updateError } =
-      await request.select("id, status");
+      await request.select("id, status, deleted_at");
 
     if (updateError) {
       console.error(
@@ -324,8 +320,69 @@ export default function DetailPesananPage() {
 
     setSaving(false);
 
+    if (statusBaru !== "dibatalkan") {
+      setTimeout(() => {
+        router.push("/admin/pesanan");
+      }, 700);
+    }
+  }
+
+  async function pindahkanKeTrash() {
+    if (!pesanan) return;
+
+    const yakin = window.confirm(
+      "Pindahkan pesanan ini ke Trash?\n\nPesanan akan disembunyikan dari daftar pesanan aktif, tetapi masih dapat dipulihkan dari Trash Pesanan."
+    );
+
+    if (!yakin) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      setError("Koneksi database belum tersedia.");
+      setSaving(false);
+      return;
+    }
+
+    const { error: trashError } = await supabase
+      .from("pesanan")
+      .update({
+        deleted_at: new Date().toISOString(),
+      })
+      .eq("id", pesanan.id)
+      .eq("status", "dibatalkan")
+      .is("deleted_at", null);
+
+    if (trashError) {
+      console.error(
+        "Gagal memindahkan pesanan ke Trash:",
+        trashError
+      );
+
+      setError(trashError.message);
+      setSaving(false);
+      return;
+    }
+
+    setSuccess(
+      "Pesanan berhasil dipindahkan ke Trash Pesanan."
+    );
+
+    setPesanan((current) => ({
+      ...current,
+      deleted_at: new Date().toISOString(),
+    }));
+
+    setSaving(false);
+
     setTimeout(() => {
-      router.push("/admin/pesanan");
+      router.push("/admin/pesanan/trash");
     }, 700);
   }
 
@@ -346,7 +403,9 @@ export default function DetailPesananPage() {
           <button
             type="button"
             className="back-button"
-            onClick={() => router.push("/admin/pesanan")}
+            onClick={() =>
+              router.push("/admin/pesanan")
+            }
           >
             ← Kembali ke Pesanan
           </button>
@@ -373,6 +432,10 @@ export default function DetailPesananPage() {
   const canCancel =
     pesanan.status === "baru" ||
     pesanan.status === "diproses";
+
+  const canMoveToTrash =
+    pesanan.status === "dibatalkan" &&
+    !pesanan.deleted_at;
 
   return (
     <main className="admin-content">
@@ -747,6 +810,16 @@ export default function DetailPesananPage() {
           background: #fbecec;
         }
 
+        .action-trash {
+          border: 1px solid #8a3f3f;
+          background: #8a3f3f;
+          color: #fff;
+        }
+
+        .action-trash:hover:not(:disabled) {
+          background: #713333;
+        }
+
         .action-disabled {
           padding: 13px;
           border-radius: 8px;
@@ -754,10 +827,6 @@ export default function DetailPesananPage() {
           color: #8a817a;
           text-align: center;
           font-size: 13px;
-        }
-
-        .admin-message {
-          margin-bottom: 18px;
         }
 
         .success-message {
@@ -817,7 +886,6 @@ export default function DetailPesananPage() {
       `}</style>
 
       <div className="detail-page">
-        {/* TOP BAR */}
         <div className="detail-topbar">
           <button
             type="button"
@@ -830,7 +898,6 @@ export default function DetailPesananPage() {
           </button>
         </div>
 
-        {/* HEADER */}
         <div className="detail-header">
           <div className="detail-title">
             <h1>Detail Pesanan</h1>
@@ -877,9 +944,7 @@ export default function DetailPesananPage() {
         )}
 
         <div className="detail-grid">
-          {/* KOLOM UTAMA */}
           <div>
-            {/* INFORMASI PESANAN */}
             <div className="detail-card">
               <h2>Informasi Pesanan</h2>
 
@@ -937,7 +1002,6 @@ export default function DetailPesananPage() {
               </div>
             </div>
 
-            {/* PELANGGAN */}
             <div className="detail-card">
               <h2>Informasi Pelanggan</h2>
 
@@ -975,7 +1039,6 @@ export default function DetailPesananPage() {
               )}
             </div>
 
-            {/* CABANG */}
             <div className="detail-card">
               <h2>Cabang Tujuan</h2>
 
@@ -1007,7 +1070,6 @@ export default function DetailPesananPage() {
               </div>
             </div>
 
-            {/* PRODUK */}
             <div className="detail-card">
               <h2>Daftar Produk</h2>
 
@@ -1098,7 +1160,6 @@ export default function DetailPesananPage() {
               </div>
             </div>
 
-            {/* CATATAN */}
             <div className="detail-card">
               <h2>Catatan Pelanggan</h2>
 
@@ -1114,7 +1175,6 @@ export default function DetailPesananPage() {
             </div>
           </div>
 
-          {/* KOLOM AKSI */}
           <div>
             <div className="detail-card action-card">
               <h2>Aksi Pesanan</h2>
@@ -1170,18 +1230,29 @@ export default function DetailPesananPage() {
                   </button>
                 )}
 
+                {canMoveToTrash && (
+                  <button
+                    type="button"
+                    className="action-button action-trash"
+                    disabled={saving}
+                    onClick={pindahkanKeTrash}
+                  >
+                    {saving
+                      ? "Memindahkan..."
+                      : "🗑 Pindahkan ke Trash"}
+                  </button>
+                )}
+
                 {!canProcess &&
                   !canComplete &&
-                  !canCancel && (
+                  !canCancel &&
+                  !canMoveToTrash && (
                     <div className="action-disabled">
-                      Pesanan ini sudah{" "}
-                      <strong>
-                        {labelStatus(
-                          pesanan.status
-                        )}
-                      </strong>
-                      . Tidak ada tindakan
-                      lanjutan.
+                      {pesanan.deleted_at
+                        ? "Pesanan ini sudah berada di Trash Pesanan."
+                        : `Pesanan ini sudah ${labelStatus(
+                            pesanan.status
+                          )}. Tidak ada tindakan lanjutan.`}
                     </div>
                   )}
               </div>
