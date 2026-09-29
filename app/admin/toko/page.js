@@ -417,11 +417,18 @@ export default function TokoPage() {
 
         .contactButton,
         .addButton {
-          padding: 12px 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 44px;
+          padding: 0 18px;
           border-radius: 8px;
           text-decoration: none;
           font-weight: 700;
+          font-size: 14px;
+          box-sizing: border-box;
           white-space: nowrap;
+          transition: 0.15s ease;
         }
 
         .contactButton {
@@ -432,15 +439,18 @@ export default function TokoPage() {
 
         .contactButton:hover {
           background: #f3eadf;
+          border-color: #bba995;
         }
 
         .addButton {
           background: #4b3326;
+          border: 1px solid #4b3326;
           color: #fff;
         }
 
         .addButton:hover {
           background: #39251b;
+          border-color: #39251b;
         }
 
         .summary {
@@ -692,7 +702,6 @@ export default function TokoPage() {
           .contactButton,
           .addButton {
             flex: 1;
-            text-align: center;
           }
         }
       `}</style>
