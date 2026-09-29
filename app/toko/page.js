@@ -29,20 +29,6 @@ function LocationIcon() {
   );
 }
 
-function ReviewIcon() {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        fontSize: "18px",
-        lineHeight: 1,
-      }}
-    >
-      ⭐⭐⭐⭐⭐
-    </span>
-  );
-}
-
 function PhoneIcon() {
   return (
     <svg
@@ -100,153 +86,169 @@ export default async function Page() {
   }
 
   return (
-    <section className="section">
-      <div className="wrap">
-        <div className="tokoHeader">
-          <div>
-            <h1>Toko Kami</h1>
-            <p>
-              Temukan lokasi Toko Listrik Sinar Kasih dan kunjungi
-              cabang terdekat.
-            </p>
+    <>
+      <section className="section">
+        <div className="wrap">
+          <div className="tokoHeader">
+            <div>
+              <h1>Toko Kami</h1>
+              <p>
+                Temukan lokasi Toko Listrik Sinar Kasih dan kunjungi
+                cabang terdekat.
+              </p>
+            </div>
           </div>
-        </div>
 
-        {errorMessage ? (
-          <div className="tokoMessage">
-            {errorMessage}
-          </div>
-        ) : cabang.length === 0 ? (
-          <div className="tokoMessage">
-            Belum ada cabang toko yang aktif.
-          </div>
-        ) : (
-          <div className="tokoGrid">
-            {cabang.map((item) => {
-              const whatsappNumber = normalizeWhatsApp(
-                item.telepon
-              );
+          {errorMessage ? (
+            <div className="tokoMessage">
+              {errorMessage}
+            </div>
+          ) : cabang.length === 0 ? (
+            <div className="tokoMessage">
+              Belum ada cabang toko yang aktif.
+            </div>
+          ) : (
+            <div className="tokoGrid">
+              {cabang.map((item) => {
+                const whatsappNumber = normalizeWhatsApp(
+                  item.telepon
+                );
 
-              const whatsappUrl = whatsappNumber
-                ? `https://wa.me/${whatsappNumber}`
-                : "";
+                const whatsappUrl = whatsappNumber
+                  ? `https://wa.me/${whatsappNumber}`
+                  : "";
 
-              return (
-                <article
-                  key={item.id}
-                  className="tokoCard"
-                >
-                  <div className="tokoPhoto">
-                    {item.foto ? (
-                      <img
-                        src={item.foto}
-                        alt={`Foto ${item.nama}`}
-                      />
-                    ) : (
-                      <div className="noPhoto">
-                        <span>🏪</span>
-                        <strong>Sinar Kasih</strong>
-                        <small>Foto toko belum tersedia</small>
-                      </div>
-                    )}
-                  </div>
+                return (
+                  <article
+                    key={item.id}
+                    className="tokoCard"
+                  >
+                    <div className="tokoPhoto">
+                      {item.foto ? (
+                        <img
+                          src={item.foto}
+                          alt={`Foto ${item.nama}`}
+                        />
+                      ) : (
+                        <div className="noPhoto">
+                          <span>🏪</span>
+                          <strong>Sinar Kasih</strong>
+                          <small>
+                            Foto toko belum tersedia
+                          </small>
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="tokoContent">
-                    <div className="tokoTitleRow">
-                      <div>
-                        <span className="branchLabel">
-                          TOKO / CABANG
+                    <div className="tokoContent">
+                      <div className="tokoTitleRow">
+                        <div>
+                          <span className="branchLabel">
+                            TOKO / CABANG
+                          </span>
+
+                          <h2>{item.nama}</h2>
+                        </div>
+
+                        <span className="activeBadge">
+                          ● Aktif
                         </span>
-
-                        <h2>{item.nama}</h2>
                       </div>
 
-                      <span className="activeBadge">
-                        ● Aktif
-                      </span>
-                    </div>
-
-                    <div className="infoItem">
-                      <span className="infoIcon">
-                        <LocationIcon />
-                      </span>
-
-                      <div>
-                        <strong>Alamat</strong>
-                        <p>{item.alamat}</p>
-                      </div>
-                    </div>
-
-                    {item.telepon && (
                       <div className="infoItem">
                         <span className="infoIcon">
-                          <PhoneIcon />
+                          <LocationIcon />
                         </span>
 
                         <div>
-                          <strong>Telepon / WhatsApp</strong>
-                          <p>{item.telepon}</p>
+                          <strong>Alamat</strong>
+                          <p>{item.alamat}</p>
                         </div>
                       </div>
-                    )}
 
-                    <div className="tokoActions">
-                      {item.google_maps_url && (
-                        <a
-                          href={item.google_maps_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mapsButton"
-                        >
-                          <LocationIcon />
-                          Lihat Google Maps
-                        </a>
-                      )}
-
-                      {item.google_review_url && (
-                        <a
-                          href={item.google_review_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="reviewButton"
-                        >
-                          <ReviewIcon />
-                          <span>
-                            <strong>Beri Review Google</strong>
-                            <small>
-                              Bantu kami dengan ulasan Anda
-                            </small>
+                      {item.telepon && (
+                        <div className="infoItem">
+                          <span className="infoIcon">
+                            <PhoneIcon />
                           </span>
-                        </a>
+
+                          <div>
+                            <strong>Telepon / WhatsApp</strong>
+                            <p>{item.telepon}</p>
+                          </div>
+                        </div>
                       )}
 
-                      {whatsappUrl && (
-                        <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="whatsappButton"
-                        >
-                          <WhatsAppIcon />
-                          Hubungi via WhatsApp
-                        </a>
-                      )}
+                      <div className="tokoActions">
+                        {item.google_maps_url && (
+                          <a
+                            href={item.google_maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mapsButton"
+                          >
+                            <LocationIcon />
+                            Lihat Google Maps
+                          </a>
+                        )}
+
+                        {item.google_review_url && (
+                          <a
+                            href={item.google_review_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="reviewButton"
+                          >
+                            <span
+                              className="reviewStars"
+                              aria-hidden="true"
+                            >
+                              ⭐⭐⭐⭐⭐
+                            </span>
+
+                            <span className="reviewText">
+                              <strong>
+                                Beri Review Google
+                              </strong>
+
+                              <small>
+                                Bantu kami dengan ulasan Anda
+                              </small>
+                            </span>
+                          </a>
+                        )}
+
+                        {whatsappUrl && (
+                          <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="whatsappButton"
+                          >
+                            <WhatsAppIcon />
+                            Hubungi via WhatsApp
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="backArea">
+            <Link
+              href="/lainnya"
+              className="backButton"
+            >
+              ← Kembali ke Lainnya
+            </Link>
           </div>
-        )}
-
-        <div className="backArea">
-          <Link href="/lainnya" className="backButton">
-            ← Kembali ke Lainnya
-          </Link>
         </div>
-      </div>
+      </section>
 
-      <style jsx>{`
+      <style>{`
         .tokoHeader {
           margin-bottom: 28px;
         }
@@ -265,10 +267,7 @@ export default async function Page() {
 
         .tokoGrid {
           display: grid;
-          grid-template-columns: repeat(
-            2,
-            minmax(0, 1fr)
-          );
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 24px;
         }
 
@@ -435,14 +434,20 @@ export default async function Page() {
           border: 1px solid #ead8b8;
         }
 
-        .reviewButton span {
+        .reviewStars {
+          font-size: 18px;
+          line-height: 1;
+          white-space: nowrap;
+        }
+
+        .reviewText {
           display: flex;
           align-items: flex-start;
           flex-direction: column;
           gap: 2px;
         }
 
-        .reviewButton small {
+        .reviewText small {
           color: #8a7766;
           font-size: 11px;
           font-weight: 500;
@@ -510,6 +515,6 @@ export default async function Page() {
           }
         }
       `}</style>
-    </section>
+    </>
   );
 }
