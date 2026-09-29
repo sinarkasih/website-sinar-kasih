@@ -242,7 +242,7 @@ export default async function Page() {
               href="/lainnya"
               className="backButton"
             >
-              ← Kembali ke Lainnya
+              ← Kembali ke Informasi & Layanan
             </Link>
           </div>
         </div>
