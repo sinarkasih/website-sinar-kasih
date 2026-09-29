@@ -202,13 +202,22 @@ export default function Page() {
           <p>Informasi pelanggan dan riwayat pesanan.</p>
         </div>
 
-        <button
-          type="button"
-          className="btn secondary"
-          onClick={() => router.push("/admin/pelanggan")}
-        >
-          ← Kembali
-        </button>
+        <div className="head-actions">
+          <Link
+            href={`/admin/pelanggan/${pelanggan.id}/edit`}
+            className="btn edit"
+          >
+            Edit Pelanggan
+          </Link>
+
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => router.push("/admin/pelanggan")}
+          >
+            ← Kembali
+          </button>
+        </div>
       </div>
 
       <div className="customer-grid">
@@ -383,6 +392,12 @@ export default function Page() {
           color: #766d65;
         }
 
+        .head-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
         .customer-grid {
           display: grid;
           grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -536,6 +551,11 @@ export default function Page() {
           font-weight: 700;
           cursor: pointer;
           font-size: 14px;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
         }
 
         .btn.secondary {
@@ -546,6 +566,15 @@ export default function Page() {
 
         .btn.secondary:hover {
           background: #f8f3ee;
+        }
+
+        .btn.edit {
+          background: #765238;
+          color: #fff;
+        }
+
+        .btn.edit:hover {
+          background: #63432f;
         }
 
         .detail-link {
@@ -648,6 +677,14 @@ export default function Page() {
         @media (max-width: 640px) {
           .page-head {
             flex-direction: column;
+          }
+
+          .head-actions {
+            width: 100%;
+          }
+
+          .head-actions .btn {
+            flex: 1;
           }
 
           .page-head h1 {
