@@ -29,40 +29,36 @@ export default function AdminPesananPage() {
       return;
     }
 
-    const { data, error: pesananError } =
-      await supabase
-        .from("pesanan")
-        .select(`
+    const { data, error: pesananError } = await supabase
+      .from("pesanan")
+      .select(`
+        id,
+        created_at,
+        pelanggan_id,
+        cabang_id,
+        nomor_pesanan,
+        status,
+        total,
+        catatan,
+        whatsapp,
+        pelanggan:pelanggan_id (
           id,
-          created_at,
-          pelanggan_id,
-          cabang_id,
-          nomor_pesanan,
-          status,
-          total,
-          catatan,
-          whatsapp,
-          pelanggan:pelanggan_id (
-            id,
-            nama,
-            email,
-            telepon,
-            tipe
-          ),
-          cabang:cabang_id (
-            id,
-            nama
-          )
-        `)
-        .order("created_at", {
-          ascending: false,
-        });
+          nama,
+          email,
+          telepon,
+          tipe
+        ),
+        cabang:cabang_id (
+          id,
+          nama
+        )
+      `)
+      .order("created_at", {
+        ascending: false,
+      });
 
     if (pesananError) {
-      console.error(
-        "Gagal mengambil pesanan:",
-        pesananError
-      );
+      console.error("Gagal mengambil pesanan:", pesananError);
 
       setError(pesananError.message);
       setPesanan([]);
@@ -75,9 +71,7 @@ export default function AdminPesananPage() {
   }
 
   const pesananFiltered = useMemo(() => {
-    const keyword = search
-      .trim()
-      .toLowerCase();
+    const keyword = search.trim().toLowerCase();
 
     return pesanan.filter((item) => {
       const cocokStatus =
@@ -112,26 +106,20 @@ export default function AdminPesananPage() {
   function formatTanggal(value) {
     if (!value) return "-";
 
-    return new Date(value).toLocaleString(
-      "id-ID",
-      {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }
-    );
+    return new Date(value).toLocaleString("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
   }
 
   function formatRupiah(value) {
     const angka = Number(value || 0);
 
-    return new Intl.NumberFormat(
-      "id-ID",
-      {
-        style: "currency",
-        currency: "IDR",
-        maximumFractionDigits: 0,
-      }
-    ).format(angka);
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(angka);
   }
 
   function labelStatus(status) {
@@ -190,8 +178,11 @@ export default function AdminPesananPage() {
 
   return (
     <main className="admin-content">
-
       <style jsx>{`
+        .pesanan-page {
+          width: 100%;
+        }
+
         .pesanan-header {
           display: flex;
           justify-content: space-between;
@@ -209,17 +200,20 @@ export default function AdminPesananPage() {
         }
 
         .pesanan-summary {
+          width: 100%;
           display: grid;
-          grid-template-columns: repeat(5, 1fr);
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: 12px;
           margin-bottom: 20px;
         }
 
         .pesanan-summary-card {
+          min-width: 0;
           padding: 16px;
           border: 1px solid #e2ddd6;
           border-radius: 10px;
           background: #fff;
+          box-sizing: border-box;
         }
 
         .pesanan-summary-label {
@@ -232,6 +226,18 @@ export default function AdminPesananPage() {
           color: #3f2b20;
           font-size: 24px;
           font-weight: 700;
+        }
+
+        /*
+          Khusus halaman Pesanan:
+          card dibuat full width supaya tidak menyisakan
+          ruang kosong besar di sebelah kanan.
+        */
+        .pesanan-card {
+          width: 100%;
+          max-width: none;
+          box-sizing: border-box;
+          overflow: hidden;
         }
 
         .pesanan-toolbar {
@@ -300,6 +306,7 @@ export default function AdminPesananPage() {
           color: #5b4b40;
           cursor: pointer;
           font-size: 13px;
+          white-space: nowrap;
         }
 
         .pesanan-filter.active {
@@ -310,14 +317,16 @@ export default function AdminPesananPage() {
 
         .pesanan-table-wrapper {
           width: 100%;
+          max-width: 100%;
           overflow-x: auto;
           border: 1px solid #e2ddd6;
           border-radius: 10px;
+          box-sizing: border-box;
         }
 
         .pesanan-table {
           width: 100%;
-          min-width: 1050px;
+          min-width: 0;
           border-collapse: collapse;
           table-layout: fixed;
         }
@@ -339,6 +348,7 @@ export default function AdminPesananPage() {
           font-size: 14px;
           line-height: 1.45;
           word-break: break-word;
+          overflow-wrap: anywhere;
         }
 
         .pesanan-table tbody tr:last-child td {
@@ -350,7 +360,7 @@ export default function AdminPesananPage() {
         }
 
         .col-number {
-          width: 14%;
+          width: 17%;
         }
 
         .col-date {
@@ -362,11 +372,11 @@ export default function AdminPesananPage() {
         }
 
         .col-branch {
-          width: 13%;
+          width: 14%;
         }
 
         .col-total {
-          width: 13%;
+          width: 12%;
         }
 
         .col-status {
@@ -374,7 +384,7 @@ export default function AdminPesananPage() {
         }
 
         .col-action {
-          width: 15%;
+          width: 12%;
         }
 
         .pesanan-number {
@@ -446,6 +456,7 @@ export default function AdminPesananPage() {
           color: #4a372d;
           cursor: pointer;
           font-size: 14px;
+          white-space: nowrap;
         }
 
         .detail-button:hover {
@@ -458,9 +469,15 @@ export default function AdminPesananPage() {
           color: #777;
         }
 
+        @media (max-width: 1100px) {
+          .pesanan-table {
+            min-width: 900px;
+          }
+        }
+
         @media (max-width: 900px) {
           .pesanan-summary {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
 
@@ -472,218 +489,211 @@ export default function AdminPesananPage() {
           .pesanan-search {
             max-width: none;
           }
+
+          .pesanan-toolbar {
+            align-items: stretch;
+          }
+
+          .pesanan-filters {
+            width: 100%;
+          }
+
+          .pesanan-filter {
+            flex: 1 1 auto;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .pesanan-summary {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
-      {/* HEADER */}
-
-      <div className="pesanan-header">
-
-        <div>
-          <h1>Pesanan</h1>
-
-          <p>
-            Kelola seluruh pesanan
-            pelanggan Toko Listrik
-            Sinar Kasih.
-          </p>
-        </div>
-
-      </div>
-
-      {/* SUMMARY */}
-
-      <div className="pesanan-summary">
-
-        <div className="pesanan-summary-card">
-          <div className="pesanan-summary-label">
-            Semua Pesanan
-          </div>
-
-          <div className="pesanan-summary-number">
-            {pesanan.length}
-          </div>
-        </div>
-
-        <div className="pesanan-summary-card">
-          <div className="pesanan-summary-label">
-            Baru
-          </div>
-
-          <div className="pesanan-summary-number">
-            {jumlahBaru}
-          </div>
-        </div>
-
-        <div className="pesanan-summary-card">
-          <div className="pesanan-summary-label">
-            Diproses
-          </div>
-
-          <div className="pesanan-summary-number">
-            {jumlahDiproses}
-          </div>
-        </div>
-
-        <div className="pesanan-summary-card">
-          <div className="pesanan-summary-label">
-            Selesai
-          </div>
-
-          <div className="pesanan-summary-number">
-            {jumlahSelesai}
-          </div>
-        </div>
-
-        <div className="pesanan-summary-card">
-          <div className="pesanan-summary-label">
-            Dibatalkan
-          </div>
-
-          <div className="pesanan-summary-number">
-            {jumlahDibatalkan}
-          </div>
-        </div>
-
-      </div>
-
-      {/* CONTENT */}
-
-      <div className="admin-card">
-
-        <div className="admin-section-header">
-
+      <div className="pesanan-page">
+        {/* HEADER */}
+        <div className="pesanan-header">
           <div>
-            <h2>Semua Pesanan</h2>
+            <h1>Pesanan</h1>
 
             <p>
-              {pesananFiltered.length} pesanan
-              ditampilkan.
+              Kelola seluruh pesanan pelanggan Toko Listrik
+              Sinar Kasih.
             </p>
           </div>
-
         </div>
 
-        {error && (
-          <div className="admin-message admin-message-error">
-            {error}
-          </div>
-        )}
+        {/* SUMMARY */}
+        <div className="pesanan-summary">
+          <div className="pesanan-summary-card">
+            <div className="pesanan-summary-label">
+              Semua Pesanan
+            </div>
 
-        {/* TOOLBAR */}
-
-        <div className="pesanan-toolbar">
-
-          <div className="pesanan-search">
-
-            <input
-              type="search"
-              placeholder="Cari nomor pesanan, pelanggan, WhatsApp..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              autoComplete="off"
-            />
-
-            {search.trim() !== "" && (
-              <button
-                type="button"
-                className="pesanan-clear"
-                onClick={hapusPencarian}
-                aria-label="Hapus pencarian"
-                title="Hapus pencarian"
-              >
-                ×
-              </button>
-            )}
-
+            <div className="pesanan-summary-number">
+              {pesanan.length}
+            </div>
           </div>
 
-          <div className="pesanan-filters">
+          <div className="pesanan-summary-card">
+            <div className="pesanan-summary-label">
+              Baru
+            </div>
 
-            {[
-              ["semua", "Semua"],
-              ["baru", "Baru"],
-              ["diproses", "Diproses"],
-              ["selesai", "Selesai"],
-              ["dibatalkan", "Dibatalkan"],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={`pesanan-filter ${
-                  statusFilter === value
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  setStatusFilter(value)
+            <div className="pesanan-summary-number">
+              {jumlahBaru}
+            </div>
+          </div>
+
+          <div className="pesanan-summary-card">
+            <div className="pesanan-summary-label">
+              Diproses
+            </div>
+
+            <div className="pesanan-summary-number">
+              {jumlahDiproses}
+            </div>
+          </div>
+
+          <div className="pesanan-summary-card">
+            <div className="pesanan-summary-label">
+              Selesai
+            </div>
+
+            <div className="pesanan-summary-number">
+              {jumlahSelesai}
+            </div>
+          </div>
+
+          <div className="pesanan-summary-card">
+            <div className="pesanan-summary-label">
+              Dibatalkan
+            </div>
+
+            <div className="pesanan-summary-number">
+              {jumlahDibatalkan}
+            </div>
+          </div>
+        </div>
+
+        {/* CONTENT */}
+        <div className="admin-card pesanan-card">
+          <div className="admin-section-header">
+            <div>
+              <h2>Semua Pesanan</h2>
+
+              <p>
+                {pesananFiltered.length} pesanan
+                ditampilkan.
+              </p>
+            </div>
+          </div>
+
+          {error && (
+            <div className="admin-message admin-message-error">
+              {error}
+            </div>
+          )}
+
+          {/* TOOLBAR */}
+          <div className="pesanan-toolbar">
+            <div className="pesanan-search">
+              <input
+                type="search"
+                placeholder="Cari nomor pesanan, pelanggan, WhatsApp..."
+                value={search}
+                onChange={(e) =>
+                  setSearch(e.target.value)
                 }
-              >
-                {label}
-              </button>
-            ))}
+                autoComplete="off"
+              />
 
+              {search.trim() !== "" && (
+                <button
+                  type="button"
+                  className="pesanan-clear"
+                  onClick={hapusPencarian}
+                  aria-label="Hapus pencarian"
+                  title="Hapus pencarian"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            <div className="pesanan-filters">
+              {[
+                ["semua", "Semua"],
+                ["baru", "Baru"],
+                ["diproses", "Diproses"],
+                ["selesai", "Selesai"],
+                ["dibatalkan", "Dibatalkan"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`pesanan-filter ${
+                    statusFilter === value
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setStatusFilter(value)
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-        </div>
+          {/* TABLE */}
+          {loading ? (
+            <div className="pesanan-empty">
+              Memuat pesanan...
+            </div>
+          ) : pesananFiltered.length === 0 ? (
+            <div className="pesanan-empty">
+              Tidak ada pesanan yang sesuai.
+            </div>
+          ) : (
+            <div className="pesanan-table-wrapper">
+              <table className="pesanan-table">
+                <thead>
+                  <tr>
+                    <th className="col-number">
+                      No. Pesanan
+                    </th>
 
-        {/* TABLE */}
+                    <th className="col-date">
+                      Tanggal
+                    </th>
 
-        {loading ? (
-          <div className="pesanan-empty">
-            Memuat pesanan...
-          </div>
-        ) : pesananFiltered.length === 0 ? (
-          <div className="pesanan-empty">
-            Tidak ada pesanan yang sesuai.
-          </div>
-        ) : (
-          <div className="pesanan-table-wrapper">
+                    <th className="col-customer">
+                      Pelanggan
+                    </th>
 
-            <table className="pesanan-table">
+                    <th className="col-branch">
+                      Cabang
+                    </th>
 
-              <thead>
-                <tr>
+                    <th className="col-total">
+                      Total
+                    </th>
 
-                  <th className="col-number">
-                    No. Pesanan
-                  </th>
+                    <th className="col-status">
+                      Status
+                    </th>
 
-                  <th className="col-date">
-                    Tanggal
-                  </th>
+                    <th className="col-action">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
 
-                  <th className="col-customer">
-                    Pelanggan
-                  </th>
-
-                  <th className="col-branch">
-                    Cabang
-                  </th>
-
-                  <th className="col-total">
-                    Total
-                  </th>
-
-                  <th className="col-status">
-                    Status
-                  </th>
-
-                  <th className="col-action">
-                    Aksi
-                  </th>
-
-                </tr>
-              </thead>
-
-              <tbody>
-
-                {pesananFiltered.map(
-                  (item) => (
+                <tbody>
+                  {pesananFiltered.map((item) => (
                     <tr key={item.id}>
-
                       <td>
                         <div className="pesanan-number">
                           {item.nomor_pesanan ||
@@ -702,7 +712,6 @@ export default function AdminPesananPage() {
                       </td>
 
                       <td>
-
                         <div className="pesanan-customer-name">
                           {item.pelanggan?.nama ||
                             "Guest"}
@@ -713,19 +722,15 @@ export default function AdminPesananPage() {
                             item.pelanggan?.telepon ||
                             "-"}
                         </div>
-
                       </td>
 
                       <td>
-                        {item.cabang?.nama ||
-                          "-"}
+                        {item.cabang?.nama || "-"}
                       </td>
 
                       <td>
                         <strong>
-                          {formatRupiah(
-                            item.total
-                          )}
+                          {formatRupiah(item.total)}
                         </strong>
                       </td>
 
@@ -735,14 +740,11 @@ export default function AdminPesananPage() {
                             item.status
                           )}`}
                         >
-                          {labelStatus(
-                            item.status
-                          )}
+                          {labelStatus(item.status)}
                         </span>
                       </td>
 
                       <td>
-
                         <button
                           type="button"
                           className="detail-button"
@@ -754,22 +756,15 @@ export default function AdminPesananPage() {
                         >
                           Detail
                         </button>
-
                       </td>
-
                     </tr>
-                  )
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
-        )}
-
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-
     </main>
   );
 }
