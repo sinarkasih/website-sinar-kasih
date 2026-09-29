@@ -12,10 +12,14 @@ export default function Page() {
     alamat: "",
     telepon: "",
     google_maps_url: "",
+    google_review_url: "",
     foto: "",
     aktif: true,
     urutan: 1,
   });
+
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -27,6 +31,28 @@ export default function Page() {
       ...current,
       [name]: type === "checkbox" ? checked : value,
     }));
+  }
+
+  function handleFotoChange(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("File yang dipilih harus berupa gambar.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Ukuran foto maksimal 5 MB.");
+      return;
+    }
+
+    setError("");
+    setFotoFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setFotoPreview(previewUrl);
   }
 
   async function simpan(event) {
@@ -54,25 +80,74 @@ export default function Page() {
       return;
     }
 
-    const { error: insertError } = await supabase
-      .from("cabang_toko")
-      .insert({
-        nama: form.nama.trim(),
-        alamat: form.alamat.trim(),
-        telepon: form.telepon.trim() || null,
-        google_maps_url: form.google_maps_url.trim() || null,
-        foto: form.foto.trim() || null,
-        aktif: form.aktif,
-        urutan: Number(form.urutan) || 1,
-      });
+    let fotoUrl = null;
 
-    if (insertError) {
-      setError(insertError.message);
+    try {
+      const { data: cabang, error: insertError } = await supabase
+        .from("cabang_toko")
+        .insert({
+          nama: form.nama.trim(),
+          alamat: form.alamat.trim(),
+          telepon: form.telepon.trim() || null,
+          google_maps_url: form.google_maps_url.trim() || null,
+          google_review_url: form.google_review_url.trim() || null,
+          foto: null,
+          aktif: form.aktif,
+          urutan: Number(form.urutan) || 1,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      if (fotoFile) {
+        const extension =
+          fotoFile.name.split(".").pop()?.toLowerCase() || "jpg";
+
+        const filePath = `cabang/${cabang.id}/utama-${Date.now()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("cabang-toko")
+          .upload(filePath, fotoFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          await supabase
+            .from("cabang_toko")
+            .delete()
+            .eq("id", cabang.id);
+
+          throw uploadError;
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage
+          .from("cabang-toko")
+          .getPublicUrl(filePath);
+
+        const { error: updateError } = await supabase
+          .from("cabang_toko")
+          .update({
+            foto: publicUrl,
+          })
+          .eq("id", cabang.id);
+
+        if (updateError) {
+          throw updateError;
+        }
+      }
+
+      router.push("/admin/toko");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Gagal menyimpan cabang.");
       setSaving(false);
-      return;
     }
-
-    router.push("/admin/toko");
   }
 
   return (
@@ -98,16 +173,18 @@ export default function Page() {
         <div className="form-grid">
           <div className="field">
             <label>Nama Cabang *</label>
+
             <input
               name="nama"
               value={form.nama}
               onChange={handleChange}
-              placeholder="Contoh: Sinar Kasih - Cabang 3"
+              placeholder="Contoh: Sinar Kasih Kota"
             />
           </div>
 
           <div className="field">
             <label>Nomor Telepon</label>
+
             <input
               name="telepon"
               value={form.telepon}
@@ -118,6 +195,7 @@ export default function Page() {
 
           <div className="field full">
             <label>Alamat *</label>
+
             <textarea
               name="alamat"
               value={form.alamat}
@@ -129,32 +207,57 @@ export default function Page() {
 
           <div className="field full">
             <label>Google Maps</label>
+
             <input
               name="google_maps_url"
               value={form.google_maps_url}
               onChange={handleChange}
               placeholder="https://maps.google.com/..."
             />
+
             <small>
-              Masukkan link Google Maps cabang.
+              Link lokasi cabang di Google Maps.
             </small>
           </div>
 
           <div className="field full">
-            <label>URL Foto Cabang</label>
+            <label>Google Review</label>
+
             <input
-              name="foto"
-              value={form.foto}
+              name="google_review_url"
+              value={form.google_review_url}
               onChange={handleChange}
-              placeholder="https://..."
+              placeholder="https://g.page/r/..."
             />
+
             <small>
-              Untuk sementara menggunakan URL foto.
+              Link langsung untuk pelanggan memberikan ulasan Google.
             </small>
+          </div>
+
+          <div className="field full">
+            <label>Foto Cabang</label>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFotoChange}
+            />
+
+            <small>
+              Pilih foto cabang. Maksimal 5 MB.
+            </small>
+
+            {fotoPreview && (
+              <div className="preview">
+                <img src={fotoPreview} alt="Preview foto cabang" />
+              </div>
+            )}
           </div>
 
           <div className="field">
             <label>Urutan Tampilan</label>
+
             <input
               type="number"
               name="urutan"
@@ -174,6 +277,7 @@ export default function Page() {
                 checked={form.aktif}
                 onChange={handleChange}
               />
+
               <span>Cabang Aktif</span>
             </label>
           </div>
@@ -281,6 +385,23 @@ export default function Page() {
         .field textarea:focus {
           outline: none;
           border-color: #8a654a;
+        }
+
+        .preview {
+          margin-top: 10px;
+          width: 280px;
+          height: 180px;
+          border: 1px solid #ddd0c3;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #f5f0e8;
+        }
+
+        .preview img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         .check-row {
