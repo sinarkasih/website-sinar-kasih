@@ -203,10 +203,82 @@ function LockIcon() {
   );
 }
 
+/* IKON UANG + TANDA SILANG */
+function NoFeeIcon() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      width="27"
+      height="27"
+      fill="none"
+      aria-hidden="true"
+    >
+      {/* Uang kertas */}
+      <rect
+        x="3"
+        y="7"
+        width="22"
+        height="16"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      {/* Detail uang */}
+      <circle
+        cx="14"
+        cy="15"
+        r="4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+
+      <path
+        d="M14 12.5v5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M12.5 14h3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+
+      {/* Sudut uang */}
+      <path
+        d="M6 10h2M6 20h2M20 10h2M20 20h2"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+
+      {/* Tanda silang merah/oranye */}
+      <circle
+        cx="24"
+        cy="23"
+        r="6"
+        fill="#fff0e3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+
+      <path
+        d="m21.5 20.5 5 5M26.5 20.5l-5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default async function LokerPage() {
   const supabase = getSupabase();
 
-  const { data: lowongan, error } = await supabase
+  const { data: lowongan } = await supabase
     .from("lowongan_kerja")
     .select(
       "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
@@ -236,18 +308,7 @@ export default async function LokerPage() {
             </p>
           </header>
 
-          {error ? (
-            <section className="emptyBox">
-              <div className="emptyIcon">!</div>
-
-              <h2>Informasi sedang dimuat</h2>
-
-              <p>
-                Informasi lowongan kerja belum dapat ditampilkan
-                saat ini. Silakan coba kembali beberapa saat lagi.
-              </p>
-            </section>
-          ) : daftarLowongan.length === 0 ? (
+          {daftarLowongan.length === 0 ? (
             <section className="emptyBox">
               <div className="emptyIcon">
                 <JobBriefIcon />
@@ -262,7 +323,10 @@ export default async function LokerPage() {
                 Toko Listrik Sinar Kasih.
               </p>
 
-              <a href="/lainnya" className="backButton">
+              <a
+                href="/lainnya"
+                className="backButton"
+              >
                 <span>←</span>
                 Kembali ke Informasi &amp; Layanan
               </a>
@@ -274,7 +338,9 @@ export default async function LokerPage() {
                   job.tahap_seleksi
                 );
 
-                const currentStatus = getStatusInfo(job.status);
+                const currentStatus = getStatusInfo(
+                  job.status
+                );
 
                 const tanggalBuka = formatTanggal(
                   job.tanggal_buka
@@ -367,6 +433,7 @@ export default async function LokerPage() {
                         <div className="processTitle">
                           <div>
                             <h3>Proses Seleksi</h3>
+
                             <p>
                               Ikuti tahapan seleksi berikut
                               sesuai informasi dari tim
@@ -399,8 +466,7 @@ export default async function LokerPage() {
                                 >
                                   <div className="timelineLine">
                                     {index !==
-                                      tahapSeleksi.length -
-                                        1 && (
+                                      tahapSeleksi.length - 1 && (
                                       <span />
                                     )}
                                   </div>
@@ -474,6 +540,7 @@ export default async function LokerPage() {
                         ) : job.status === "dibuka" ? (
                           <div className="waitingNotice">
                             <LockIcon />
+
                             <span>
                               Formulir lamaran belum tersedia.
                             </span>
@@ -507,7 +574,9 @@ export default async function LokerPage() {
           </div>
 
           <section className="importantNotice">
-            <div className="importantIcon">!</div>
+            <div className="importantIcon">
+              <NoFeeIcon />
+            </div>
 
             <div>
               <h3>Informasi Penting</h3>
@@ -596,11 +665,6 @@ export default async function LokerPage() {
           color: #3575c5;
         }
 
-        .emptyIcon:not(:has(svg)) {
-          font-size: 28px;
-          font-weight: 700;
-        }
-
         .emptyBox h2 {
           margin: 0 0 10px;
           color: #4b2418;
@@ -618,6 +682,7 @@ export default async function LokerPage() {
         .backButton {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 9px;
           padding: 11px 18px;
           border: 1px solid #dbcbbf;
@@ -627,6 +692,14 @@ export default async function LokerPage() {
           text-decoration: none;
           font-size: 14px;
           font-weight: 600;
+          transition: all 0.2s ease;
+        }
+
+        .backButton:hover,
+        .bottomBackButton:hover {
+          background: #f8f1eb;
+          border-color: #cdb9aa;
+          transform: translateY(-1px);
         }
 
         .jobList {
@@ -966,6 +1039,8 @@ export default async function LokerPage() {
 
         .bottomBackButton {
           display: inline-flex;
+          align-items: center;
+          justify-content: center;
           padding: 11px 18px;
           border: 1px solid #dbcbbf;
           border-radius: 10px;
@@ -974,6 +1049,7 @@ export default async function LokerPage() {
           text-decoration: none;
           font-size: 14px;
           font-weight: 600;
+          transition: all 0.2s ease;
         }
 
         .importantNotice {
@@ -989,17 +1065,15 @@ export default async function LokerPage() {
         }
 
         .importantIcon {
-          width: 27px;
-          height: 27px;
-          min-width: 27px;
+          width: 38px;
+          height: 38px;
+          min-width: 38px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
-          background: #f8e8d9;
-          color: #a86337;
-          font-size: 14px;
-          font-weight: 800;
+          border-radius: 10px;
+          background: #fff0e3;
+          color: #b76432;
         }
 
         .importantNotice h3 {
@@ -1017,6 +1091,7 @@ export default async function LokerPage() {
 
         @media (max-width: 760px) {
           .lokerPage {
+            min-height: calc(100vh - 60px);
             padding: 34px 16px 55px;
           }
 
@@ -1027,6 +1102,7 @@ export default async function LokerPage() {
           .lokerHeaderIcon {
             width: 62px;
             height: 62px;
+            margin-bottom: 15px;
             border-radius: 17px;
           }
 
@@ -1035,11 +1111,34 @@ export default async function LokerPage() {
           }
 
           .lokerHeader p {
+            max-width: 520px;
             font-size: 14px;
+            line-height: 1.65;
           }
 
           .emptyBox {
             padding: 38px 22px;
+            border-radius: 18px;
+          }
+
+          .emptyIcon {
+            width: 62px;
+            height: 62px;
+            margin-bottom: 16px;
+          }
+
+          .emptyBox h2 {
+            font-size: 21px;
+          }
+
+          .emptyBox p {
+            font-size: 13.5px;
+            line-height: 1.7;
+          }
+
+          .backButton {
+            width: 100%;
+            box-sizing: border-box;
           }
 
           .jobCard {
@@ -1078,8 +1177,25 @@ export default async function LokerPage() {
             font-size: 20px;
           }
 
+          .bottomBackButton {
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: center;
+          }
+
           .importantNotice {
+            align-items: flex-start;
             padding: 16px;
+          }
+
+          .importantIcon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+          }
+
+          .importantNotice p {
+            font-size: 12px;
           }
         }
       `}</style>
