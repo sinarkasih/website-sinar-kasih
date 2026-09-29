@@ -5,44 +5,127 @@ import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
 const tahapSeleksi = [
-  { value: "pendaftaran", label: "Pendaftaran" },
-  { value: "seleksi_berkas", label: "Seleksi Berkas" },
-  { value: "psikotest", label: "Psikotest" },
-  { value: "interview", label: "Interview" },
-  { value: "tes_kerja", label: "Tes Kerja" },
-  { value: "pengumuman", label: "Pengumuman" },
+  {
+    key: "pendaftaran",
+    nomor: "01",
+    judul: "Pendaftaran",
+    icon: "📝",
+  },
+  {
+    key: "seleksi_berkas",
+    nomor: "02",
+    judul: "Seleksi Berkas",
+    icon: "📄",
+  },
+  {
+    key: "psikotest",
+    nomor: "03",
+    judul: "Psikotest",
+    icon: "🧠",
+  },
+  {
+    key: "interview",
+    nomor: "04",
+    judul: "Interview",
+    icon: "💬",
+  },
+  {
+    key: "tes_kerja",
+    nomor: "05",
+    judul: "Tes Kerja",
+    icon: "🛠️",
+  },
+  {
+    key: "pengumuman",
+    nomor: "06",
+    judul: "Pengumuman",
+    icon: "📢",
+  },
 ];
 
 const statusOptions = [
-  { value: "draft", label: "Draft" },
-  { value: "dibuka", label: "Pendaftaran Dibuka" },
-  { value: "proses_seleksi", label: "Proses Seleksi" },
-  { value: "ditutup", label: "Lowongan Ditutup" },
-  { value: "terisi", label: "Lowongan Telah Terisi" },
+  {
+    value: "draft",
+    label: "Belum Dipublikasikan",
+  },
+  {
+    value: "dibuka",
+    label: "Pendaftaran Dibuka",
+  },
+  {
+    value: "proses_seleksi",
+    label: "Proses Seleksi",
+  },
+  {
+    value: "ditutup",
+    label: "Lowongan Ditutup",
+  },
+  {
+    value: "terisi",
+    label: "Lowongan Telah Terisi",
+  },
 ];
 
 const initialForm = {
   posisi: "",
-  lokasi: "",
+  gambar_url: "",
   deskripsi: "",
   persyaratan: "",
+  lokasi: "",
   google_form_url: "",
   status: "draft",
   tahap_seleksi: "pendaftaran",
   tanggal_buka: "",
   tanggal_tutup: "",
   pengumuman: "",
-  urutan: 0,
   aktif: true,
-  gambar_url: "",
+  urutan: 0,
 };
+
+function getStatusLabel(status) {
+  const item = statusOptions.find(
+    (option) => option.value === status
+  );
+
+  return item
+    ? item.label
+    : "Belum Dipublikasikan";
+}
+
+function getTahapLabel(tahap) {
+  const item = tahapSeleksi.find(
+    (option) => option.key === tahap
+  );
+
+  return item ? item.judul : "Pendaftaran";
+}
+
+function formatTanggal(tanggal) {
+  if (!tanggal) return "-";
+
+  const date = new Date(
+    `${tanggal}T00:00:00`
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return tanggal;
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
 
 function isoToDisplayDate(value) {
   if (!value) return "";
 
   const parts = String(value).split("-");
 
-  if (parts.length !== 3) return "";
+  if (parts.length !== 3) {
+    return "";
+  }
 
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
@@ -55,7 +138,10 @@ function displayToIsoDate(value) {
     };
   }
 
-  const cleaned = value.replace(/[^\d]/g, "");
+  const cleaned = String(value).replace(
+    /[^\d]/g,
+    ""
+  );
 
   if (cleaned.length !== 8) {
     return {
@@ -83,7 +169,10 @@ function displayToIsoDate(value) {
     };
   }
 
-  if (yearNumber < 1900 || yearNumber > 2100) {
+  if (
+    yearNumber < 1900 ||
+    yearNumber > 2100
+  ) {
     return {
       value: null,
       valid: false,
@@ -114,97 +203,89 @@ function displayToIsoDate(value) {
 }
 
 function formatDateInput(value) {
-  const digits = value.replace(/[^\d]/g, "").slice(0, 8);
+  const digits = String(value)
+    .replace(/[^\d]/g, "")
+    .slice(0, 8);
 
   if (digits.length <= 2) {
     return digits;
   }
 
   if (digits.length <= 4) {
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(
+      0,
+      2
+    )}/${digits.slice(2)}`;
   }
 
-  return `${digits.slice(0, 2)}/${digits.slice(
+  return `${digits.slice(
+    0,
+    2
+  )}/${digits.slice(
     2,
     4
   )}/${digits.slice(4, 8)}`;
 }
 
-function isoToDateInput(value) {
-  if (!value) return "";
+function isVideoUrl(url) {
+  if (!url) return false;
 
-  return value;
-}
-
-function getStatusInfo(status) {
-  const map = {
-    dibuka: {
-      label: "PENDAFTARAN DIBUKA",
-      background: "#dcfce7",
-      color: "#166534",
-    },
-    proses_seleksi: {
-      label: "PROSES SELEKSI",
-      background: "#dbeafe",
-      color: "#1d4ed8",
-    },
-    ditutup: {
-      label: "LOWONGAN DITUTUP",
-      background: "#fee2e2",
-      color: "#991b1b",
-    },
-    terisi: {
-      label: "LOWONGAN TELAH TERISI",
-      background: "#f3f4f6",
-      color: "#374151",
-    },
-    draft: {
-      label: "DRAFT",
-      background: "#fef3c7",
-      color: "#92400e",
-    },
-  };
-
-  return (
-    map[status] || {
-      label: status || "DRAFT",
-      background: "#f3f4f6",
-      color: "#374151",
-    }
+  return /\.(mp4|webm)(\?.*)?$/i.test(
+    String(url)
   );
 }
 
-function getTahapLabel(value) {
-  const item = tahapSeleksi.find(
-    (item) => item.value === value
-  );
+function getMediaTypeFromFile(file) {
+  if (!file) return null;
 
-  return item ? item.label : value || "-";
+  if (file.type.startsWith("video/")) {
+    return "video";
+  }
+
+  if (file.type.startsWith("image/")) {
+    return "image";
+  }
+
+  return null;
 }
 
 export default function AdminLokerPage() {
-  const supabase = getSupabase();
-
+  const [lowongan, setLowongan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [processingId, setProcessingId] =
+    useState(null);
 
-  const [lowongan, setLowongan] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("semua");
+  const [showForm, setShowForm] =
+    useState(false);
+  const [editingId, setEditingId] =
+    useState(null);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] =
+    useState("");
+  const [filter, setFilter] =
+    useState("semua");
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] =
+    useState(initialForm);
 
-  const [gambarFile, setGambarFile] = useState(null);
-  const [gambarPreview, setGambarPreview] = useState("");
+  const [mediaFile, setMediaFile] =
+    useState(null);
 
-  const tanggalBukaPickerRef = useRef(null);
-  const tanggalTutupPickerRef = useRef(null);
+  const [mediaPreview, setMediaPreview] =
+    useState("");
+
+  const [mediaType, setMediaType] =
+    useState("");
+
+  const tanggalBukaPickerRef =
+    useRef(null);
+
+  const tanggalTutupPickerRef =
+    useRef(null);
 
   useEffect(() => {
     loadLowongan();
@@ -214,120 +295,84 @@ export default function AdminLokerPage() {
     setLoading(true);
     setError("");
 
-    try {
-      if (!supabase) {
-        setError("Koneksi database belum tersedia.");
-        setLoading(false);
-        return;
-      }
+    const supabase = getSupabase();
 
-      const { data, error: fetchError } = await supabase
+    if (!supabase) {
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
+      setLoading(false);
+      return;
+    }
+
+    const { data, error: fetchError } =
+      await supabase
         .from("lowongan_kerja")
         .select(
           "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
         )
-        .order("urutan", { ascending: true })
-        .order("id", { ascending: false });
+        .order("urutan", {
+          ascending: true,
+        })
+        .order("id", {
+          ascending: false,
+        });
 
-      if (fetchError) {
-        setError(
-          `Gagal mengambil data lowongan: ${fetchError.message}`
-        );
-        setLowongan([]);
-      } else {
-        setLowongan(data || []);
-      }
-    } catch (err) {
+    if (fetchError) {
+      console.error(fetchError);
+
       setError(
-        `Terjadi kesalahan: ${
-          err?.message || "Tidak diketahui"
-        }`
+        `Gagal mengambil data lowongan: ${fetchError.message}`
       );
+
+      setLoading(false);
+      return;
     }
 
+    setLowongan(data || []);
     setLoading(false);
   }
 
-  function resetImage() {
-    setGambarFile(null);
-    setGambarPreview("");
-  }
-
-  function resetForm() {
-    setForm(initialForm);
-    setEditingId(null);
-    resetImage();
-    setShowForm(false);
-  }
-
-  function openAddForm() {
-    setError("");
-    setSuccess("");
-    setForm(initialForm);
-    setEditingId(null);
-    resetImage();
-    setShowForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  function openEditForm(item) {
-    setError("");
-    setSuccess("");
-
-    setEditingId(item.id);
-
-    setForm({
-      posisi: item.posisi || "",
-      lokasi: item.lokasi || "",
-      deskripsi: item.deskripsi || "",
-      persyaratan: item.persyaratan || "",
-      google_form_url: item.google_form_url || "",
-      status: item.status || "draft",
-      tahap_seleksi:
-        item.tahap_seleksi || "pendaftaran",
-      tanggal_buka: isoToDisplayDate(
-        item.tanggal_buka
-      ),
-      tanggal_tutup: isoToDisplayDate(
-        item.tanggal_tutup
-      ),
-      pengumuman: item.pengumuman || "",
-      urutan: item.urutan ?? 0,
-      aktif: item.aktif !== false,
-      gambar_url: item.gambar_url || "",
-    });
-
-    setGambarFile(null);
-    setGambarPreview(item.gambar_url || "");
-    setShowForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
   function handleChange(event) {
-    const { name, value, type, checked } =
-      event.target;
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = event.target;
 
-    setForm((prev) => ({
-      ...prev,
+    setForm((current) => ({
+      ...current,
       [name]:
-        type === "checkbox" ? checked : value,
+        type === "checkbox"
+          ? checked
+          : value,
     }));
   }
 
   function handleDateChange(event) {
-    const { name, value } = event.target;
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setForm((prev) => ({
-      ...prev,
+    setForm((current) => ({
+      ...current,
       [name]: formatDateInput(value),
+    }));
+  }
+
+  function handleNativeDateChange(
+    event,
+    fieldName
+  ) {
+    const isoValue =
+      event.target.value;
+
+    setForm((current) => ({
+      ...current,
+      [fieldName]:
+        isoToDisplayDate(isoValue),
     }));
   }
 
@@ -337,7 +382,10 @@ export default function AdminLokerPage() {
     if (!input) return;
 
     try {
-      if (typeof input.showPicker === "function") {
+      if (
+        typeof input.showPicker ===
+        "function"
+      ) {
         input.showPicker();
       } else {
         input.click();
@@ -347,20 +395,91 @@ export default function AdminLokerPage() {
     }
   }
 
-  function handleNativeDateChange(
-    event,
-    fieldName
-  ) {
-    const isoValue = event.target.value;
-
-    setForm((prev) => ({
-      ...prev,
-      [fieldName]: isoToDisplayDate(isoValue),
-    }));
+  function resetMedia() {
+    setMediaFile(null);
+    setMediaPreview("");
+    setMediaType("");
   }
 
-  function handleImageChange(event) {
-    const file = event.target.files?.[0];
+  function resetForm() {
+    setForm(initialForm);
+    setEditingId(null);
+    resetMedia();
+  }
+
+  function openAddForm() {
+    resetForm();
+
+    setSuccess("");
+    setError("");
+    setShowForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function openEditForm(item) {
+    setForm({
+      posisi: item.posisi || "",
+      gambar_url:
+        item.gambar_url || "",
+      deskripsi:
+        item.deskripsi || "",
+      persyaratan:
+        item.persyaratan || "",
+      lokasi: item.lokasi || "",
+      google_form_url:
+        item.google_form_url || "",
+      status:
+        item.status || "draft",
+      tahap_seleksi:
+        item.tahap_seleksi ||
+        "pendaftaran",
+      tanggal_buka:
+        isoToDisplayDate(
+          item.tanggal_buka
+        ),
+      tanggal_tutup:
+        isoToDisplayDate(
+          item.tanggal_tutup
+        ),
+      pengumuman:
+        item.pengumuman || "",
+      aktif: Boolean(item.aktif),
+      urutan: item.urutan ?? 0,
+    });
+
+    setEditingId(item.id);
+
+    setMediaFile(null);
+
+    setMediaPreview(
+      item.gambar_url || ""
+    );
+
+    setMediaType(
+      isVideoUrl(item.gambar_url)
+        ? "video"
+        : item.gambar_url
+        ? "image"
+        : ""
+    );
+
+    setSuccess("");
+    setError("");
+    setShowForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function handleMediaChange(event) {
+    const file =
+      event.target.files?.[0];
 
     if (!file) return;
 
@@ -370,189 +489,279 @@ export default function AdminLokerPage() {
       "image/jpeg",
       "image/png",
       "image/webp",
+      "video/mp4",
+      "video/webm",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
       setError(
-        "Format gambar harus JPG, PNG, atau WEBP."
+        "Format media harus JPG, PNG, WEBP, MP4, atau WEBM."
       );
 
       event.target.value = "";
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    const maxSize =
+      20 * 1024 * 1024;
+
+    if (file.size > maxSize) {
       setError(
-        "Ukuran gambar maksimal 5 MB."
+        "Ukuran foto atau video maksimal 20 MB."
       );
 
       event.target.value = "";
       return;
     }
 
-    setGambarFile(file);
+    const type =
+      getMediaTypeFromFile(file);
+
+    setMediaFile(file);
+    setMediaType(type);
 
     const previewUrl =
       URL.createObjectURL(file);
 
-    setGambarPreview(previewUrl);
+    setMediaPreview(previewUrl);
   }
 
-  async function uploadImage() {
-    if (!gambarFile) {
+  async function uploadMedia() {
+    if (!mediaFile) {
       return form.gambar_url || "";
     }
 
     const extension =
-      gambarFile.name
+      mediaFile.name
         .split(".")
         .pop()
-        ?.toLowerCase() || "jpg";
+        ?.toLowerCase() ||
+      "jpg";
 
     const safePosition =
-      (form.posisi || "lowongan")
+      (
+        form.posisi ||
+        "lowongan"
+      )
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
+        .replace(
+          /[^a-z0-9]+/g,
+          "-"
+        )
+        .replace(
+          /^-+|-+$/g,
+          ""
+        )
         .slice(0, 50);
 
-    const fileName = `${Date.now()}-${safePosition}.${extension}`;
+    const fileName =
+      `${Date.now()}-${safePosition}.${extension}`;
 
-    const filePath = `lowongan/${fileName}`;
+    const filePath =
+      `lowongan/${fileName}`;
+
+    const supabase =
+      getSupabase();
+
+    if (!supabase) {
+      throw new Error(
+        "Koneksi Supabase belum tersedia."
+      );
+    }
 
     const { error: uploadError } =
       await supabase.storage
         .from("lowongan-images")
-        .upload(filePath, gambarFile, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: gambarFile.type,
-        });
+        .upload(
+          filePath,
+          mediaFile,
+          {
+            cacheControl: "3600",
+            upsert: false,
+            contentType:
+              mediaFile.type,
+          }
+        );
 
     if (uploadError) {
       throw new Error(
-        `Gagal upload gambar: ${uploadError.message}`
+        `Gagal upload media: ${uploadError.message}`
       );
     }
 
     const { data } =
       supabase.storage
         .from("lowongan-images")
-        .getPublicUrl(filePath);
+        .getPublicUrl(
+          filePath
+        );
 
-    return data?.publicUrl || "";
+    return (
+      data?.publicUrl || ""
+    );
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    setSaving(true);
     setError("");
     setSuccess("");
 
+    if (!form.posisi.trim()) {
+      setError(
+        "Nama posisi lowongan wajib diisi."
+      );
+      return;
+    }
+
+    const supabase =
+      getSupabase();
+
+    if (!supabase) {
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
+      return;
+    }
+
+    const tanggalBuka =
+      displayToIsoDate(
+        form.tanggal_buka
+      );
+
+    const tanggalTutup =
+      displayToIsoDate(
+        form.tanggal_tutup
+      );
+
+    if (!tanggalBuka.valid) {
+      setError(
+        "Tanggal buka tidak valid. Gunakan format DD/MM/YYYY."
+      );
+      return;
+    }
+
+    if (!tanggalTutup.valid) {
+      setError(
+        "Tanggal tutup tidak valid. Gunakan format DD/MM/YYYY."
+      );
+      return;
+    }
+
+    if (
+      tanggalBuka.value &&
+      tanggalTutup.value &&
+      tanggalTutup.value <
+        tanggalBuka.value
+    ) {
+      setError(
+        "Tanggal tutup tidak boleh lebih awal dari tanggal buka."
+      );
+      return;
+    }
+
+    setSaving(true);
+
     try {
-      if (!supabase) {
-        throw new Error(
-          "Koneksi database belum tersedia."
-        );
-      }
+      let gambarUrl =
+        form.gambar_url || null;
 
-      if (!form.posisi.trim()) {
-        throw new Error(
-          "Posisi lowongan wajib diisi."
-        );
-      }
-
-      const tanggalBuka =
-        displayToIsoDate(form.tanggal_buka);
-
-      const tanggalTutup =
-        displayToIsoDate(form.tanggal_tutup);
-
-      if (!tanggalBuka.valid) {
-        throw new Error(
-          "Tanggal buka tidak valid. Gunakan format DD/MM/YYYY."
-        );
-      }
-
-      if (!tanggalTutup.valid) {
-        throw new Error(
-          "Tanggal tutup tidak valid. Gunakan format DD/MM/YYYY."
-        );
-      }
-
-      if (
-        tanggalBuka.value &&
-        tanggalTutup.value &&
-        tanggalTutup.value < tanggalBuka.value
-      ) {
-        throw new Error(
-          "Tanggal tutup tidak boleh lebih awal dari tanggal buka."
-        );
-      }
-
-      let gambarUrl = form.gambar_url || "";
-
-      if (gambarFile) {
-        gambarUrl = await uploadImage();
+      if (mediaFile) {
+        gambarUrl =
+          await uploadMedia();
       }
 
       const payload = {
-        posisi: form.posisi.trim(),
-        lokasi: form.lokasi.trim(),
-        deskripsi: form.deskripsi.trim(),
-        persyaratan: form.persyaratan.trim(),
+        posisi:
+          form.posisi.trim(),
+
+        gambar_url:
+          gambarUrl,
+
+        deskripsi:
+          form.deskripsi.trim() ||
+          null,
+
+        persyaratan:
+          form.persyaratan.trim() ||
+          null,
+
+        lokasi:
+          form.lokasi.trim() ||
+          null,
+
         google_form_url:
-          form.google_form_url.trim(),
-        status: form.status,
+          form.google_form_url.trim() ||
+          null,
+
+        status:
+          form.status,
+
         tahap_seleksi:
           form.tahap_seleksi,
+
         tanggal_buka:
           tanggalBuka.value,
+
         tanggal_tutup:
           tanggalTutup.value,
+
         pengumuman:
-          form.pengumuman.trim(),
+          form.pengumuman.trim() ||
+          null,
+
+        aktif:
+          Boolean(form.aktif),
+
         urutan:
           Number(form.urutan) || 0,
-        aktif: form.aktif,
-        gambar_url: gambarUrl,
       };
 
+      let result;
+
       if (editingId) {
-        const { error: updateError } =
+        result =
           await supabase
-            .from("lowongan_kerja")
+            .from(
+              "lowongan_kerja"
+            )
             .update(payload)
-            .eq("id", editingId);
-
-        if (updateError) {
-          throw new Error(
-            `Gagal memperbarui lowongan: ${updateError.message}`
-          );
-        }
-
-        setSuccess(
-          "Lowongan kerja berhasil diperbarui."
-        );
+            .eq(
+              "id",
+              editingId
+            );
       } else {
-        const { error: insertError } =
+        result =
           await supabase
-            .from("lowongan_kerja")
+            .from(
+              "lowongan_kerja"
+            )
             .insert(payload);
+      }
 
-        if (insertError) {
-          throw new Error(
-            `Gagal menambahkan lowongan: ${insertError.message}`
-          );
-        }
+      if (result.error) {
+        console.error(
+          result.error
+        );
 
-        setSuccess(
-          "Lowongan kerja berhasil ditambahkan."
+        throw new Error(
+          `Gagal menyimpan lowongan: ${result.error.message}`
         );
       }
 
+      setSuccess(
+        editingId
+          ? "Lowongan berhasil diperbarui."
+          : "Lowongan berhasil ditambahkan."
+      );
+
       resetForm();
+      setShowForm(false);
+
       await loadLowongan();
 
       window.scrollTo({
@@ -560,1240 +769,938 @@ export default function AdminLokerPage() {
         behavior: "smooth",
       });
     } catch (err) {
+      console.error(err);
+
       setError(
         err?.message ||
-          "Terjadi kesalahan saat menyimpan data."
+          "Terjadi kesalahan saat menyimpan lowongan."
       );
     }
 
     setSaving(false);
   }
 
-  async function handleDelete(id) {
-    const confirmed = window.confirm(
-      "Yakin ingin menghapus lowongan ini?"
+  async function hapusLowongan(item) {
+    const yakin =
+      window.confirm(
+        `Hapus lowongan "${item.posisi}"?\n\nData lowongan ini akan dihapus dari database.`
+      );
+
+    if (!yakin) return;
+
+    setProcessingId(item.id);
+    setError("");
+    setSuccess("");
+
+    const supabase =
+      getSupabase();
+
+    if (!supabase) {
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
+
+      setProcessingId(null);
+      return;
+    }
+
+    const {
+      error: deleteError,
+    } = await supabase
+      .from("lowongan_kerja")
+      .delete()
+      .eq("id", item.id);
+
+    if (deleteError) {
+      console.error(
+        deleteError
+      );
+
+      setError(
+        `Gagal menghapus lowongan: ${deleteError.message}`
+      );
+
+      setProcessingId(null);
+      return;
+    }
+
+    setLowongan(
+      (current) =>
+        current.filter(
+          (currentItem) =>
+            currentItem.id !==
+            item.id
+        )
     );
 
-    if (!confirmed) return;
+    setProcessingId(null);
 
+    setSuccess(
+      "Lowongan berhasil dihapus."
+    );
+  }
+
+  async function toggleAktif(item) {
+    setProcessingId(item.id);
     setError("");
     setSuccess("");
 
-    try {
-      const { error: deleteError } =
-        await supabase
-          .from("lowongan_kerja")
-          .delete()
-          .eq("id", id);
+    const supabase =
+      getSupabase();
 
-      if (deleteError) {
-        throw new Error(
-          `Gagal menghapus lowongan: ${deleteError.message}`
-        );
-      }
-
-      setSuccess(
-        "Lowongan kerja berhasil dihapus."
-      );
-
-      await loadLowongan();
-    } catch (err) {
+    if (!supabase) {
       setError(
-        err?.message ||
-          "Gagal menghapus lowongan."
+        "Koneksi Supabase belum tersedia."
       );
+
+      setProcessingId(null);
+      return;
     }
-  }
 
-  async function toggleActive(item) {
-    setError("");
-    setSuccess("");
+    const {
+      error: updateError,
+    } = await supabase
+      .from("lowongan_kerja")
+      .update({
+        aktif: !item.aktif,
+      })
+      .eq(
+        "id",
+        item.id
+      );
 
-    try {
-      const { error: updateError } =
-        await supabase
-          .from("lowongan_kerja")
-          .update({
-            aktif: !item.aktif,
-          })
-          .eq("id", item.id);
+    if (updateError) {
+      console.error(
+        updateError
+      );
 
-      if (updateError) {
-        throw new Error(
-          `Gagal mengubah status tampil: ${updateError.message}`
-        );
-      }
-
-      await loadLowongan();
-    } catch (err) {
       setError(
-        err?.message ||
-          "Gagal mengubah status lowongan."
+        `Gagal mengubah status: ${updateError.message}`
       );
+
+      setProcessingId(null);
+      return;
     }
-  }
 
-  const filteredLowongan = lowongan.filter(
-    (item) => {
-      const keyword =
-        search.trim().toLowerCase();
+    setLowongan(
+      (current) =>
+        current.map(
+          (currentItem) =>
+            currentItem.id ===
+            item.id
+              ? {
+                  ...currentItem,
+                  aktif:
+                    !currentItem.aktif,
+                }
+              : currentItem
+        )
+    );
 
-      const matchesSearch =
-        !keyword ||
-        item.posisi
-          ?.toLowerCase()
-          .includes(keyword) ||
-        item.lokasi
-          ?.toLowerCase()
-          .includes(keyword);
+    setProcessingId(null);
 
-      const matchesStatus =
-        filterStatus === "semua" ||
-        item.status === filterStatus;
-
-      return (
-        matchesSearch && matchesStatus
-      );
-    }
-  );
-
-  const total = lowongan.length;
-
-  const aktif = lowongan.filter(
-    (item) => item.aktif
-  ).length;
-
-  const nonaktif = lowongan.filter(
-    (item) => !item.aktif
-  ).length;
-
-  const dibuka = lowongan.filter(
-    (item) =>
-      item.status === "dibuka" &&
+    setSuccess(
       item.aktif
-  ).length;
+        ? "Lowongan berhasil dinonaktifkan."
+        : "Lowongan berhasil diaktifkan."
+    );
+  }
+
+  const filteredLowongan =
+    lowongan.filter(
+      (item) => {
+        const keyword =
+          search
+            .trim()
+            .toLowerCase();
+
+        const matchesSearch =
+          !keyword ||
+          (
+            item.posisi ||
+            ""
+          )
+            .toLowerCase()
+            .includes(keyword) ||
+          (
+            item.lokasi ||
+            ""
+          )
+            .toLowerCase()
+            .includes(keyword);
+
+        const matchesFilter =
+          filter ===
+            "semua" ||
+          (
+            filter ===
+              "aktif" &&
+            item.aktif
+          ) ||
+          (
+            filter ===
+              "nonaktif" &&
+            !item.aktif
+          ) ||
+          (
+            filter ===
+              "dibuka" &&
+            item.status ===
+              "dibuka"
+          ) ||
+          (
+            filter ===
+              "proses" &&
+            item.status ===
+              "proses_seleksi"
+          );
+
+        return (
+          matchesSearch &&
+          matchesFilter
+        );
+      }
+    );
+
+  const totalLowongan =
+    lowongan.length;
+
+  const aktif =
+    lowongan.filter(
+      (item) => item.aktif
+    ).length;
+
+  const dibuka =
+    lowongan.filter(
+      (item) =>
+        item.status ===
+          "dibuka" &&
+        item.aktif
+    ).length;
+
+  const nonaktif =
+    lowongan.filter(
+      (item) => !item.aktif
+    ).length;
 
   return (
     <main className="lokerAdminPage">
-      <style>{`
-        .lokerAdminPage {
-          width: 100%;
-          min-height: 100%;
-          box-sizing: border-box;
-        }
-
-        .page {
-          width: 100%;
-          max-width: none;
-          margin: 0;
-          box-sizing: border-box;
-        }
-
-        .pageHeader {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        .pageHeader h1 {
-          margin: 0 0 7px;
-          font-size: 30px;
-          line-height: 1.2;
-          color: #111827;
-          font-weight: 800;
-        }
-
-        .pageHeader p {
-          margin: 0;
-          color: #6b7280;
-          font-size: 14px;
-          line-height: 1.6;
-        }
-
-        .headerActions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .button {
-          min-height: 42px;
-          padding: 0 16px;
-          border-radius: 10px;
-          border: 1px solid transparent;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-sizing: border-box;
-        }
-
-        .buttonPrimary {
-          background: #111827;
-          color: #ffffff;
-        }
-
-        .buttonPrimary:hover {
-          background: #000000;
-        }
-
-        .buttonSecondary {
-          background: #ffffff;
-          color: #111827;
-          border-color: #d1d5db;
-        }
-
-        .buttonSecondary:hover {
-          background: #f9fafb;
-        }
-
-        .buttonDanger {
-          background: #fff1f2;
-          color: #be123c;
-          border-color: #fecdd3;
-        }
-
-        .buttonDanger:hover {
-          background: #ffe4e6;
-        }
-
-        .buttonSmall {
-          min-height: 36px;
-          padding: 0 11px;
-          font-size: 13px;
-          border-radius: 8px;
-        }
-
-        .summaryGrid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 14px;
-          margin-bottom: 22px;
-        }
-
-        .summaryCard {
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 14px;
-          padding: 18px;
-          box-sizing: border-box;
-        }
-
-        .summaryLabel {
-          font-size: 13px;
-          color: #6b7280;
-          margin-bottom: 8px;
-        }
-
-        .summaryValue {
-          font-size: 28px;
-          line-height: 1;
-          font-weight: 800;
-          color: #111827;
-        }
-
-        .card {
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 14px;
-          box-sizing: border-box;
-        }
-
-        .cardHeader {
-          padding: 18px 20px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .cardHeader h2 {
-          margin: 0 0 5px;
-          font-size: 18px;
-          color: #111827;
-        }
-
-        .cardHeader p {
-          margin: 0;
-          font-size: 13px;
-          color: #6b7280;
-        }
-
-        .formCard {
-          margin-bottom: 22px;
-        }
-
-        .formBody {
-          padding: 22px;
-        }
-
-        .formGrid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 18px;
-        }
-
-        .field {
-          display: flex;
-          flex-direction: column;
-          gap: 7px;
-        }
-
-        .fieldFull {
-          grid-column: 1 / -1;
-        }
-
-        .field label {
-          font-size: 13px;
-          font-weight: 700;
-          color: #374151;
-        }
-
-        .required {
-          color: #dc2626;
-        }
-
-        .input,
-        .textarea,
-        .select {
-          width: 100%;
-          min-height: 43px;
-          box-sizing: border-box;
-          border: 1px solid #d1d5db;
-          border-radius: 9px;
-          background: #ffffff;
-          padding: 10px 12px;
-          color: #111827;
-          font-size: 14px;
-          outline: none;
-          transition: border-color 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .input:focus,
-        .textarea:focus,
-        .select:focus {
-          border-color: #111827;
-          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
-        }
-
-        .textarea {
-          min-height: 130px;
-          resize: vertical;
-          font-family: inherit;
-          line-height: 1.6;
-        }
-
-        .dateWrapper {
-          position: relative;
-          width: 100%;
-        }
-
-        .dateDisplay {
-          padding-right: 48px;
-        }
-
-        .calendarButton {
-          position: absolute;
-          top: 50%;
-          right: 7px;
-          transform: translateY(-50%);
-          width: 34px;
-          height: 34px;
-          border: 0;
-          border-radius: 8px;
-          background: #f3f4f6;
-          color: #374151;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          font-size: 18px;
-          z-index: 3;
-        }
-
-        .calendarButton:hover {
-          background: #e5e7eb;
-        }
-
-        .hiddenDatePicker {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          opacity: 0;
-          pointer-events: none;
-          left: 0;
-          bottom: 0;
-        }
-
-        .fieldHint {
-          margin: 0;
-          color: #6b7280;
-          font-size: 12px;
-          line-height: 1.5;
-        }
-
-        .uploadBox {
-          border: 2px dashed #d1d5db;
-          border-radius: 12px;
-          padding: 18px;
-          background: #fafafa;
-        }
-
-        .uploadRow {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          flex-wrap: wrap;
-        }
-
-        .fileInput {
-          font-size: 13px;
-          color: #374151;
-          max-width: 100%;
-        }
-
-        .imagePreview {
-          width: 150px;
-          height: 100px;
-          object-fit: cover;
-          border-radius: 10px;
-          border: 1px solid #e5e7eb;
-          background: #f3f4f6;
-        }
-
-        .uploadInfo {
-          min-width: 0;
-          flex: 1;
-        }
-
-        .uploadInfo strong {
-          display: block;
-          color: #111827;
-          font-size: 13px;
-          margin-bottom: 5px;
-        }
-
-        .uploadInfo span {
-          display: block;
-          color: #6b7280;
-          font-size: 12px;
-          line-height: 1.5;
-        }
-
-        .checkboxRow {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          min-height: 43px;
-        }
-
-        .checkboxRow input {
-          width: 18px;
-          height: 18px;
-          accent-color: #111827;
-        }
-
-        .formActions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 22px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .alert {
-          border-radius: 10px;
-          padding: 13px 15px;
-          margin-bottom: 18px;
-          font-size: 14px;
-          line-height: 1.5;
-        }
-
-        .alertError {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #991b1b;
-        }
-
-        .alertSuccess {
-          background: #f0fdf4;
-          border: 1px solid #bbf7d0;
-          color: #166534;
-        }
-
-        .toolbar {
-          padding: 16px 20px;
-          border-bottom: 1px solid #e5e7eb;
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .searchInput {
-          flex: 1;
-          min-width: 220px;
-        }
-
-        .statusFilter {
-          width: 210px;
-        }
-
-        .tableWrap {
-          width: 100%;
-          overflow-x: auto;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 1050px;
-        }
-
-        th {
-          background: #f9fafb;
-          color: #6b7280;
-          text-align: left;
-          font-size: 12px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.03em;
-          padding: 13px 15px;
-          border-bottom: 1px solid #e5e7eb;
-          white-space: nowrap;
-        }
-
-        td {
-          padding: 15px;
-          border-bottom: 1px solid #f3f4f6;
-          vertical-align: middle;
-          font-size: 13px;
-          color: #374151;
-        }
-
-        .positionCell {
-          min-width: 220px;
-        }
-
-        .positionTitle {
-          font-weight: 800;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .locationText {
-          color: #6b7280;
-          font-size: 12px;
-        }
-
-        .thumbnail {
-          width: 70px;
-          height: 50px;
-          object-fit: cover;
-          border-radius: 7px;
-          border: 1px solid #e5e7eb;
-          background: #f3f4f6;
-        }
-
-        .noImage {
-          width: 70px;
-          height: 50px;
-          border-radius: 7px;
-          background: #f3f4f6;
-          color: #9ca3af;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          text-align: center;
-        }
-
-        .badge {
-          display: inline-flex;
-          align-items: center;
-          border-radius: 999px;
-          padding: 6px 9px;
-          font-size: 11px;
-          font-weight: 800;
-          white-space: nowrap;
-        }
-
-        .activeBadge {
-          background: #dcfce7;
-          color: #166534;
-        }
-
-        .inactiveBadge {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .actions {
-          display: flex;
-          gap: 7px;
-          flex-wrap: wrap;
-        }
-
-        .empty {
-          padding: 55px 20px;
-          text-align: center;
-          color: #6b7280;
-        }
-
-        .emptyIcon {
-          font-size: 42px;
-          margin-bottom: 10px;
-        }
-
-        .empty h3 {
-          margin: 0 0 6px;
-          color: #111827;
-          font-size: 18px;
-        }
-
-        .empty p {
-          margin: 0;
-          font-size: 13px;
-        }
-
-        .loading {
-          padding: 50px 20px;
-          text-align: center;
-          color: #6b7280;
-        }
-
-        @media (max-width: 1000px) {
-          .summaryGrid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .formGrid {
-            grid-template-columns: 1fr;
-          }
-
-          .fieldFull {
-            grid-column: auto;
-          }
-        }
-
-        @media (max-width: 700px) {
-          .pageHeader {
-            flex-direction: column;
-          }
-
-          .headerActions {
-            width: 100%;
-            justify-content: flex-start;
-          }
-
-          .summaryGrid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .summaryCard {
-            padding: 14px;
-          }
-
-          .summaryValue {
-            font-size: 24px;
-          }
-
-          .formBody {
-            padding: 16px;
-          }
-
-          .toolbar {
-            padding: 14px;
-          }
-
-          .statusFilter {
-            width: 100%;
-          }
-
-          .formActions {
-            flex-direction: column-reverse;
-          }
-
-          .formActions .button {
-            width: 100%;
-          }
-
-          .uploadRow {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .summaryGrid {
-            grid-template-columns: 1fr;
-          }
-
-          .pageHeader h1 {
-            font-size: 25px;
-          }
-        }
-      `}</style>
-
       <div className="page">
-        <div className="pageHeader">
+        <div className="topbar">
           <div>
-            <h1>Lowongan Kerja</h1>
+            <div className="eyebrow">
+              ADMINISTRASI WEBSITE
+            </div>
+
+            <h1>
+              Lowongan Kerja
+            </h1>
+
             <p>
-              Kelola informasi lowongan kerja
-              yang tampil di website Sinar Kasih.
+              Kelola informasi
+              lowongan kerja yang
+              ditampilkan pada
+              halaman publik.
             </p>
           </div>
 
-          <div className="headerActions">
+          <div className="topActions">
             <Link
               href="/loker"
               target="_blank"
-              className="button buttonSecondary"
+              className="previewButton"
             >
               👁 Lihat Halaman Loker
             </Link>
 
             <button
               type="button"
-              className="button buttonPrimary"
-              onClick={openAddForm}
+              className="addButton"
+              onClick={
+                openAddForm
+              }
             >
               + Tambah Lowongan
             </button>
           </div>
         </div>
 
+        {success && (
+          <div className="success">
+            ✓ {success}
+          </div>
+        )}
+
         {error && (
-          <div className="alert alertError">
+          <div className="error">
             {error}
           </div>
         )}
 
-        {success && (
-          <div className="alert alertSuccess">
-            {success}
-          </div>
-        )}
-
-        <div className="summaryGrid">
+        <div className="summary">
           <div className="summaryCard">
-            <div className="summaryLabel">
+            <span>
               Total Lowongan
-            </div>
-            <div className="summaryValue">
-              {total}
-            </div>
+            </span>
+
+            <strong>
+              {totalLowongan}
+            </strong>
           </div>
 
           <div className="summaryCard">
-            <div className="summaryLabel">
-              Aktif
-            </div>
-            <div className="summaryValue">
+            <span>Aktif</span>
+
+            <strong>
               {aktif}
-            </div>
+            </strong>
           </div>
 
           <div className="summaryCard">
-            <div className="summaryLabel">
-              Nonaktif
-            </div>
-            <div className="summaryValue">
-              {nonaktif}
-            </div>
-          </div>
-
-          <div className="summaryCard">
-            <div className="summaryLabel">
+            <span>
               Pendaftaran Dibuka
-            </div>
-            <div className="summaryValue">
+            </span>
+
+            <strong>
               {dibuka}
-            </div>
+            </strong>
+          </div>
+
+          <div className="summaryCard">
+            <span>Nonaktif</span>
+
+            <strong>
+              {nonaktif}
+            </strong>
           </div>
         </div>
 
         {showForm && (
-          <section className="card formCard">
-            <div className="cardHeader">
-              <h2>
-                {editingId
-                  ? "Edit Lowongan Kerja"
-                  : "Tambah Lowongan Kerja"}
-              </h2>
+          <section className="formCard">
+            <div className="formHeader">
+              <div>
+                <div className="eyebrow">
+                  {editingId
+                    ? "EDIT LOWONGAN"
+                    : "LOWONGAN BARU"}
+                </div>
 
-              <p>
-                Isi informasi lowongan yang
-                akan ditampilkan kepada
-                calon pelamar.
-              </p>
+                <h2>
+                  {editingId
+                    ? "Edit Lowongan Kerja"
+                    : "Tambah Lowongan Kerja"}
+                </h2>
+
+                <p>
+                  Isi informasi
+                  lowongan yang akan
+                  ditampilkan kepada
+                  calon pelamar.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="closeButton"
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                }}
+              >
+                ×
+              </button>
             </div>
 
-            <div className="formBody">
-              <form onSubmit={handleSubmit}>
-                <div className="formGrid">
-                  <div className="field">
-                    <label>
-                      Posisi Lowongan{" "}
-                      <span className="required">
-                        *
-                      </span>
-                    </label>
+            <form
+              onSubmit={
+                handleSubmit
+              }
+            >
+              <div className="formGrid">
+                <div className="field full">
+                  <label htmlFor="posisi">
+                    Posisi Lowongan *
+                  </label>
 
+                  <input
+                    id="posisi"
+                    name="posisi"
+                    value={
+                      form.posisi
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Contoh: Staff Toko"
+                    required
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="lokasi">
+                    Lokasi
+                  </label>
+
+                  <input
+                    id="lokasi"
+                    name="lokasi"
+                    value={
+                      form.lokasi
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Contoh: Sinar Kasih Kota"
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="urutan">
+                    Urutan Tampil
+                  </label>
+
+                  <input
+                    id="urutan"
+                    name="urutan"
+                    type="number"
+                    min="0"
+                    value={
+                      form.urutan
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="status">
+                    Status Lowongan
+                  </label>
+
+                  <select
+                    id="status"
+                    name="status"
+                    value={
+                      form.status
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  >
+                    {statusOptions.map(
+                      (option) => (
+                        <option
+                          key={
+                            option.value
+                          }
+                          value={
+                            option.value
+                          }
+                        >
+                          {
+                            option.label
+                          }
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label htmlFor="tahap_seleksi">
+                    Tahap Seleksi
+                  </label>
+
+                  <select
+                    id="tahap_seleksi"
+                    name="tahap_seleksi"
+                    value={
+                      form.tahap_seleksi
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  >
+                    {tahapSeleksi.map(
+                      (item) => (
+                        <option
+                          key={
+                            item.key
+                          }
+                          value={
+                            item.key
+                          }
+                        >
+                          {item.nomor} —{" "}
+                          {
+                            item.judul
+                          }
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label>
+                    Tanggal Buka
+                  </label>
+
+                  <div className="dateWrapper">
                     <input
-                      className="input"
-                      name="posisi"
-                      value={form.posisi}
-                      onChange={handleChange}
-                      placeholder="Contoh: Teknisi Listrik"
-                      required
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label>
-                      Lokasi
-                    </label>
-
-                    <input
-                      className="input"
-                      name="lokasi"
-                      value={form.lokasi}
-                      onChange={handleChange}
-                      placeholder="Contoh: Ambon"
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label>
-                      Urutan Tampil
-                    </label>
-
-                    <input
-                      className="input"
-                      type="number"
-                      name="urutan"
-                      value={form.urutan}
-                      onChange={handleChange}
-                      min="0"
-                    />
-
-                    <p className="fieldHint">
-                      Angka lebih kecil akan
-                      ditampilkan lebih dahulu.
-                    </p>
-                  </div>
-
-                  <div className="field">
-                    <label>
-                      Status Lowongan
-                    </label>
-
-                    <select
-                      className="select"
-                      name="status"
-                      value={form.status}
-                      onChange={handleChange}
-                    >
-                      {statusOptions.map(
-                        (item) => (
-                          <option
-                            key={item.value}
-                            value={item.value}
-                          >
-                            {item.label}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="field">
-                    <label>
-                      Tahap Seleksi
-                    </label>
-
-                    <select
-                      className="select"
-                      name="tahap_seleksi"
+                      className="dateDisplay"
+                      name="tanggal_buka"
                       value={
-                        form.tahap_seleksi
+                        form.tanggal_buka
                       }
-                      onChange={handleChange}
-                    >
-                      {tahapSeleksi.map(
-                        (item) => (
-                          <option
-                            key={item.value}
-                            value={item.value}
-                          >
-                            {item.label}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
+                      onChange={
+                        handleDateChange
+                      }
+                      placeholder="DD/MM/YYYY"
+                      inputMode="numeric"
+                      maxLength={10}
+                      autoComplete="off"
+                    />
 
-                  <div className="field">
-                    <label>
-                      Tanggal Buka
-                    </label>
-
-                    <div className="dateWrapper">
-                      <input
-                        className="input dateDisplay"
-                        name="tanggal_buka"
-                        value={
-                          form.tanggal_buka
-                        }
-                        onChange={
-                          handleDateChange
-                        }
-                        placeholder="DD/MM/YYYY"
-                        inputMode="numeric"
-                        maxLength={10}
-                        autoComplete="off"
-                      />
-
-                      <button
-                        type="button"
-                        className="calendarButton"
-                        onClick={() =>
-                          openDatePicker(
-                            tanggalBukaPickerRef
-                          )
-                        }
-                        aria-label="Pilih tanggal buka"
-                        title="Pilih tanggal"
-                      >
-                        📅
-                      </button>
-
-                      <input
-                        ref={
+                    <button
+                      type="button"
+                      className="calendarButton"
+                      onClick={() =>
+                        openDatePicker(
                           tanggalBukaPickerRef
-                        }
-                        type="date"
-                        className="hiddenDatePicker"
-                        value={isoToDateInput(
-                          displayToIsoDate(
-                            form.tanggal_buka
-                          ).value || ""
-                        )}
-                        onChange={(event) =>
-                          handleNativeDateChange(
-                            event,
-                            "tanggal_buka"
-                          )
-                        }
-                        tabIndex={-1}
-                        aria-hidden="true"
-                      />
-                    </div>
+                        )
+                      }
+                      aria-label="Pilih tanggal buka"
+                      title="Pilih tanggal"
+                    >
+                      📅
+                    </button>
 
-                    <p className="fieldHint">
-                      Pilih dari kalender atau
-                      ketik dengan format
-                      DD/MM/YYYY.
-                    </p>
+                    <input
+                      ref={
+                        tanggalBukaPickerRef
+                      }
+                      type="date"
+                      className="hiddenDatePicker"
+                      value={
+                        displayToIsoDate(
+                          form.tanggal_buka
+                        ).value ||
+                        ""
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNativeDateChange(
+                          event,
+                          "tanggal_buka"
+                        )
+                      }
+                      tabIndex={-1}
+                      aria-hidden="true"
+                    />
                   </div>
 
-                  <div className="field">
-                    <label>
-                      Tanggal Tutup
-                    </label>
+                  <small>
+                    Pilih dari kalender
+                    atau ketik
+                    DD/MM/YYYY.
+                  </small>
+                </div>
 
-                    <div className="dateWrapper">
-                      <input
-                        className="input dateDisplay"
-                        name="tanggal_tutup"
-                        value={
-                          form.tanggal_tutup
-                        }
-                        onChange={
-                          handleDateChange
-                        }
-                        placeholder="DD/MM/YYYY"
-                        inputMode="numeric"
-                        maxLength={10}
-                        autoComplete="off"
-                      />
+                <div className="field">
+                  <label>
+                    Tanggal Tutup
+                  </label>
 
-                      <button
-                        type="button"
-                        className="calendarButton"
-                        onClick={() =>
-                          openDatePicker(
-                            tanggalTutupPickerRef
-                          )
-                        }
-                        aria-label="Pilih tanggal tutup"
-                        title="Pilih tanggal"
-                      >
-                        📅
-                      </button>
+                  <div className="dateWrapper">
+                    <input
+                      className="dateDisplay"
+                      name="tanggal_tutup"
+                      value={
+                        form.tanggal_tutup
+                      }
+                      onChange={
+                        handleDateChange
+                      }
+                      placeholder="DD/MM/YYYY"
+                      inputMode="numeric"
+                      maxLength={10}
+                      autoComplete="off"
+                    />
 
-                      <input
-                        ref={
+                    <button
+                      type="button"
+                      className="calendarButton"
+                      onClick={() =>
+                        openDatePicker(
                           tanggalTutupPickerRef
-                        }
-                        type="date"
-                        className="hiddenDatePicker"
-                        value={isoToDateInput(
-                          displayToIsoDate(
-                            form.tanggal_tutup
-                          ).value || ""
-                        )}
-                        onChange={(event) =>
-                          handleNativeDateChange(
-                            event,
-                            "tanggal_tutup"
-                          )
-                        }
-                        tabIndex={-1}
-                        aria-hidden="true"
-                      />
-                    </div>
+                        )
+                      }
+                      aria-label="Pilih tanggal tutup"
+                      title="Pilih tanggal"
+                    >
+                      📅
+                    </button>
 
-                    <p className="fieldHint">
-                      Pilih dari kalender atau
-                      ketik dengan format
-                      DD/MM/YYYY.
-                    </p>
+                    <input
+                      ref={
+                        tanggalTutupPickerRef
+                      }
+                      type="date"
+                      className="hiddenDatePicker"
+                      value={
+                        displayToIsoDate(
+                          form.tanggal_tutup
+                        ).value ||
+                        ""
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNativeDateChange(
+                          event,
+                          "tanggal_tutup"
+                        )
+                      }
+                      tabIndex={-1}
+                      aria-hidden="true"
+                    />
                   </div>
 
-                  <div className="field fieldFull">
-                    <label>
-                      Gambar Lowongan
-                    </label>
+                  <small>
+                    Pilih dari kalender
+                    atau ketik
+                    DD/MM/YYYY.
+                  </small>
+                </div>
 
-                    <div className="uploadBox">
-                      <div className="uploadRow">
-                        {gambarPreview ? (
-                          <img
-                            src={gambarPreview}
-                            alt="Preview gambar lowongan"
-                            className="imagePreview"
-                          />
-                        ) : (
-                          <div className="noImage">
+                <div className="field full">
+                  <label>
+                    Foto / Video Lowongan
+                  </label>
+
+                  <div className="mediaUploadBox">
+                    <div className="mediaPreview">
+                      {mediaPreview &&
+                      mediaType ===
+                        "video" ? (
+                        <video
+                          src={
+                            mediaPreview
+                          }
+                          muted
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="mediaPreviewContent"
+                        />
+                      ) : mediaPreview ? (
+                        <img
+                          src={
+                            mediaPreview
+                          }
+                          alt="Preview media lowongan"
+                          className="mediaPreviewContent"
+                        />
+                      ) : (
+                        <div className="mediaPlaceholder">
+                          <span>
+                            🖼️
+                          </span>
+                          <small>
                             Belum ada
-                            gambar
-                          </div>
-                        )}
+                            media
+                          </small>
+                        </div>
+                      )}
+                    </div>
 
-                        <div className="uploadInfo">
+                    <div className="mediaUploadInfo">
+                      <strong>
+                        Upload foto atau
+                        video
+                      </strong>
+
+                      <p>
+                        Bisa menggunakan:
+                      </p>
+
+                      <ul>
+                        <li>
+                          JPG, PNG, WEBP
+                        </li>
+                        <li>
+                          MP4, WEBM
+                        </li>
+                        <li>
+                          Maksimal 20 MB
+                        </li>
+                      </ul>
+
+                      {mediaFile && (
+                        <div className="selectedMedia">
                           <strong>
-                            Upload gambar
-                            lowongan
+                            File dipilih:
                           </strong>
 
                           <span>
-                            Format JPG, PNG,
-                            atau WEBP.
-                            Maksimal 5 MB.
+                            {
+                              mediaFile.name
+                            }
                           </span>
-
-                          {gambarFile && (
-                            <span>
-                              File:{" "}
-                              {gambarFile.name}
-                            </span>
-                          )}
                         </div>
+                      )}
 
+                      <label className="chooseMediaButton">
+                        📁 Pilih Foto /
+                        Video
                         <input
-                          className="fileInput"
                           type="file"
-                          accept="image/jpeg,image/png,image/webp"
+                          accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
                           onChange={
-                            handleImageChange
+                            handleMediaChange
                           }
                         />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="field fieldFull">
-                    <label>
-                      Link Form Pendaftaran
-                    </label>
-
-                    <input
-                      className="input"
-                      type="url"
-                      name="google_form_url"
-                      value={
-                        form.google_form_url
-                      }
-                      onChange={handleChange}
-                      placeholder="https://forms.google.com/..."
-                    />
-
-                    <p className="fieldHint">
-                      Masukkan link formulir
-                      pendaftaran jika
-                      tersedia.
-                    </p>
-                  </div>
-
-                  <div className="field fieldFull">
-                    <label>
-                      Deskripsi Posisi
-                    </label>
-
-                    <textarea
-                      className="textarea"
-                      name="deskripsi"
-                      value={form.deskripsi}
-                      onChange={handleChange}
-                      placeholder="Jelaskan posisi dan pekerjaan yang akan dilakukan..."
-                    />
-                  </div>
-
-                  <div className="field fieldFull">
-                    <label>
-                      Persyaratan
-                    </label>
-
-                    <textarea
-                      className="textarea"
-                      name="persyaratan"
-                      value={
-                        form.persyaratan
-                      }
-                      onChange={handleChange}
-                      placeholder="Tuliskan persyaratan calon pelamar..."
-                    />
-                  </div>
-
-                  <div className="field fieldFull">
-                    <label>
-                      Pengumuman
-                    </label>
-
-                    <textarea
-                      className="textarea"
-                      name="pengumuman"
-                      value={
-                        form.pengumuman
-                      }
-                      onChange={handleChange}
-                      placeholder="Informasi tambahan atau pengumuman untuk pelamar..."
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label>
-                      Tampilkan di Website
-                    </label>
-
-                    <div className="checkboxRow">
-                      <input
-                        type="checkbox"
-                        name="aktif"
-                        checked={form.aktif}
-                        onChange={handleChange}
-                        id="aktifLowongan"
-                      />
-
-                      <label
-                        htmlFor="aktifLowongan"
-                      >
-                        Aktif dan tampil di
-                        halaman lowongan
                       </label>
                     </div>
                   </div>
                 </div>
 
-                <div className="formActions">
-                  <button
-                    type="button"
-                    className="button buttonSecondary"
-                    onClick={resetForm}
-                    disabled={saving}
-                  >
-                    Batal
-                  </button>
+                <div className="field full">
+                  <label htmlFor="deskripsi">
+                    Deskripsi Posisi
+                  </label>
 
-                  <button
-                    type="submit"
-                    className="button buttonPrimary"
-                    disabled={saving}
-                  >
-                    {saving
-                      ? "Menyimpan..."
-                      : editingId
-                      ? "Simpan Perubahan"
-                      : "Simpan Lowongan"}
-                  </button>
+                  <textarea
+                    id="deskripsi"
+                    name="deskripsi"
+                    rows="6"
+                    value={
+                      form.deskripsi
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
+                  />
                 </div>
-              </form>
-            </div>
+
+                <div className="field full">
+                  <label htmlFor="persyaratan">
+                    Persyaratan
+                  </label>
+
+                  <textarea
+                    id="persyaratan"
+                    name="persyaratan"
+                    rows="7"
+                    value={
+                      form.persyaratan
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder={
+                      "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
+                    }
+                  />
+
+                  <small>
+                    Gunakan baris baru
+                    untuk setiap
+                    persyaratan agar
+                    lebih mudah dibaca.
+                  </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="google_form_url">
+                    Link Google Form
+                    Lamaran
+                  </label>
+
+                  <input
+                    id="google_form_url"
+                    name="google_form_url"
+                    type="url"
+                    value={
+                      form.google_form_url
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="https://forms.google.com/..."
+                  />
+
+                  <small>
+                    Tombol lamaran pada
+                    website akan
+                    menggunakan link
+                    ini.
+                  </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="pengumuman">
+                    Pengumuman
+                  </label>
+
+                  <textarea
+                    id="pengumuman"
+                    name="pengumuman"
+                    rows="4"
+                    value={
+                      form.pengumuman
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
+                  />
+                </div>
+
+                <div className="field full">
+                  <label className="checkLabel">
+                    <input
+                      type="checkbox"
+                      name="aktif"
+                      checked={
+                        form.aktif
+                      }
+                      onChange={
+                        handleChange
+                      }
+                    />
+
+                    <span>
+                      Tampilkan lowongan
+                      ini di website
+                      publik
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="formActions">
+                <button
+                  type="button"
+                  className="cancelButton"
+                  onClick={() => {
+                    setShowForm(
+                      false
+                    );
+                    resetForm();
+                  }}
+                  disabled={
+                    saving
+                  }
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  className="saveButton"
+                  disabled={
+                    saving
+                  }
+                >
+                  {saving
+                    ? "Menyimpan..."
+                    : editingId
+                    ? "Simpan Perubahan"
+                    : "Simpan Lowongan"}
+                </button>
+              </div>
+            </form>
           </section>
         )}
 
-        <section className="card">
-          <div className="cardHeader">
-            <h2>
-              Daftar Lowongan
-            </h2>
-
-            <p>
-              Kelola semua lowongan kerja
-              yang tersedia.
-            </p>
-          </div>
-
-          <div className="toolbar">
+        <div className="toolbar">
+          <div className="searchWrap">
             <input
-              className="input searchInput"
-              value={search}
-              onChange={(event) =>
+              type="search"
+              placeholder="Cari posisi atau lokasi..."
+              value={
+                search
+              }
+              onChange={(
+                event
+              ) =>
                 setSearch(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
-              placeholder="Cari posisi atau lokasi..."
             />
 
-            <select
-              className="select statusFilter"
-              value={filterStatus}
-              onChange={(event) =>
-                setFilterStatus(
-                  event.target.value
-                )
-              }
-            >
-              <option value="semua">
-                Semua Status
-              </option>
-
-              {statusOptions.map(
-                (item) => (
-                  <option
-                    key={item.value}
-                    value={item.value}
-                  >
-                    {item.label}
-                  </option>
-                )
-              )}
-            </select>
+            {search && (
+              <button
+                type="button"
+                className="clearSearch"
+                onClick={() =>
+                  setSearch("")
+                }
+                aria-label="Hapus pencarian"
+              >
+                ×
+              </button>
+            )}
           </div>
 
+          <div className="filters">
+            {[
+              [
+                "semua",
+                "Semua",
+              ],
+              [
+                "aktif",
+                "Aktif",
+              ],
+              [
+                "dibuka",
+                "Dibuka",
+              ],
+              [
+                "proses",
+                "Proses Seleksi",
+              ],
+              [
+                "nonaktif",
+                "Nonaktif",
+              ],
+            ].map(
+              ([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={
+                    filter ===
+                    value
+                      ? "filter active"
+                      : "filter"
+                  }
+                  onClick={() =>
+                    setFilter(
+                      value
+                    )
+                  }
+                >
+                  {label}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="card">
           {loading ? (
-            <div className="loading">
-              Memuat data lowongan...
+            <div className="empty">
+              Memuat data
+              lowongan...
             </div>
           ) : filteredLowongan.length ===
             0 ? (
@@ -1802,14 +1709,20 @@ export default function AdminLokerPage() {
                 💼
               </div>
 
-              <h3>
-                Belum ada data lowongan
-              </h3>
+              <strong>
+                {search ||
+                filter !==
+                  "semua"
+                  ? "Tidak ada lowongan yang sesuai."
+                  : "Belum ada data lowongan."}
+              </strong>
 
               <p>
-                Tambahkan lowongan kerja
-                menggunakan tombol
-                &quot;+ Tambah Lowongan&quot;.
+                {search ||
+                filter !==
+                  "semua"
+                  ? "Coba ubah pencarian atau filter."
+                  : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
               </p>
             </div>
           ) : (
@@ -1818,10 +1731,13 @@ export default function AdminLokerPage() {
                 <thead>
                   <tr>
                     <th>
-                      Gambar
+                      Urutan
                     </th>
                     <th>
                       Posisi
+                    </th>
+                    <th>
+                      Lokasi
                     </th>
                     <th>
                       Status
@@ -1830,7 +1746,7 @@ export default function AdminLokerPage() {
                       Tahap
                     </th>
                     <th>
-                      Tanggal
+                      Periode
                     </th>
                     <th>
                       Tampil
@@ -1843,169 +1759,978 @@ export default function AdminLokerPage() {
 
                 <tbody>
                   {filteredLowongan.map(
-                    (item) => {
-                      const status =
-                        getStatusInfo(
-                          item.status
-                        );
+                    (item) => (
+                      <tr
+                        key={
+                          item.id
+                        }
+                      >
+                        <td>
+                          {
+                            item.urutan
+                          }
+                        </td>
 
-                      return (
-                        <tr
-                          key={item.id}
-                        >
-                          <td>
-                            {item.gambar_url ? (
+                        <td>
+                          <div className="positionCell">
+                            {item.gambar_url &&
+                            isVideoUrl(
+                              item.gambar_url
+                            ) ? (
+                              <video
+                                src={
+                                  item.gambar_url
+                                }
+                                muted
+                                playsInline
+                                preload="metadata"
+                                className="thumb"
+                              />
+                            ) : item.gambar_url ? (
                               <img
                                 src={
                                   item.gambar_url
                                 }
-                                alt={
-                                  item.posisi
-                                }
-                                className="thumbnail"
+                                alt=""
+                                className="thumb"
                               />
                             ) : (
-                              <div className="noImage">
-                                Tidak ada
+                              <div className="thumbPlaceholder">
+                                💼
                               </div>
                             )}
-                          </td>
 
-                          <td>
-                            <div className="positionCell">
-                              <div className="positionTitle">
+                            <div>
+                              <strong>
                                 {
                                   item.posisi
                                 }
-                              </div>
+                              </strong>
 
-                              <div className="locationText">
-                                📍{" "}
-                                {item.lokasi ||
-                                  "Lokasi belum diisi"}
-                              </div>
+                              <small>
+                                ID #
+                                {
+                                  item.id
+                                }
+                              </small>
                             </div>
-                          </td>
+                          </div>
+                        </td>
 
-                          <td>
-                            <span
-                              className="badge"
-                              style={{
-                                background:
-                                  status.background,
-                                color:
-                                  status.color,
-                              }}
-                            >
-                              {
-                                status.label
-                              }
+                        <td>
+                          {item.lokasi ||
+                            "-"}
+                        </td>
+
+                        <td>
+                          <span
+                            className={`status status-${item.status}`}
+                          >
+                            {getStatusLabel(
+                              item.status
+                            )}
+                          </span>
+                        </td>
+
+                        <td>
+                          {getTahapLabel(
+                            item.tahap_seleksi
+                          )}
+                        </td>
+
+                        <td>
+                          <div className="dateCell">
+                            <span>
+                              {formatTanggal(
+                                item.tanggal_buka
+                              )}
                             </span>
-                          </td>
 
-                          <td>
-                            {
-                              getTahapLabel(
-                                item.tahap_seleksi
+                            <small>
+                              sampai{" "}
+                              {formatTanggal(
+                                item.tanggal_tutup
+                              )}
+                            </small>
+                          </div>
+                        </td>
+
+                        <td>
+                          <button
+                            type="button"
+                            className={
+                              item.aktif
+                                ? "toggle active"
+                                : "toggle"
+                            }
+                            onClick={() =>
+                              toggleAktif(
+                                item
                               )
                             }
-                          </td>
+                            disabled={
+                              processingId ===
+                              item.id
+                            }
+                          >
+                            {item.aktif
+                              ? "Aktif"
+                              : "Nonaktif"}
+                          </button>
+                        </td>
 
-                          <td>
-                            <div>
-                              {item.tanggal_buka
-                                ? isoToDisplayDate(
-                                    item.tanggal_buka
-                                  )
-                                : "-"}
-                            </div>
-
-                            <div
-                              style={{
-                                color:
-                                  "#6b7280",
-                                fontSize:
-                                  "12px",
-                                marginTop:
-                                  "4px",
-                              }}
-                            >
-                              s/d{" "}
-                              {item.tanggal_tutup
-                                ? isoToDisplayDate(
-                                    item.tanggal_tutup
-                                  )
-                                : "-"}
-                            </div>
-                          </td>
-
-                          <td>
+                        <td>
+                          <div className="actions">
                             <button
                               type="button"
-                              className="button buttonSmall"
-                              style={{
-                                background:
-                                  item.aktif
-                                    ? "#dcfce7"
-                                    : "#f3f4f6",
-                                color:
-                                  item.aktif
-                                    ? "#166534"
-                                    : "#6b7280",
-                                borderColor:
-                                  item.aktif
-                                    ? "#bbf7d0"
-                                    : "#e5e7eb",
-                              }}
+                              className="editButton"
                               onClick={() =>
-                                toggleActive(
+                                openEditForm(
                                   item
                                 )
                               }
                             >
-                              {item.aktif
-                                ? "Aktif"
-                                : "Nonaktif"}
+                              Edit
                             </button>
-                          </td>
 
-                          <td>
-                            <div className="actions">
-                              <button
-                                type="button"
-                                className="button buttonSmall buttonSecondary"
-                                onClick={() =>
-                                  openEditForm(
-                                    item
-                                  )
-                                }
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                className="button buttonSmall buttonDanger"
-                                onClick={() =>
-                                  handleDelete(
-                                    item.id
-                                  )
-                                }
-                              >
-                                Hapus
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }
+                            <button
+                              type="button"
+                              className="deleteButton"
+                              onClick={() =>
+                                hapusLowongan(
+                                  item
+                                )
+                              }
+                              disabled={
+                                processingId ===
+                                item.id
+                              }
+                            >
+                              {processingId ===
+                              item.id
+                                ? "..."
+                                : "Hapus"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
                   )}
                 </tbody>
               </table>
             </div>
           )}
-        </section>
+        </div>
       </div>
+
+      <style>{`
+        .lokerAdminPage {
+          width: 100%;
+          min-height: 100%;
+          color: #3f2f24;
+        }
+
+        .page {
+          width: 100%;
+          max-width: none;
+          margin: 0;
+        }
+
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+
+        .eyebrow {
+          margin-bottom: 6px;
+          color: #9a806a;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        h1 {
+          margin: 0 0 7px;
+          color: #3f2f24;
+          font-size: 30px;
+          line-height: 1.2;
+        }
+
+        .topbar p {
+          margin: 0;
+          color: #76685d;
+        }
+
+        .topActions {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .previewButton,
+        .addButton {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 44px;
+          padding: 0 18px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 700;
+          font-size: 14px;
+          box-sizing: border-box;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+
+        .previewButton {
+          background: #fff;
+          border: 1px solid #cfc1b1;
+          color: #4b3326;
+        }
+
+        .previewButton:hover {
+          background: #f3eadf;
+        }
+
+        .addButton {
+          border: 1px solid #4b3326;
+          background: #4b3326;
+          color: #fff;
+        }
+
+        .addButton:hover {
+          background: #39251b;
+        }
+
+        .success,
+        .error {
+          margin-bottom: 18px;
+          padding: 14px 16px;
+          border-radius: 9px;
+          font-weight: 600;
+        }
+
+        .success {
+          background: #e9f7ed;
+          border: 1px solid #b9dfc4;
+          color: #28713a;
+        }
+
+        .error {
+          background: #fff0f0;
+          border: 1px solid #e4bcbc;
+          color: #9b2929;
+        }
+
+        .summary {
+          display: grid;
+          grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+          gap: 18px;
+          margin-bottom: 22px;
+        }
+
+        .summaryCard {
+          background: #fff;
+          border: 1px solid #dfd2c3;
+          border-radius: 12px;
+          padding: 20px;
+        }
+
+        .summaryCard span {
+          display: block;
+          color: #76685d;
+          margin-bottom: 8px;
+          font-size: 13px;
+        }
+
+        .summaryCard strong {
+          font-size: 28px;
+          color: #3f2f24;
+        }
+
+        .formCard {
+          margin-bottom: 24px;
+          padding: 24px;
+          background: #fff;
+          border: 1px solid #dfd2c3;
+          border-radius: 14px;
+          box-shadow:
+            0 8px 25px
+            rgba(75, 51, 38, 0.05);
+        }
+
+        .formHeader {
+          display: flex;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 24px;
+          padding-bottom: 18px;
+          border-bottom:
+            1px solid #eee5dc;
+        }
+
+        .formHeader h2 {
+          margin: 0 0 6px;
+          color: #3f2f24;
+          font-size: 22px;
+        }
+
+        .formHeader p {
+          margin: 0;
+          color: #76685d;
+          font-size: 13px;
+        }
+
+        .closeButton {
+          width: 38px;
+          height: 38px;
+          flex-shrink: 0;
+          border: 1px solid #d8cabc;
+          border-radius: 8px;
+          background: #fff;
+          color: #6c5b50;
+          font-size: 25px;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        .closeButton:hover {
+          background: #f5eee7;
+        }
+
+        .formGrid {
+          display: grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 18px;
+        }
+
+        .field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .field.full {
+          grid-column: 1 / -1;
+        }
+
+        .field label {
+          color: #4b3326;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px 13px;
+          border: 1px solid #cfc1b1;
+          border-radius: 8px;
+          background: #fff;
+          color: #3f2f24;
+          font-family: inherit;
+          font-size: 14px;
+          outline: none;
+        }
+
+        .field textarea {
+          resize: vertical;
+          line-height: 1.6;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+          border-color: #8d6c53;
+          box-shadow:
+            0 0 0 3px
+            rgba(141, 108, 83, 0.1);
+        }
+
+        .field small {
+          color: #8a796e;
+          font-size: 11px;
+        }
+
+        .dateWrapper {
+          position: relative;
+          width: 100%;
+        }
+
+        .dateDisplay {
+          padding-right: 50px !important;
+        }
+
+        .calendarButton {
+          position: absolute;
+          right: 7px;
+          top: 50%;
+          transform:
+            translateY(-50%);
+          width: 35px;
+          height: 35px;
+          border: none;
+          border-radius: 7px;
+          background: #f3eadf;
+          color: #4b3326;
+          cursor: pointer;
+          z-index: 3;
+          font-size: 17px;
+        }
+
+        .calendarButton:hover {
+          background: #e8dccf;
+        }
+
+        .hiddenDatePicker {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+          left: 0;
+          bottom: 0;
+        }
+
+        .mediaUploadBox {
+          display: grid;
+          grid-template-columns:
+            220px minmax(0, 1fr);
+          gap: 20px;
+          padding: 18px;
+          border: 1px dashed #cfc1b1;
+          border-radius: 12px;
+          background: #faf7f3;
+        }
+
+        .mediaPreview {
+          width: 100%;
+          height: 145px;
+          overflow: hidden;
+          border-radius: 10px;
+          background: #f0e8df;
+          border: 1px solid #dfd2c3;
+        }
+
+        .mediaPreviewContent {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .mediaPlaceholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          color: #9a806a;
+        }
+
+        .mediaPlaceholder span {
+          font-size: 32px;
+        }
+
+        .mediaPlaceholder small {
+          font-size: 11px;
+          color: #8a796e;
+        }
+
+        .mediaUploadInfo {
+          min-width: 0;
+        }
+
+        .mediaUploadInfo > strong {
+          display: block;
+          margin-bottom: 5px;
+          color: #4b3326;
+          font-size: 15px;
+        }
+
+        .mediaUploadInfo p {
+          margin: 0 0 4px;
+          color: #76685d;
+          font-size: 13px;
+        }
+
+        .mediaUploadInfo ul {
+          margin: 4px 0 12px;
+          padding-left: 18px;
+          color: #76685d;
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
+        .selectedMedia {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          margin-bottom: 12px;
+          padding: 9px 11px;
+          border-radius: 7px;
+          background: #f1e9e0;
+          color: #5f5045;
+          font-size: 12px;
+        }
+
+        .selectedMedia span {
+          word-break: break-all;
+        }
+
+        .chooseMediaButton {
+          display: inline-flex !important;
+          align-items: center;
+          justify-content: center;
+          min-height: 40px;
+          padding: 0 14px;
+          border-radius: 8px;
+          background: #4b3326;
+          color: #fff !important;
+          cursor: pointer;
+          font-size: 13px !important;
+          font-weight: 700 !important;
+        }
+
+        .chooseMediaButton:hover {
+          background: #39251b;
+        }
+
+        .chooseMediaButton input {
+          display: none;
+        }
+
+        .checkLabel {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center;
+          gap: 10px;
+          padding: 13px 14px;
+          border: 1px solid #dfd2c3;
+          border-radius: 9px;
+          background: #faf6f0;
+          cursor: pointer;
+        }
+
+        .checkLabel input {
+          width: 18px;
+          height: 18px;
+          margin: 0;
+        }
+
+        .formActions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top:
+            1px solid #eee5dc;
+        }
+
+        .cancelButton,
+        .saveButton {
+          min-height: 44px;
+          padding: 0 18px;
+          border-radius: 8px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .cancelButton {
+          border: 1px solid #cfc1b1;
+          background: #fff;
+          color: #4b3326;
+        }
+
+        .saveButton {
+          border: 1px solid #4b3326;
+          background: #4b3326;
+          color: #fff;
+        }
+
+        .cancelButton:disabled,
+        .saveButton:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .toolbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 18px;
+        }
+
+        .searchWrap {
+          position: relative;
+          flex: 1;
+          max-width: 550px;
+        }
+
+        .searchWrap input {
+          width: 100%;
+          box-sizing: border-box;
+          padding:
+            12px 42px 12px 14px;
+          border: 1px solid #cfc1b1;
+          border-radius: 8px;
+          background: #fff;
+          font-size: 14px;
+          color: #3f2f24;
+        }
+
+        .clearSearch {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform:
+            translateY(-50%);
+          width: 28px;
+          height: 28px;
+          border: none;
+          background: transparent;
+          color: #76685d;
+          font-size: 23px;
+          cursor: pointer;
+        }
+
+        .filters {
+          display: flex;
+          gap: 7px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .filter {
+          padding: 10px 14px;
+          border: 1px solid #cfc1b1;
+          background: #fff;
+          color: #4b3326;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+        }
+
+        .filter.active {
+          background: #4b3326;
+          color: #fff;
+          border-color: #4b3326;
+        }
+
+        .card {
+          width: 100%;
+          background: #fff;
+          border: 1px solid #dfd2c3;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .tableWrap {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          min-width: 1150px;
+        }
+
+        th,
+        td {
+          padding: 14px;
+          border-bottom:
+            1px solid #eee5dc;
+          text-align: left;
+          vertical-align: middle;
+        }
+
+        th {
+          background: #faf6f0;
+          color: #5f5045;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .positionCell {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          min-width: 230px;
+        }
+
+        .positionCell strong {
+          display: block;
+          color: #3f2f24;
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
+
+        .positionCell small {
+          color: #9a8b80;
+          font-size: 11px;
+        }
+
+        .thumb,
+        .thumbPlaceholder {
+          width: 48px;
+          height: 48px;
+          flex-shrink: 0;
+          border-radius: 8px;
+          object-fit: cover;
+        }
+
+        .thumbPlaceholder {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f3eadf;
+          color: #755337;
+          font-size: 22px;
+        }
+
+        .status {
+          display: inline-flex;
+          align-items: center;
+          min-height: 28px;
+          padding: 5px 9px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .status-draft {
+          background: #f1eeee;
+          color: #7a6d68;
+        }
+
+        .status-dibuka {
+          background: #dcf8e7;
+          color: #16834b;
+        }
+
+        .status-proses_seleksi {
+          background: #e5f0ff;
+          color: #3575c5;
+        }
+
+        .status-ditutup {
+          background: #f0e9e5;
+          color: #80695d;
+        }
+
+        .status-terisi {
+          background: #eee5ff;
+          color: #7650c9;
+        }
+
+        .dateCell span,
+        .dateCell small {
+          display: block;
+        }
+
+        .dateCell span {
+          color: #4b3326;
+          font-weight: 600;
+          font-size: 13px;
+        }
+
+        .dateCell small {
+          margin-top: 3px;
+          color: #918178;
+          font-size: 11px;
+        }
+
+        .toggle {
+          min-width: 78px;
+          padding: 7px 10px;
+          border: none;
+          border-radius: 999px;
+          background: #f1eeee;
+          color: #796d68;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .toggle.active {
+          background: #e8f5e9;
+          color: #2f6d35;
+        }
+
+        .toggle:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .actions {
+          display: flex;
+          gap: 7px;
+          align-items: center;
+        }
+
+        .editButton,
+        .deleteButton {
+          padding: 8px 12px;
+          border-radius: 7px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .editButton {
+          border: none;
+          background: #f3eadf;
+          color: #4b3326;
+        }
+
+        .deleteButton {
+          border: none;
+          background: #f7dddd;
+          color: #9b2929;
+        }
+
+        .deleteButton:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .empty {
+          padding: 55px 30px;
+          text-align: center;
+          color: #76685d;
+        }
+
+        .emptyIcon {
+          margin-bottom: 12px;
+          font-size: 40px;
+        }
+
+        .empty strong {
+          display: block;
+          color: #4b3326;
+          font-size: 17px;
+        }
+
+        .empty p {
+          margin: 7px 0 0;
+          color: #8b7a70;
+          font-size: 13px;
+        }
+
+        @media (max-width: 1100px) {
+          .summary {
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
+          }
+
+          .topbar {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .toolbar {
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .searchWrap {
+            max-width: none;
+          }
+
+          .filters {
+            justify-content: flex-start;
+          }
+        }
+
+        @media (max-width: 800px) {
+          .formGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .field.full {
+            grid-column: auto;
+          }
+
+          .summary {
+            grid-template-columns: 1fr;
+          }
+
+          .topActions {
+            width: 100%;
+          }
+
+          .previewButton,
+          .addButton {
+            flex: 1;
+          }
+
+          .filters {
+            width: 100%;
+          }
+
+          .filter {
+            flex: 1;
+          }
+
+          .mediaUploadBox {
+            grid-template-columns: 1fr;
+          }
+
+          .mediaPreview {
+            max-width: 320px;
+          }
+        }
+
+        @media (max-width: 520px) {
+          h1 {
+            font-size: 26px;
+          }
+
+          .formCard {
+            padding: 18px;
+          }
+
+          .formActions {
+            flex-direction: column-reverse;
+          }
+
+          .cancelButton,
+          .saveButton {
+            width: 100%;
+          }
+
+          .topActions {
+            flex-direction: column;
+          }
+
+          .previewButton,
+          .addButton {
+            width: 100%;
+            flex: none;
+          }
+        }
+      `}</style>
     </main>
   );
 }
