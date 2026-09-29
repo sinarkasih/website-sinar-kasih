@@ -11,8 +11,7 @@ export default function TrashPesananPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [processingId, setProcessingId] =
-    useState(null);
+  const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
     loadTrash();
@@ -170,6 +169,10 @@ export default function TrashPesananPage() {
     );
 
     setProcessingId(null);
+
+    // Setelah Restore berhasil,
+    // otomatis kembali ke halaman Pesanan.
+    router.push("/admin/pesanan");
   }
 
   async function hapusPermanen(id) {
@@ -504,7 +507,6 @@ export default function TrashPesananPage() {
       `}</style>
 
       <div className="trash-page">
-        {/* HEADER */}
         <div className="trash-header">
           <div>
             <h1>Trash Pesanan</h1>
@@ -527,7 +529,6 @@ export default function TrashPesananPage() {
           </button>
         </div>
 
-        {/* CONTENT */}
         <div className="admin-card trash-card">
           <div className="admin-section-header">
             <div>
@@ -546,7 +547,6 @@ export default function TrashPesananPage() {
             </div>
           )}
 
-          {/* SEARCH */}
           <div className="trash-toolbar">
             <div className="trash-search">
               <input
@@ -573,7 +573,6 @@ export default function TrashPesananPage() {
             </div>
           </div>
 
-          {/* TABLE */}
           {loading ? (
             <div className="trash-empty">
               Memuat Trash Pesanan...
