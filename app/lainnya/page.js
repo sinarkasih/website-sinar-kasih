@@ -100,6 +100,17 @@ function CartIcon() {
   );
 }
 
+function JobIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" />
+      <path d="M3 12h18" />
+      <path d="M10 12v2h4v-2" />
+    </svg>
+  );
+}
+
 function ArrowIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -118,7 +129,6 @@ export default async function LainnyaPage() {
     .limit(1)
     .maybeSingle();
 
-  // Nomor WhatsApp resmi Toko Listrik Sinar Kasih
   const whatsappUrl = "https://wa.me/6281285750033";
 
   const instagramUrl = normalizeUrl(
@@ -133,12 +143,23 @@ export default async function LainnyaPage() {
 
   const menuItems = [
     {
+      href: "/loker",
+      title: "Lowongan Kerja",
+      description:
+        "Lihat posisi yang sedang dibutuhkan dan ikuti proses seleksi resmi Toko Listrik Sinar Kasih.",
+      icon: <JobIcon />,
+      iconClass: "jobIcon",
+      featured: true,
+      external: false,
+    },
+    {
       href: "/toko",
       title: "Toko Kami",
       description:
         "Lihat lokasi, alamat, nomor telepon, Google Maps, dan Google Review toko kami.",
       icon: <StoreIcon />,
       iconClass: "storeIcon",
+      featured: false,
       external: false,
     },
     {
@@ -148,6 +169,7 @@ export default async function LainnyaPage() {
         "Hubungi kami langsung melalui WhatsApp untuk bertanya tentang produk dan pesanan.",
       icon: <WhatsAppIcon />,
       iconClass: "whatsappIcon",
+      featured: false,
       external: true,
     },
     {
@@ -157,6 +179,7 @@ export default async function LainnyaPage() {
         "Ikuti Instagram Sinar Kasih untuk melihat produk, promo, dan informasi terbaru.",
       icon: <InstagramIcon />,
       iconClass: "instagramIcon",
+      featured: false,
       external: true,
     },
     {
@@ -166,6 +189,7 @@ export default async function LainnyaPage() {
         "Lihat video produk dan informasi terbaru Toko Listrik Sinar Kasih.",
       icon: <TikTokIcon />,
       iconClass: "tiktokIcon",
+      featured: false,
       external: true,
     },
     {
@@ -175,6 +199,7 @@ export default async function LainnyaPage() {
         "Kenali Toko Listrik Sinar Kasih dan berbagai kebutuhan listrik yang kami sediakan.",
       icon: <InfoIcon />,
       iconClass: "infoIcon",
+      featured: false,
       external: false,
     },
     {
@@ -184,6 +209,7 @@ export default async function LainnyaPage() {
         "Pelajari cara memilih produk dan melakukan pemesanan dengan mudah.",
       icon: <CartIcon />,
       iconClass: "cartIcon",
+      featured: false,
       external: false,
     },
   ];
@@ -197,18 +223,24 @@ export default async function LainnyaPage() {
             <h1>Informasi &amp; Layanan</h1>
 
             <p>
-              Temukan informasi toko, layanan, media sosial, dan cara
-              berbelanja di Toko Listrik Sinar Kasih.
+              Temukan informasi toko, layanan, media sosial,
+              lowongan kerja, dan cara berbelanja di Toko
+              Listrik Sinar Kasih.
             </p>
           </header>
 
           <section className="menuGrid">
+
             {menuItems.map((item) => (
               <a
                 key={item.title}
                 href={item.href}
-                className="menuCard"
-                target={item.external ? "_blank" : undefined}
+                className={`menuCard ${
+                  item.featured ? "featuredCard" : ""
+                }`}
+                target={
+                  item.external ? "_blank" : undefined
+                }
                 rel={
                   item.external
                     ? "noopener noreferrer"
@@ -220,7 +252,16 @@ export default async function LainnyaPage() {
                 </div>
 
                 <div className="menuContent">
-                  <h2>{item.title}</h2>
+                  <div className="menuTitleRow">
+                    <h2>{item.title}</h2>
+
+                    {item.featured && (
+                      <span className="featuredBadge">
+                        INFO LOKER
+                      </span>
+                    )}
+                  </div>
+
                   <p>{item.description}</p>
                 </div>
 
@@ -229,6 +270,7 @@ export default async function LainnyaPage() {
                 </div>
               </a>
             ))}
+
           </section>
 
         </div>
@@ -269,7 +311,7 @@ export default async function LainnyaPage() {
 
         .lainnyaHeader p {
           width: 100%;
-          max-width: 560px;
+          max-width: 600px;
           margin: 0 auto;
           font-size: 15px;
           line-height: 1.7;
@@ -307,6 +349,23 @@ export default async function LainnyaPage() {
           box-shadow: 0 14px 32px rgba(75, 36, 24, 0.11);
         }
 
+        .featuredCard {
+          grid-column: 1 / -1;
+          min-height: 170px;
+          border: 2px solid #d9c4b2;
+          background: linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #fff8ef 100%
+          );
+          box-shadow: 0 10px 28px rgba(75, 36, 24, 0.09);
+        }
+
+        .featuredCard:hover {
+          border-color: #c9ad98;
+          box-shadow: 0 16px 34px rgba(75, 36, 24, 0.13);
+        }
+
         .menuIcon {
           width: 62px;
           height: 62px;
@@ -317,6 +376,13 @@ export default async function LainnyaPage() {
           border-radius: 17px;
         }
 
+        .featuredCard .menuIcon {
+          width: 70px;
+          height: 70px;
+          min-width: 70px;
+          border-radius: 19px;
+        }
+
         .menuIcon svg {
           width: 31px;
           height: 31px;
@@ -325,6 +391,11 @@ export default async function LainnyaPage() {
           stroke-width: 1.8;
           stroke-linecap: round;
           stroke-linejoin: round;
+        }
+
+        .featuredCard .menuIcon svg {
+          width: 35px;
+          height: 35px;
         }
 
         .storeIcon {
@@ -357,18 +428,48 @@ export default async function LainnyaPage() {
           color: #d85b3d;
         }
 
+        .jobIcon {
+          background: #e5f0ff;
+          color: #3575c5;
+        }
+
         .menuContent {
           flex: 1;
           min-width: 0;
           padding-right: 20px;
         }
 
+        .menuTitleRow {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 9px;
+          margin-bottom: 7px;
+        }
+
         .menuContent h2 {
-          margin: 0 0 7px;
+          margin: 0;
           font-size: 18px;
           line-height: 1.3;
           font-weight: 700;
           color: #4b2418;
+        }
+
+        .featuredCard .menuContent h2 {
+          font-size: 21px;
+        }
+
+        .featuredBadge {
+          display: inline-flex;
+          align-items: center;
+          padding: 5px 9px;
+          border-radius: 999px;
+          background: #dcf8e7;
+          color: #16834b;
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 800;
+          letter-spacing: 0.3px;
         }
 
         .menuContent p {
@@ -376,6 +477,11 @@ export default async function LainnyaPage() {
           font-size: 13.5px;
           line-height: 1.65;
           color: #76645c;
+        }
+
+        .featuredCard .menuContent p {
+          max-width: 650px;
+          font-size: 14px;
         }
 
         .menuArrow {
@@ -424,10 +530,26 @@ export default async function LainnyaPage() {
             gap: 14px;
           }
 
+          .featuredCard {
+            grid-column: auto;
+            min-height: 145px;
+          }
+
           .menuCard {
             min-height: 132px;
             padding: 20px;
             gap: 15px;
+          }
+
+          .featuredCard .menuIcon {
+            width: 58px;
+            height: 58px;
+            min-width: 58px;
+          }
+
+          .featuredCard .menuIcon svg {
+            width: 29px;
+            height: 29px;
           }
 
           .menuIcon {
@@ -450,7 +572,15 @@ export default async function LainnyaPage() {
             font-size: 17px;
           }
 
+          .featuredCard .menuContent h2 {
+            font-size: 18px;
+          }
+
           .menuContent p {
+            font-size: 13px;
+          }
+
+          .featuredCard .menuContent p {
             font-size: 13px;
           }
 
@@ -474,12 +604,25 @@ export default async function LainnyaPage() {
             min-width: 50px;
           }
 
-          .menuContent h2 {
+          .featuredCard .menuIcon {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+          }
+
+          .menuContent h2,
+          .featuredCard .menuContent h2 {
             font-size: 16px;
           }
 
-          .menuContent p {
+          .menuContent p,
+          .featuredCard .menuContent p {
             font-size: 12.5px;
+          }
+
+          .featuredBadge {
+            font-size: 9px;
+            padding: 4px 7px;
           }
         }
       `}</style>
