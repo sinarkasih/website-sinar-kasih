@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 
 export default function TokoPage() {
@@ -33,6 +31,7 @@ export default function TokoPage() {
 
         <div className="notice">
           <strong>Pengaturan Toko</strong>
+
           <p>
             Gunakan menu di atas untuk mengatur informasi toko,
             kontak, dan menambahkan cabang toko.
