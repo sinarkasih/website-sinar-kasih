@@ -88,7 +88,9 @@ function getStatusLabel(status) {
     (option) => option.value === status
   );
 
-  return item ? item.label : "Belum Dipublikasikan";
+  return item
+    ? item.label
+    : "Belum Dipublikasikan";
 }
 
 function getTahapLabel(tahap) {
@@ -109,10 +111,74 @@ function formatTanggal(tanggal) {
   }
 
   return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "short",
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
   }).format(date);
+}
+
+function isoToDisplayDate(tanggal) {
+  if (!tanggal) return "";
+
+  const parts = tanggal.split("-");
+
+  if (parts.length !== 3) {
+    return "";
+  }
+
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function displayToIsoDate(value) {
+  const clean = value.trim();
+
+  if (!clean) {
+    return {
+      value: null,
+      error: "",
+    };
+  }
+
+  const match = clean.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+  );
+
+  if (!match) {
+    return {
+      value: null,
+      error: "Format tanggal harus DD/MM/YYYY.",
+    };
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
+
+  const valid =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+
+  if (!valid) {
+    return {
+      value: null,
+      error: "Tanggal yang dimasukkan tidak valid.",
+    };
+  }
+
+  return {
+    value: `${year}-${String(month).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`,
+    error: "",
+  };
 }
 
 export default function AdminLokerPage() {
@@ -121,21 +187,32 @@ export default function AdminLokerPage() {
   const [lowongan, setLowongan] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  const [authChecking, setAuthChecking] = useState(true);
+  const [authChecking, setAuthChecking] =
+    useState(true);
 
   const [saving, setSaving] = useState(false);
-  const [processingId, setProcessingId] = useState(null);
+  const [processingId, setProcessingId] =
+    useState(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] =
+    useState(null);
 
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("semua");
+  const [filter, setFilter] =
+    useState("semua");
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] =
+    useState(initialForm);
+
+  const [gambarFile, setGambarFile] =
+    useState(null);
+
+  const [gambarPreview, setGambarPreview] =
+    useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -146,7 +223,9 @@ export default function AdminLokerPage() {
       if (!supabase) {
         if (!mounted) return;
 
-        setError("Koneksi Supabase belum tersedia.");
+        setError(
+          "Koneksi Supabase belum tersedia."
+        );
         setLoading(false);
         setAuthChecking(false);
         return;
@@ -155,7 +234,8 @@ export default function AdminLokerPage() {
       const {
         data: { session },
         error: sessionError,
-      } = await supabase.auth.getSession();
+      } =
+        await supabase.auth.getSession();
 
       if (!mounted) return;
 
@@ -193,18 +273,19 @@ export default function AdminLokerPage() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
+    } =
+      supabase.auth.onAuthStateChange(
+        (event, session) => {
+          if (!mounted) return;
 
-        if (
-          event === "SIGNED_OUT" ||
-          !session
-        ) {
-          router.replace("/admin/login");
+          if (
+            event === "SIGNED_OUT" ||
+            !session
+          ) {
+            router.replace("/admin/login");
+          }
         }
-      }
-    );
+      );
 
     return () => {
       mounted = false;
@@ -212,7 +293,9 @@ export default function AdminLokerPage() {
     };
   }, [router]);
 
-  async function loadLowongan(supabaseInstance = null) {
+  async function loadLowongan(
+    supabaseInstance = null
+  ) {
     setLoading(true);
     setError("");
 
@@ -220,7 +303,9 @@ export default function AdminLokerPage() {
       supabaseInstance || getSupabase();
 
     if (!supabase) {
-      setError("Koneksi Supabase belum tersedia.");
+      setError(
+        "Koneksi Supabase belum tersedia."
+      );
       setLoading(false);
       return;
     }
@@ -228,7 +313,8 @@ export default function AdminLokerPage() {
     const {
       data: { session },
       error: sessionError,
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth.getSession();
 
     if (sessionError) {
       console.error(sessionError);
@@ -246,18 +332,20 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const { data, error: fetchError } =
-      await supabase
-        .from("lowongan_kerja")
-        .select(
-          "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
-        )
-        .order("urutan", {
-          ascending: true,
-        })
-        .order("id", {
-          ascending: false,
-        });
+    const {
+      data,
+      error: fetchError,
+    } = await supabase
+      .from("lowongan_kerja")
+      .select(
+        "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
+      )
+      .order("urutan", {
+        ascending: true,
+      })
+      .order("id", {
+        ascending: false,
+      });
 
     if (fetchError) {
       console.error(fetchError);
@@ -291,9 +379,59 @@ export default function AdminLokerPage() {
     }));
   }
 
+  function handleImageChange(event) {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) {
+      setGambarFile(null);
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "Format gambar harus JPG, PNG, atau WEBP."
+      );
+
+      event.target.value = "";
+      setGambarFile(null);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError(
+        "Ukuran gambar maksimal 5 MB."
+      );
+
+      event.target.value = "";
+      setGambarFile(null);
+      return;
+    }
+
+    setError("");
+    setGambarFile(file);
+
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setGambarPreview(previewUrl);
+  }
+
+  function resetImage() {
+    setGambarFile(null);
+    setGambarPreview("");
+  }
+
   function resetForm() {
     setForm(initialForm);
     setEditingId(null);
+    resetImage();
   }
 
   function openAddForm() {
@@ -323,9 +461,13 @@ export default function AdminLokerPage() {
         item.tahap_seleksi ||
         "pendaftaran",
       tanggal_buka:
-        item.tanggal_buka || "",
+        isoToDisplayDate(
+          item.tanggal_buka
+        ),
       tanggal_tutup:
-        item.tanggal_tutup || "",
+        isoToDisplayDate(
+          item.tanggal_tutup
+        ),
       pengumuman:
         item.pengumuman || "",
       aktif: Boolean(item.aktif),
@@ -333,6 +475,11 @@ export default function AdminLokerPage() {
     });
 
     setEditingId(item.id);
+    setGambarFile(null);
+    setGambarPreview(
+      item.gambar_url || ""
+    );
+
     setSuccess("");
     setError("");
     setShowForm(true);
@@ -341,6 +488,63 @@ export default function AdminLokerPage() {
       top: 0,
       behavior: "smooth",
     });
+  }
+
+  async function uploadImage(
+    supabase,
+    file
+  ) {
+    if (!file) {
+      return {
+        url: null,
+        error: null,
+      };
+    }
+
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        ?.toLowerCase() || "jpg";
+
+    const fileName =
+      `lowongan-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 10)}.${extension}`;
+
+    const filePath =
+      `lowongan/${fileName}`;
+
+    const {
+      error: uploadError,
+    } = await supabase.storage
+      .from("lowongan-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      return {
+        url: null,
+        error: uploadError,
+      };
+    }
+
+    const {
+      data: publicUrlData,
+    } =
+      supabase.storage
+        .from("lowongan-images")
+        .getPublicUrl(filePath);
+
+    return {
+      url:
+        publicUrlData?.publicUrl ||
+        null,
+      error: null,
+    };
   }
 
   async function handleSubmit(event) {
@@ -352,6 +556,42 @@ export default function AdminLokerPage() {
     if (!form.posisi.trim()) {
       setError(
         "Nama posisi lowongan wajib diisi."
+      );
+      return;
+    }
+
+    const tanggalBuka =
+      displayToIsoDate(
+        form.tanggal_buka
+      );
+
+    if (tanggalBuka.error) {
+      setError(
+        `Tanggal Buka: ${tanggalBuka.error}`
+      );
+      return;
+    }
+
+    const tanggalTutup =
+      displayToIsoDate(
+        form.tanggal_tutup
+      );
+
+    if (tanggalTutup.error) {
+      setError(
+        `Tanggal Tutup: ${tanggalTutup.error}`
+      );
+      return;
+    }
+
+    if (
+      tanggalBuka.value &&
+      tanggalTutup.value &&
+      tanggalTutup.value <
+        tanggalBuka.value
+    ) {
+      setError(
+        "Tanggal Tutup tidak boleh lebih awal dari Tanggal Buka."
       );
       return;
     }
@@ -368,7 +608,8 @@ export default function AdminLokerPage() {
     const {
       data: { session },
       error: sessionError,
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth.getSession();
 
     if (sessionError) {
       setError(
@@ -384,11 +625,38 @@ export default function AdminLokerPage() {
 
     setSaving(true);
 
+    let gambarUrl =
+      form.gambar_url || null;
+
+    if (gambarFile) {
+      const uploadResult =
+        await uploadImage(
+          supabase,
+          gambarFile
+        );
+
+      if (uploadResult.error) {
+        console.error(
+          uploadResult.error
+        );
+
+        setError(
+          `Gagal mengupload gambar: ${uploadResult.error.message}`
+        );
+
+        setSaving(false);
+        return;
+      }
+
+      gambarUrl =
+        uploadResult.url;
+    }
+
     const payload = {
       posisi: form.posisi.trim(),
 
       gambar_url:
-        form.gambar_url.trim() || null,
+        gambarUrl,
 
       deskripsi:
         form.deskripsi.trim() || null,
@@ -400,7 +668,8 @@ export default function AdminLokerPage() {
         form.lokasi.trim() || null,
 
       google_form_url:
-        form.google_form_url.trim() || null,
+        form.google_form_url.trim() ||
+        null,
 
       status: form.status,
 
@@ -408,10 +677,10 @@ export default function AdminLokerPage() {
         form.tahap_seleksi,
 
       tanggal_buka:
-        form.tanggal_buka || null,
+        tanggalBuka.value,
 
       tanggal_tutup:
-        form.tanggal_tutup || null,
+        tanggalTutup.value,
 
       pengumuman:
         form.pengumuman.trim() || null,
@@ -448,15 +717,11 @@ export default function AdminLokerPage() {
 
     setSaving(false);
 
-    if (editingId) {
-      setSuccess(
-        "Lowongan berhasil diperbarui."
-      );
-    } else {
-      setSuccess(
-        "Lowongan berhasil ditambahkan."
-      );
-    }
+    setSuccess(
+      editingId
+        ? "Lowongan berhasil diperbarui."
+        : "Lowongan berhasil ditambahkan."
+    );
 
     resetForm();
     setShowForm(false);
@@ -487,7 +752,8 @@ export default function AdminLokerPage() {
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth.getSession();
 
     if (!session) {
       router.replace("/admin/login");
@@ -543,7 +809,8 @@ export default function AdminLokerPage() {
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth.getSession();
 
     if (!session) {
       router.replace("/admin/login");
@@ -552,12 +819,13 @@ export default function AdminLokerPage() {
 
     const {
       error: updateError,
-    } = await supabase
-      .from("lowongan_kerja")
-      .update({
-        aktif: !item.aktif,
-      })
-      .eq("id", item.id);
+    } =
+      await supabase
+        .from("lowongan_kerja")
+        .update({
+          aktif: !item.aktif,
+        })
+        .eq("id", item.id);
 
     if (updateError) {
       console.error(updateError);
@@ -681,9 +949,9 @@ export default function AdminLokerPage() {
             <h1>Lowongan Kerja</h1>
 
             <p>
-              Kelola informasi lowongan kerja
-              yang ditampilkan pada halaman
-              publik.
+              Kelola informasi lowongan
+              kerja yang ditampilkan pada
+              halaman publik.
             </p>
           </div>
 
@@ -723,7 +991,6 @@ export default function AdminLokerPage() {
             <span>
               Total Lowongan
             </span>
-
             <strong>
               {totalLowongan}
             </strong>
@@ -731,7 +998,6 @@ export default function AdminLokerPage() {
 
           <div className="summaryCard">
             <span>Aktif</span>
-
             <strong>
               {aktif}
             </strong>
@@ -741,7 +1007,6 @@ export default function AdminLokerPage() {
             <span>
               Pendaftaran Dibuka
             </span>
-
             <strong>
               {dibuka}
             </strong>
@@ -749,7 +1014,6 @@ export default function AdminLokerPage() {
 
           <div className="summaryCard">
             <span>Nonaktif</span>
-
             <strong>
               {nonaktif}
             </strong>
@@ -871,7 +1135,9 @@ export default function AdminLokerPage() {
                   <select
                     id="tahap_seleksi"
                     name="tahap_seleksi"
-                    value={form.tahap_seleksi}
+                    value={
+                      form.tahap_seleksi
+                    }
                     onChange={handleChange}
                   >
                     {tahapSeleksi.map(
@@ -896,10 +1162,21 @@ export default function AdminLokerPage() {
                   <input
                     id="tanggal_buka"
                     name="tanggal_buka"
-                    type="date"
-                    value={form.tanggal_buka}
+                    type="text"
+                    inputMode="numeric"
+                    value={
+                      form.tanggal_buka
+                    }
                     onChange={handleChange}
+                    placeholder="DD/MM/YYYY"
+                    maxLength="10"
                   />
+
+                  <small>
+                    Format: DD/MM/YYYY
+                    <br />
+                    Contoh: 30/09/2026
+                  </small>
                 </div>
 
                 <div className="field">
@@ -910,29 +1187,61 @@ export default function AdminLokerPage() {
                   <input
                     id="tanggal_tutup"
                     name="tanggal_tutup"
-                    type="date"
-                    value={form.tanggal_tutup}
+                    type="text"
+                    inputMode="numeric"
+                    value={
+                      form.tanggal_tutup
+                    }
                     onChange={handleChange}
-                  />
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="gambar_url">
-                    URL Gambar Lowongan
-                  </label>
-
-                  <input
-                    id="gambar_url"
-                    name="gambar_url"
-                    value={form.gambar_url}
-                    onChange={handleChange}
-                    placeholder="https://..."
+                    placeholder="DD/MM/YYYY"
+                    maxLength="10"
                   />
 
                   <small>
-                    Masukkan URL gambar
-                    jika tersedia.
+                    Format: DD/MM/YYYY
+                    <br />
+                    Contoh: 30/09/2026
                   </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="gambar_file">
+                    Gambar Lowongan
+                  </label>
+
+                  <div className="uploadBox">
+                    {gambarPreview && (
+                      <div className="imagePreviewWrap">
+                        <img
+                          src={gambarPreview}
+                          alt="Preview gambar lowongan"
+                          className="imagePreview"
+                        />
+                      </div>
+                    )}
+
+                    <input
+                      id="gambar_file"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={
+                        handleImageChange
+                      }
+                    />
+
+                    <small>
+                      Pilih gambar dari komputer.
+                      Format JPG, PNG, atau WEBP.
+                      Maksimal 5 MB.
+                    </small>
+
+                    {gambarFile && (
+                      <div className="selectedFile">
+                        ✓{" "}
+                        {gambarFile.name}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="field full">
@@ -944,7 +1253,9 @@ export default function AdminLokerPage() {
                     id="deskripsi"
                     name="deskripsi"
                     rows="6"
-                    value={form.deskripsi}
+                    value={
+                      form.deskripsi
+                    }
                     onChange={handleChange}
                     placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
                   />
@@ -959,7 +1270,9 @@ export default function AdminLokerPage() {
                     id="persyaratan"
                     name="persyaratan"
                     rows="7"
-                    value={form.persyaratan}
+                    value={
+                      form.persyaratan
+                    }
                     onChange={handleChange}
                     placeholder={
                       "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
@@ -982,7 +1295,9 @@ export default function AdminLokerPage() {
                     id="google_form_url"
                     name="google_form_url"
                     type="url"
-                    value={form.google_form_url}
+                    value={
+                      form.google_form_url
+                    }
                     onChange={handleChange}
                     placeholder="https://forms.google.com/..."
                   />
@@ -1003,7 +1318,9 @@ export default function AdminLokerPage() {
                     id="pengumuman"
                     name="pengumuman"
                     rows="4"
-                    value={form.pengumuman}
+                    value={
+                      form.pengumuman
+                    }
                     onChange={handleChange}
                     placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
                   />
@@ -1084,75 +1401,28 @@ export default function AdminLokerPage() {
           </div>
 
           <div className="filters">
-            <button
-              type="button"
-              className={
-                filter === "semua"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("semua")
-              }
-            >
-              Semua
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "aktif"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("aktif")
-              }
-            >
-              Aktif
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "dibuka"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("dibuka")
-              }
-            >
-              Dibuka
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "proses"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("proses")
-              }
-            >
-              Proses Seleksi
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "nonaktif"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("nonaktif")
-              }
-            >
-              Nonaktif
-            </button>
+            {[
+              ["semua", "Semua"],
+              ["aktif", "Aktif"],
+              ["dibuka", "Dibuka"],
+              ["proses", "Proses Seleksi"],
+              ["nonaktif", "Nonaktif"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={
+                  filter === value
+                    ? "filter active"
+                    : "filter"
+                }
+                onClick={() =>
+                  setFilter(value)
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1518,10 +1788,6 @@ export default function AdminLokerPage() {
           cursor: pointer;
         }
 
-        .closeButton:hover {
-          background: #f5eee7;
-        }
-
         .formGrid {
           display: grid;
           grid-template-columns:
@@ -1577,6 +1843,41 @@ export default function AdminLokerPage() {
         .field small {
           color: #8a796e;
           font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .uploadBox {
+          padding: 18px;
+          border: 1px dashed #cfc1b1;
+          border-radius: 10px;
+          background: #faf6f0;
+        }
+
+        .uploadBox input[type="file"] {
+          padding: 10px;
+          background: #fff;
+          cursor: pointer;
+        }
+
+        .imagePreviewWrap {
+          margin-bottom: 14px;
+        }
+
+        .imagePreview {
+          display: block;
+          width: 220px;
+          max-width: 100%;
+          max-height: 160px;
+          object-fit: cover;
+          border-radius: 10px;
+          border: 1px solid #dfd2c3;
+        }
+
+        .selectedFile {
+          margin-top: 10px;
+          color: #28713a;
+          font-size: 12px;
+          font-weight: 700;
         }
 
         .checkLabel {
@@ -1988,6 +2289,11 @@ export default function AdminLokerPage() {
           .addButton {
             width: 100%;
             flex: none;
+          }
+
+          .imagePreview {
+            width: 100%;
+            max-height: 200px;
           }
         }
       `}</style>
