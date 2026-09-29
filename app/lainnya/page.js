@@ -144,9 +144,9 @@ export default async function LainnyaPage() {
   const menuItems = [
     {
       href: "/loker",
-      title: "Lowongan Kerja",
+      title: "Info Loker",
       description:
-        "Lihat posisi yang sedang dibutuhkan dan ikuti proses seleksi resmi Toko Listrik Sinar Kasih.",
+        "Lihat lowongan kerja yang sedang tersedia dan ikuti proses seleksi resmi Toko Listrik Sinar Kasih.",
       icon: <JobIcon />,
       iconClass: "jobIcon",
       featured: true,
