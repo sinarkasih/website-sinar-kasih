@@ -9,6 +9,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("semua");
+  const [processingId, setProcessingId] = useState(null);
 
   async function loadCabang() {
     setLoading(true);
@@ -44,6 +45,50 @@ export default function Page() {
     loadCabang();
   }, []);
 
+  async function hapusCabang(item) {
+    const yakinPertama = window.confirm(
+      `Hapus cabang "${item.nama}" secara permanen?\n\nData cabang yang belum memiliki pesanan dapat dihapus.`
+    );
+
+    if (!yakinPertama) return;
+
+    const yakinKedua = window.confirm(
+      `PERINGATAN TERAKHIR\n\nCabang "${item.nama}" akan dihapus permanen.\n\nLanjutkan?`
+    );
+
+    if (!yakinKedua) return;
+
+    setProcessingId(item.id);
+    setError("");
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      setError("Konfigurasi Supabase belum tersedia.");
+      setProcessingId(null);
+      return;
+    }
+
+    const { error: deleteError } = await supabase.rpc(
+      "hapus_cabang_permanen",
+      {
+        p_cabang_id: item.id,
+      }
+    );
+
+    if (deleteError) {
+      setError(deleteError.message);
+      setProcessingId(null);
+      return;
+    }
+
+    setCabang((current) =>
+      current.filter((cabangItem) => cabangItem.id !== item.id)
+    );
+
+    setProcessingId(null);
+  }
+
   const filteredCabang = cabang.filter((item) => {
     if (filter === "aktif") return item.aktif === true;
     if (filter === "nonaktif") return item.aktif === false;
@@ -51,7 +96,11 @@ export default function Page() {
   });
 
   const total = cabang.length;
-  const aktif = cabang.filter((item) => item.aktif === true).length;
+
+  const aktif = cabang.filter(
+    (item) => item.aktif === true
+  ).length;
+
   const nonaktif = cabang.filter(
     (item) => item.aktif === false
   ).length;
@@ -67,7 +116,10 @@ export default function Page() {
           </p>
         </div>
 
-        <Link href="/admin/toko/cabang/tambah" className="btn primary">
+        <Link
+          href="/admin/toko/cabang/tambah"
+          className="btn primary"
+        >
           + Tambah Cabang
         </Link>
       </div>
@@ -201,12 +253,25 @@ export default function Page() {
                     </td>
 
                     <td>
-                      <Link
-                        href={`/admin/toko/cabang/${item.id}/edit`}
-                        className="detail-link"
-                      >
-                        Edit
-                      </Link>
+                      <div className="actions">
+                        <Link
+                          href={`/admin/toko/cabang/${item.id}/edit`}
+                          className="detail-link"
+                        >
+                          Edit
+                        </Link>
+
+                        <button
+                          type="button"
+                          className="delete-btn"
+                          onClick={() => hapusCabang(item)}
+                          disabled={processingId === item.id}
+                        >
+                          {processingId === item.id
+                            ? "Menghapus..."
+                            : "Hapus"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -264,10 +329,6 @@ export default function Page() {
         .btn.primary {
           background: #765238;
           color: #fff;
-        }
-
-        .btn.primary:hover {
-          background: #63432f;
         }
 
         .summary-grid {
@@ -361,7 +422,7 @@ export default function Page() {
 
         table {
           width: 100%;
-          min-width: 1050px;
+          min-width: 1100px;
           border-collapse: collapse;
         }
 
@@ -390,6 +451,44 @@ export default function Page() {
           background: #fcfaf8;
         }
 
+        .actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          white-space: nowrap;
+        }
+
+        .maps-link,
+        .detail-link {
+          color: #6f4f39;
+          font-weight: 700;
+          text-decoration: none;
+        }
+
+        .maps-link:hover,
+        .detail-link:hover {
+          text-decoration: underline;
+        }
+
+        .delete-btn {
+          border: 0;
+          background: transparent;
+          color: #a13a31;
+          font-weight: 700;
+          font-size: 14px;
+          padding: 0;
+          cursor: pointer;
+        }
+
+        .delete-btn:hover {
+          text-decoration: underline;
+        }
+
+        .delete-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         .status {
           display: inline-block;
           padding: 5px 9px;
@@ -407,18 +506,6 @@ export default function Page() {
         .status.nonaktif {
           background: #fde9e7;
           color: #a13a31;
-        }
-
-        .maps-link,
-        .detail-link {
-          color: #6f4f39;
-          font-weight: 700;
-          text-decoration: none;
-        }
-
-        .maps-link:hover,
-        .detail-link:hover {
-          text-decoration: underline;
         }
 
         .empty-state {
