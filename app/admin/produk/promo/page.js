@@ -130,7 +130,236 @@ export default function PromoProdukPage() {
   return (
     <main className="admin-content">
 
-      <div className="admin-page-header">
+      <style jsx>{`
+        .promo-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+
+        .promo-header h1 {
+          margin: 0 0 6px;
+        }
+
+        .promo-header p {
+          margin: 0;
+        }
+
+        .promo-card {
+          overflow: hidden;
+        }
+
+        .promo-toolbar {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 220px;
+          gap: 14px;
+          margin-bottom: 22px;
+        }
+
+        .promo-search {
+          position: relative;
+        }
+
+        .promo-search input {
+          width: 100%;
+          height: 44px;
+          box-sizing: border-box;
+          padding: 0 42px 0 14px;
+          border: 1px solid #d7d0c7;
+          border-radius: 8px;
+          background: #fff;
+          font-size: 14px;
+          outline: none;
+        }
+
+        .promo-search input:focus {
+          border-color: #9a7657;
+        }
+
+        .promo-search-clear {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 28px;
+          height: 28px;
+          border: none;
+          background: transparent;
+          color: #777;
+          cursor: pointer;
+          font-size: 20px;
+          line-height: 28px;
+          padding: 0;
+        }
+
+        .promo-filter {
+          width: 100%;
+          height: 44px;
+          box-sizing: border-box;
+          padding: 0 12px;
+          border: 1px solid #d7d0c7;
+          border-radius: 8px;
+          background: #fff;
+          font-size: 14px;
+          cursor: pointer;
+        }
+
+        .promo-table-wrapper {
+          width: 100%;
+          overflow-x: auto;
+          border: 1px solid #e2ddd6;
+          border-radius: 10px;
+        }
+
+        .promo-table {
+          width: 100%;
+          min-width: 900px;
+          border-collapse: collapse;
+          table-layout: fixed;
+        }
+
+        .promo-table th {
+          padding: 13px 14px;
+          background: #f7f3ed;
+          border-bottom: 1px solid #ddd6ce;
+          text-align: left;
+          font-size: 13px;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
+        .promo-table td {
+          padding: 14px;
+          border-bottom: 1px solid #eee9e3;
+          vertical-align: middle;
+          font-size: 14px;
+          line-height: 1.45;
+          word-break: break-word;
+        }
+
+        .promo-table tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .promo-table tbody tr:hover {
+          background: #fcfaf7;
+        }
+
+        .col-product {
+          width: 21%;
+        }
+
+        .col-sku {
+          width: 13%;
+        }
+
+        .col-category {
+          width: 14%;
+        }
+
+        .col-brand {
+          width: 13%;
+        }
+
+        .col-label {
+          width: 20%;
+        }
+
+        .col-status {
+          width: 8%;
+        }
+
+        .col-action {
+          width: 11%;
+        }
+
+        .product-name {
+          font-weight: 700;
+          color: #3f2b20;
+        }
+
+        .sku-text {
+          color: #555;
+          font-size: 13px;
+        }
+
+        .muted-text {
+          color: #888;
+        }
+
+        .label-list {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .label-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 27px;
+          padding: 4px 9px;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 1;
+          white-space: nowrap;
+        }
+
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 68px;
+          min-height: 28px;
+          padding: 4px 9px;
+          box-sizing: border-box;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .status-active {
+          background: #edf7ee;
+          color: #35723b;
+        }
+
+        .status-inactive {
+          background: #f3eeee;
+          color: #777;
+        }
+
+        .promo-action-button {
+          width: 100%;
+          min-height: 38px;
+          padding: 8px 10px;
+          white-space: nowrap;
+        }
+
+        .promo-empty {
+          padding: 26px 10px;
+          text-align: center;
+          color: #777;
+        }
+
+        @media (max-width: 800px) {
+          .promo-header {
+            flex-direction: column;
+          }
+
+          .promo-toolbar {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      {/* HEADER */}
+
+      <div className="promo-header">
 
         <div>
           <h1>Promo / Baru / Terlaris</h1>
@@ -143,6 +372,7 @@ export default function PromoProdukPage() {
         </div>
 
         <button
+          type="button"
           className="admin-secondary-button"
           onClick={() =>
             router.push("/admin/produk")
@@ -153,7 +383,9 @@ export default function PromoProdukPage() {
 
       </div>
 
-      <div className="admin-card">
+      {/* CONTENT */}
+
+      <div className="admin-card promo-card">
 
         <div className="admin-section-header">
 
@@ -174,21 +406,11 @@ export default function PromoProdukPage() {
           </div>
         )}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "minmax(220px, 1fr) minmax(180px, 240px)",
-            gap: "12px",
-            marginBottom: "20px",
-          }}
-        >
+        {/* SEARCH + FILTER */}
 
-          <div
-            style={{
-              position: "relative",
-            }}
-          >
+        <div className="promo-toolbar">
+
+          <div className="promo-search">
 
             <input
               type="search"
@@ -197,29 +419,15 @@ export default function PromoProdukPage() {
               onChange={(e) =>
                 setSearch(e.target.value)
               }
-              style={{
-                width: "100%",
-                paddingRight: "42px",
-              }}
+              autoComplete="off"
             />
 
             {search && (
               <button
                 type="button"
+                className="promo-search-clear"
                 onClick={() => setSearch("")}
                 aria-label="Hapus pencarian"
-                style={{
-                  position: "absolute",
-                  right: "8px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: "20px",
-                  color: "#777",
-                  lineHeight: "1",
-                }}
               >
                 ×
               </button>
@@ -228,6 +436,7 @@ export default function PromoProdukPage() {
           </div>
 
           <select
+            className="promo-filter"
             value={filterLabel}
             onChange={(e) =>
               setFilterLabel(e.target.value)
@@ -245,31 +454,51 @@ export default function PromoProdukPage() {
 
         </div>
 
+        {/* TABLE */}
+
         {loading ? (
-          <p>Memuat produk...</p>
+          <div className="promo-empty">
+            Memuat produk...
+          </div>
         ) : filteredProduk.length === 0 ? (
-          <p>
+          <div className="promo-empty">
             Belum ada produk yang sesuai
             dengan pencarian atau filter.
-          </p>
+          </div>
         ) : (
-          <div
-            style={{
-              overflowX: "auto",
-            }}
-          >
+          <div className="promo-table-wrapper">
 
-            <table className="admin-table">
+            <table className="promo-table">
 
               <thead>
                 <tr>
-                  <th>Produk</th>
-                  <th>SKU</th>
-                  <th>Kategori</th>
-                  <th>Brand</th>
-                  <th>Label</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
+                  <th className="col-product">
+                    Produk
+                  </th>
+
+                  <th className="col-sku">
+                    SKU
+                  </th>
+
+                  <th className="col-category">
+                    Kategori
+                  </th>
+
+                  <th className="col-brand">
+                    Brand
+                  </th>
+
+                  <th className="col-label">
+                    Label
+                  </th>
+
+                  <th className="col-status">
+                    Status
+                  </th>
+
+                  <th className="col-action">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
 
@@ -284,83 +513,84 @@ export default function PromoProdukPage() {
                     <tr key={item.id}>
 
                       <td>
-                        <strong>
+                        <div className="product-name">
                           {item.nama}
-                        </strong>
+                        </div>
                       </td>
 
                       <td>
-                        {item.sku || "-"}
+                        <span className="sku-text">
+                          {item.sku || "-"}
+                        </span>
                       </td>
 
                       <td>
-                        {item.kategori?.nama || "-"}
+                        {item.kategori?.nama || (
+                          <span className="muted-text">
+                            -
+                          </span>
+                        )}
                       </td>
 
                       <td>
-                        {item.brand?.nama || "-"}
+                        {item.brand?.nama || (
+                          <span className="muted-text">
+                            -
+                          </span>
+                        )}
                       </td>
 
                       <td>
 
                         {itemLabels.length === 0 ? (
-                          <span
-                            style={{
-                              color: "#888",
-                            }}
-                          >
+                          <span className="muted-text">
                             Belum ada label
                           </span>
                         ) : (
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "6px",
-                              flexWrap: "wrap",
-                            }}
-                          >
+                          <div className="label-list">
+
                             {itemLabels.map(
                               (label) => (
                                 <span
                                   key={label.id}
+                                  className="label-badge"
                                   style={{
-                                    display:
-                                      "inline-flex",
-                                    alignItems:
-                                      "center",
-                                    padding:
-                                      "5px 9px",
-                                    borderRadius:
-                                      "999px",
                                     background:
                                       label.warna ||
                                       "#eee",
-                                    color: "#333",
-                                    fontSize:
-                                      "12px",
-                                    fontWeight:
-                                      "600",
                                   }}
                                 >
                                   {label.nama}
                                 </span>
                               )
                             )}
+
                           </div>
                         )}
 
                       </td>
 
                       <td>
-                        {item.aktif
-                          ? "Aktif"
-                          : "Nonaktif"}
+
+                        <span
+                          className={`status-badge ${
+                            item.aktif
+                              ? "status-active"
+                              : "status-inactive"
+                          }`}
+                        >
+                          {item.aktif
+                            ? "Aktif"
+                            : "Nonaktif"}
+                        </span>
+
                       </td>
 
                       <td>
 
                         <button
-                          className="admin-secondary-button"
+                          type="button"
+                          className="admin-secondary-button promo-action-button"
                           onClick={() =>
                             router.push(
                               `/admin/produk/promo/${item.id}`
