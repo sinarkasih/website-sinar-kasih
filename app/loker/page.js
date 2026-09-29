@@ -65,25 +65,49 @@ const statusInfo = {
 function formatTanggal(tanggal) {
   if (!tanggal) return null;
 
-  const date = new Date(`${tanggal}T00:00:00`);
+  const date = new Date(
+    `${tanggal}T00:00:00`
+  );
 
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+  if (Number.isNaN(date.getTime())) {
+    return tanggal;
+  }
+
+  return new Intl.DateTimeFormat(
+    "id-ID",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  ).format(date);
 }
 
 function getTahapIndex(tahap) {
-  const index = tahapSeleksi.findIndex(
-    (item) => item.key === tahap
-  );
+  const index =
+    tahapSeleksi.findIndex(
+      (item) =>
+        item.key === tahap
+    );
 
-  return index === -1 ? 0 : index;
+  return index === -1
+    ? 0
+    : index;
 }
 
 function getStatusInfo(status) {
-  return statusInfo[status] || statusInfo.draft;
+  return (
+    statusInfo[status] ||
+    statusInfo.draft
+  );
+}
+
+function isVideoUrl(url) {
+  if (!url) return false;
+
+  return /\.(mp4|webm)(\?.*)?$/i.test(
+    String(url)
+  );
 }
 
 function JobBriefIcon() {
@@ -98,9 +122,18 @@ function JobBriefIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <rect
+        x="3"
+        y="7"
+        width="18"
+        height="13"
+        rx="2"
+      />
+
       <path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" />
+
       <path d="M3 12h18" />
+
       <path d="M10 12v2h4v-2" />
     </svg>
   );
@@ -119,7 +152,11 @@ function LocationIcon() {
       strokeLinejoin="round"
     >
       <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-      <circle cx="12" cy="10" r="2.5" />
+      <circle
+        cx="12"
+        cy="10"
+        r="2.5"
+      />
     </svg>
   );
 }
@@ -136,7 +173,14 @@ function CalendarIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="17"
+        rx="2"
+      />
+
       <path d="M16 2v4" />
       <path d="M8 2v4" />
       <path d="M3 9h18" />
@@ -191,7 +235,14 @@ function LockIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="5" y="10" width="14" height="10" rx="2" />
+      <rect
+        x="5"
+        y="10"
+        width="14"
+        height="10"
+        rx="2"
+      />
+
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
     </svg>
   );
@@ -205,7 +256,6 @@ function NoFeeIcon() {
       height="28"
       fill="none"
     >
-      {/* Uang kertas */}
       <rect
         x="2.5"
         y="7"
@@ -216,7 +266,6 @@ function NoFeeIcon() {
         strokeWidth="1.6"
       />
 
-      {/* Simbol Rp */}
       <circle
         cx="13"
         cy="14.5"
@@ -232,7 +281,6 @@ function NoFeeIcon() {
         strokeLinecap="round"
       />
 
-      {/* Tanda silang */}
       <circle
         cx="23.5"
         cy="22.5"
@@ -253,269 +301,374 @@ function NoFeeIcon() {
 }
 
 export default async function LokerPage() {
-  const supabase = getSupabase();
+  const supabase =
+    getSupabase();
 
-  const { data: lowongan } = await supabase
+  const {
+    data: lowongan,
+  } = await supabase
     .from("lowongan_kerja")
     .select(
       "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
     )
     .eq("aktif", true)
-    .order("urutan", { ascending: true })
-    .order("id", { ascending: false });
+    .order("urutan", {
+      ascending: true,
+    })
+    .order("id", {
+      ascending: false,
+    });
 
-  const daftarLowongan = lowongan || [];
+  const daftarLowongan =
+    lowongan || [];
 
   return (
     <>
       <main className="lokerPage">
         <div className="lokerContainer">
-
           <header className="lokerHeader">
             <div className="lokerHeaderIcon">
               <JobBriefIcon />
             </div>
 
-            <h1>Lowongan Kerja</h1>
+            <h1>
+              Lowongan Kerja
+            </h1>
 
             <p>
-              Bergabung bersama Toko Listrik Sinar Kasih.
-              Lihat posisi yang tersedia dan ikuti proses
-              seleksi secara resmi melalui website kami.
+              Bergabung bersama Toko
+              Listrik Sinar Kasih. Lihat
+              posisi yang tersedia dan
+              ikuti proses seleksi secara
+              resmi melalui website kami.
             </p>
           </header>
 
-          {daftarLowongan.length === 0 ? (
+          {daftarLowongan.length ===
+          0 ? (
             <section className="emptyBox">
               <div className="emptyIcon">
                 <JobBriefIcon />
               </div>
 
-              <h2>Belum Ada Lowongan</h2>
+              <h2>
+                Belum Ada Lowongan
+              </h2>
 
               <p>
-                Saat ini belum ada lowongan kerja yang sedang
-                dibuka. Silakan kunjungi kembali halaman ini
-                untuk melihat kesempatan kerja terbaru dari
-                Toko Listrik Sinar Kasih.
+                Saat ini belum ada
+                lowongan kerja yang
+                sedang dibuka. Silakan
+                kunjungi kembali halaman
+                ini untuk melihat
+                kesempatan kerja terbaru
+                dari Toko Listrik Sinar
+                Kasih.
               </p>
             </section>
           ) : (
             <section className="jobList">
-              {daftarLowongan.map((job) => {
-                const currentIndex = getTahapIndex(
-                  job.tahap_seleksi
-                );
+              {daftarLowongan.map(
+                (job) => {
+                  const currentIndex =
+                    getTahapIndex(
+                      job.tahap_seleksi
+                    );
 
-                const currentStatus = getStatusInfo(
-                  job.status
-                );
+                  const currentStatus =
+                    getStatusInfo(
+                      job.status
+                    );
 
-                const tanggalBuka = formatTanggal(
-                  job.tanggal_buka
-                );
+                  const tanggalBuka =
+                    formatTanggal(
+                      job.tanggal_buka
+                    );
 
-                const tanggalTutup = formatTanggal(
-                  job.tanggal_tutup
-                );
+                  const tanggalTutup =
+                    formatTanggal(
+                      job.tanggal_tutup
+                    );
 
-                return (
-                  <article
-                    key={job.id}
-                    className="jobCard"
-                  >
-                    {job.gambar_url ? (
-                      <div className="jobImageWrap">
-                        <img
-                          src={job.gambar_url}
-                          alt={`Lowongan ${job.posisi}`}
-                          className="jobImage"
-                        />
-                      </div>
-                    ) : (
-                      <div className="jobImagePlaceholder">
-                        <JobBriefIcon />
-                        <span>Lowongan Kerja</span>
-                      </div>
-                    )}
+                  const video =
+                    isVideoUrl(
+                      job.gambar_url
+                    );
 
-                    <div className="jobBody">
-
-                      <div className="jobTop">
-                        <span
-                          className={`jobStatus ${currentStatus.className}`}
-                        >
-                          {currentStatus.label}
-                        </span>
-                      </div>
-
-                      <h2>{job.posisi}</h2>
-
-                      <div className="jobMeta">
-                        {job.lokasi && (
-                          <div className="jobMetaItem">
-                            <LocationIcon />
-                            <span>{job.lokasi}</span>
+                  return (
+                    <article
+                      key={job.id}
+                      className="jobCard"
+                    >
+                      {job.gambar_url ? (
+                        video ? (
+                          <div className="jobVideoWrap">
+                            <video
+                              src={
+                                job.gambar_url
+                              }
+                              className="jobVideo"
+                              autoPlay
+                              muted
+                              loop
+                              playsInline
+                              controls
+                              preload="metadata"
+                            />
                           </div>
-                        )}
-
-                        {(tanggalBuka || tanggalTutup) && (
-                          <div className="jobMetaItem">
-                            <CalendarIcon />
-                            <span>
-                              {tanggalBuka &&
-                                `Buka ${tanggalBuka}`}
-                              {tanggalBuka &&
-                                tanggalTutup &&
-                                " • "}
-                              {tanggalTutup &&
-                                `Tutup ${tanggalTutup}`}
-                            </span>
+                        ) : (
+                          <div className="jobImageWrap">
+                            <img
+                              src={
+                                job.gambar_url
+                              }
+                              alt={`Lowongan ${job.posisi}`}
+                              className="jobImage"
+                            />
                           </div>
-                        )}
-                      </div>
+                        )
+                      ) : (
+                        <div className="jobImagePlaceholder">
+                          <JobBriefIcon />
 
-                      {job.deskripsi && (
-                        <div className="jobSection">
-                          <h3>Tentang Posisi</h3>
-
-                          <div className="jobText">
-                            {job.deskripsi}
-                          </div>
+                          <span>
+                            Lowongan Kerja
+                          </span>
                         </div>
                       )}
 
-                      {job.persyaratan && (
-                        <div className="jobSection">
-                          <h3>Persyaratan</h3>
-
-                          <div className="jobText">
-                            {job.persyaratan}
-                          </div>
+                      <div className="jobBody">
+                        <div className="jobTop">
+                          <span
+                            className={`jobStatus ${currentStatus.className}`}
+                          >
+                            {
+                              currentStatus.label
+                            }
+                          </span>
                         </div>
-                      )}
 
-                      <div className="processSection">
-                        <h3>Proses Seleksi</h3>
+                        <h2>
+                          {job.posisi}
+                        </h2>
 
-                        <p className="processDescription">
-                          Ikuti tahapan seleksi berikut sesuai
-                          informasi dari tim Sinar Kasih.
-                        </p>
+                        <div className="jobMeta">
+                          {job.lokasi && (
+                            <div className="jobMetaItem">
+                              <LocationIcon />
 
-                        <div className="timeline">
-                          {tahapSeleksi.map(
-                            (tahap, index) => {
-                              const selesai =
-                                index < currentIndex;
+                              <span>
+                                {
+                                  job.lokasi
+                                }
+                              </span>
+                            </div>
+                          )}
 
-                              const sedangBerjalan =
-                                index === currentIndex;
+                          {(tanggalBuka ||
+                            tanggalTutup) && (
+                            <div className="jobMetaItem">
+                              <CalendarIcon />
 
-                              return (
-                                <div
-                                  key={tahap.key}
-                                  className={`timelineItem ${
-                                    selesai
-                                      ? "timelineDone"
-                                      : ""
-                                  } ${
-                                    sedangBerjalan
-                                      ? "timelineCurrent"
-                                      : ""
-                                  }`}
-                                >
-                                  {index !==
-                                    tahapSeleksi.length - 1 && (
-                                    <div className="timelineLine" />
-                                  )}
+                              <span>
+                                {tanggalBuka &&
+                                  `Buka ${tanggalBuka}`}
 
-                                  <div className="timelineDot">
-                                    {selesai ? (
-                                      <CheckIcon />
-                                    ) : (
-                                      tahap.nomor
+                                {tanggalBuka &&
+                                  tanggalTutup &&
+                                  " • "}
+
+                                {tanggalTutup &&
+                                  `Tutup ${tanggalTutup}`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {job.deskripsi && (
+                          <div className="jobSection">
+                            <h3>
+                              Tentang Posisi
+                            </h3>
+
+                            <div className="jobText">
+                              {
+                                job.deskripsi
+                              }
+                            </div>
+                          </div>
+                        )}
+
+                        {job.persyaratan && (
+                          <div className="jobSection">
+                            <h3>
+                              Persyaratan
+                            </h3>
+
+                            <div className="jobText">
+                              {
+                                job.persyaratan
+                              }
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="processSection">
+                          <h3>
+                            Proses Seleksi
+                          </h3>
+
+                          <p className="processDescription">
+                            Ikuti tahapan
+                            seleksi berikut
+                            sesuai informasi
+                            dari tim Sinar
+                            Kasih.
+                          </p>
+
+                          <div className="timeline">
+                            {tahapSeleksi.map(
+                              (
+                                tahap,
+                                index
+                              ) => {
+                                const selesai =
+                                  index <
+                                  currentIndex;
+
+                                const sedangBerjalan =
+                                  index ===
+                                  currentIndex;
+
+                                return (
+                                  <div
+                                    key={
+                                      tahap.key
+                                    }
+                                    className={`timelineItem ${
+                                      selesai
+                                        ? "timelineDone"
+                                        : ""
+                                    } ${
+                                      sedangBerjalan
+                                        ? "timelineCurrent"
+                                        : ""
+                                    }`}
+                                  >
+                                    {index !==
+                                      tahapSeleksi.length -
+                                        1 && (
+                                      <div className="timelineLine" />
                                     )}
-                                  </div>
 
-                                  <div className="timelineContent">
-                                    <span className="timelineIcon">
-                                      {tahap.icon}
-                                    </span>
-
-                                    <div>
-                                      <strong>
-                                        {tahap.judul}
-                                      </strong>
-
-                                      {sedangBerjalan && (
-                                        <span className="currentLabel">
-                                          Sedang Berlangsung
-                                        </span>
-                                      )}
-
-                                      {selesai && (
-                                        <span className="doneLabel">
-                                          Selesai
-                                        </span>
+                                    <div className="timelineDot">
+                                      {selesai ? (
+                                        <CheckIcon />
+                                      ) : (
+                                        tahap.nomor
                                       )}
                                     </div>
+
+                                    <div className="timelineContent">
+                                      <span className="timelineIcon">
+                                        {
+                                          tahap.icon
+                                        }
+                                      </span>
+
+                                      <div>
+                                        <strong>
+                                          {
+                                            tahap.judul
+                                          }
+                                        </strong>
+
+                                        {sedangBerjalan && (
+                                          <span className="currentLabel">
+                                            Sedang Berlangsung
+                                          </span>
+                                        )}
+
+                                        {selesai && (
+                                          <span className="doneLabel">
+                                            Selesai
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            }
+                                );
+                              }
+                            )}
+                          </div>
+                        </div>
+
+                        {job.pengumuman && (
+                          <div className="announcementBox">
+                            <div className="announcementTitle">
+                              <span>
+                                📢
+                              </span>
+
+                              <strong>
+                                Pengumuman
+                              </strong>
+                            </div>
+
+                            <p>
+                              {
+                                job.pengumuman
+                              }
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="jobAction">
+                          {job.status ===
+                            "dibuka" &&
+                          job.google_form_url ? (
+                            <a
+                              href={
+                                job.google_form_url
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="applyButton"
+                            >
+                              <span>
+                                Isi Formulir
+                                Lamaran
+                              </span>
+
+                              <ArrowIcon />
+                            </a>
+                          ) : job.status ===
+                            "dibuka" ? (
+                            <div className="waitingNotice">
+                              <LockIcon />
+
+                              <span>
+                                Formulir lamaran
+                                belum tersedia.
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="closedNotice">
+                              <LockIcon />
+
+                              <span>
+                                Pendaftaran untuk
+                                posisi ini sudah
+                                tidak dibuka.
+                              </span>
+                            </div>
                           )}
                         </div>
                       </div>
-
-                      {job.pengumuman && (
-                        <div className="announcementBox">
-                          <div className="announcementTitle">
-                            <span>📢</span>
-                            <strong>Pengumuman</strong>
-                          </div>
-
-                          <p>{job.pengumuman}</p>
-                        </div>
-                      )}
-
-                      <div className="jobAction">
-                        {job.status === "dibuka" &&
-                        job.google_form_url ? (
-                          <a
-                            href={job.google_form_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="applyButton"
-                          >
-                            <span>
-                              Isi Formulir Lamaran
-                            </span>
-
-                            <ArrowIcon />
-                          </a>
-                        ) : job.status === "dibuka" ? (
-                          <div className="waitingNotice">
-                            <LockIcon />
-                            <span>
-                              Formulir lamaran belum tersedia.
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="closedNotice">
-                            <LockIcon />
-                            <span>
-                              Pendaftaran untuk posisi ini
-                              sudah tidak dibuka.
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                    </div>
-                  </article>
-                );
-              })}
+                    </article>
+                  );
+                }
+              )}
             </section>
           )}
 
@@ -524,7 +677,8 @@ export default async function LokerPage() {
               href="/lainnya"
               className="bottomBackButton"
             >
-              ← Kembali ke Informasi &amp; Layanan
+              ← Kembali ke
+              Informasi &amp; Layanan
             </a>
           </div>
 
@@ -534,17 +688,21 @@ export default async function LokerPage() {
             </div>
 
             <div>
-              <h3>Informasi Penting</h3>
+              <h3>
+                Informasi Penting
+              </h3>
 
               <p>
-                Toko Listrik Sinar Kasih tidak memungut biaya
-                dalam proses rekrutmen. Pastikan informasi
-                lowongan dan formulir yang Anda gunakan berasal
-                dari website resmi Sinar Kasih.
+                Toko Listrik Sinar Kasih
+                tidak memungut biaya dalam
+                proses rekrutmen. Pastikan
+                informasi lowongan dan
+                formulir yang Anda gunakan
+                berasal dari website resmi
+                Sinar Kasih.
               </p>
             </div>
           </section>
-
         </div>
       </main>
 
@@ -605,7 +763,9 @@ export default async function LokerPage() {
           background: #ffffff;
           border: 1px solid #eadfd5;
           border-radius: 20px;
-          box-shadow: 0 8px 24px rgba(75, 36, 24, 0.06);
+          box-shadow:
+            0 8px 24px
+            rgba(75, 36, 24, 0.06);
         }
 
         .emptyIcon {
@@ -645,12 +805,15 @@ export default async function LokerPage() {
           border: 1px solid #eadfd5;
           border-radius: 22px;
           background: #ffffff;
-          box-shadow: 0 10px 28px rgba(75, 36, 24, 0.07);
+          box-shadow:
+            0 10px 28px
+            rgba(75, 36, 24, 0.07);
         }
 
-        .jobImageWrap {
+        .jobImageWrap,
+        .jobVideoWrap {
           width: 100%;
-          max-height: 420px;
+          max-height: 520px;
           overflow: hidden;
           background: #f5eee8;
         }
@@ -658,8 +821,16 @@ export default async function LokerPage() {
         .jobImage {
           display: block;
           width: 100%;
-          max-height: 420px;
+          max-height: 520px;
           object-fit: cover;
+        }
+
+        .jobVideo {
+          display: block;
+          width: 100%;
+          max-height: 520px;
+          object-fit: cover;
+          background: #111;
         }
 
         .jobImagePlaceholder {
@@ -669,11 +840,12 @@ export default async function LokerPage() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          background: linear-gradient(
-            135deg,
-            #f5eee8,
-            #fff8f1
-          );
+          background:
+            linear-gradient(
+              135deg,
+              #f5eee8,
+              #fff8f1
+            );
           color: #8a6d5d;
         }
 
@@ -756,7 +928,8 @@ export default async function LokerPage() {
         .jobSection {
           padding-top: 23px;
           margin-top: 23px;
-          border-top: 1px solid #eee5de;
+          border-top:
+            1px solid #eee5de;
         }
 
         .jobSection h3,
@@ -776,7 +949,8 @@ export default async function LokerPage() {
         .processSection {
           padding-top: 25px;
           margin-top: 28px;
-          border-top: 1px solid #eee5de;
+          border-top:
+            1px solid #eee5de;
         }
 
         .processDescription {
@@ -836,7 +1010,8 @@ export default async function LokerPage() {
           border-color: #3575c5;
           background: #e5f0ff;
           color: #3575c5;
-          box-shadow: 0 0 0 5px #f2f7fd;
+          box-shadow:
+            0 0 0 5px #f2f7fd;
         }
 
         .timelineContent {
@@ -900,7 +1075,8 @@ export default async function LokerPage() {
         .jobAction {
           margin-top: 28px;
           padding-top: 25px;
-          border-top: 1px solid #eee5de;
+          border-top:
+            1px solid #eee5de;
         }
 
         .applyButton {
@@ -916,7 +1092,9 @@ export default async function LokerPage() {
           text-decoration: none;
           font-size: 15px;
           font-weight: 700;
-          box-shadow: 0 8px 18px rgba(32, 169, 91, 0.18);
+          box-shadow:
+            0 8px 18px
+            rgba(32, 169, 91, 0.18);
         }
 
         .waitingNotice,
@@ -965,7 +1143,8 @@ export default async function LokerPage() {
         .bottomBackButton:hover {
           background: #f8f1eb;
           border-color: #cdb9aa;
-          transform: translateY(-1px);
+          transform:
+            translateY(-1px);
         }
 
         .importantNotice {
@@ -1007,8 +1186,10 @@ export default async function LokerPage() {
 
         @media (max-width: 760px) {
           .lokerPage {
-            min-height: calc(100vh - 60px);
-            padding: 34px 16px 55px;
+            min-height:
+              calc(100vh - 60px);
+            padding:
+              34px 16px 55px;
           }
 
           .lokerHeader {
@@ -1031,7 +1212,8 @@ export default async function LokerPage() {
           }
 
           .emptyBox {
-            padding: 38px 22px;
+            padding:
+              38px 22px;
             border-radius: 18px;
           }
 
@@ -1053,7 +1235,8 @@ export default async function LokerPage() {
           }
 
           .jobBody {
-            padding: 22px 20px;
+            padding:
+              22px 20px;
           }
 
           .jobBody > h2 {
@@ -1101,6 +1284,16 @@ export default async function LokerPage() {
 
           .importantNotice p {
             font-size: 12px;
+          }
+
+          .jobVideoWrap,
+          .jobImageWrap {
+            max-height: 360px;
+          }
+
+          .jobVideo,
+          .jobImage {
+            max-height: 360px;
           }
         }
       `}</style>
