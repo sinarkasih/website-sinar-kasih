@@ -13,10 +13,18 @@ export default function TrashProdukPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
 
   async function loadProduk() {
     setLoading(true);
     setMessage("");
+
+    if (!supabase) {
+      setMessage("Koneksi database belum tersedia.");
+      setMessageType("error");
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("produk")
@@ -42,6 +50,7 @@ export default function TrashProdukPage() {
         "Gagal mengambil produk Trash: " +
           error.message
       );
+      setMessageType("error");
       setProduk([]);
     } else {
       setProduk(data || []);
@@ -78,7 +87,8 @@ export default function TrashProdukPage() {
 
   async function restoreProduk(item) {
     const yakin = window.confirm(
-      `Restore produk "${item.nama}"?`
+      `Restore produk "${item.nama}"?\n\n` +
+        `Produk akan dikembalikan ke daftar produk Aktif.`
     );
 
     if (!yakin) return;
@@ -90,6 +100,7 @@ export default function TrashProdukPage() {
       .from("produk")
       .update({
         deleted_at: null,
+        aktif: true,
       })
       .eq("id", item.id)
       .not("deleted_at", "is", null);
@@ -99,9 +110,248 @@ export default function TrashProdukPage() {
         "Gagal melakukan restore: " +
           error.message
       );
+      setMessageType("error");
       setSavingId(null);
       return;
     }
+
+    setMessage(
+      `Produk "${item.nama}" berhasil dipulihkan dan kembali Aktif.`
+    );
+    setMessageType("success");
+
+    await loadProduk();
+    setSavingId(null);
+  }
+
+  function getStoragePathFromUrl(value) {
+    if (!value) return null;
+
+    try {
+      /*
+       * Format URL Supabase Storage biasanya:
+       * /storage/v1/object/public/produk/NAMA-FILE
+       */
+
+      if (value.startsWith("http://") || value.startsWith("https://")) {
+        const url = new URL(value);
+
+        const marker =
+          "/storage/v1/object/public/produk/";
+
+        const index =
+          url.pathname.indexOf(marker);
+
+        if (index !== -1) {
+          const path =
+            url.pathname.substring(
+              index + marker.length
+            );
+
+          return decodeURIComponent(path);
+        }
+
+        return null;
+      }
+
+      /*
+       * Jika suatu saat kolom url menyimpan
+       * path relatif secara langsung.
+       */
+      const relativeMarker = "produk/";
+
+      if (
+        value.startsWith(relativeMarker)
+      ) {
+        return value.substring(
+          relativeMarker.length
+        );
+      }
+
+      return value.replace(/^\/+/, "");
+    } catch (error) {
+      console.error(
+        "Gagal membaca path Storage:",
+        error
+      );
+
+      return null;
+    }
+  }
+
+  async function hapusPermanen(item) {
+    const konfirmasiPertama =
+      window.confirm(
+        `HAPUS PERMANEN produk "${item.nama}"?\n\n` +
+          `Tindakan ini tidak dapat dibatalkan.`
+      );
+
+    if (!konfirmasiPertama) return;
+
+    const konfirmasiKedua =
+      window.confirm(
+        `PERINGATAN TERAKHIR!\n\n` +
+          `Produk "${item.nama}" akan dihapus permanen ` +
+          `beserta data harga, variasi, label, dan gambar database.\n\n` +
+          `Foto produk di Storage juga akan dihapus jika tersedia.\n\n` +
+          `Lanjutkan?`
+      );
+
+    if (!konfirmasiKedua) return;
+
+    setSavingId(item.id);
+    setMessage("");
+
+    /*
+     * LANGKAH 1
+     * Ambil semua gambar terlebih dahulu.
+     *
+     * Kita simpan path Storage sebelum record
+     * produk_gambar dihapus oleh RPC.
+     */
+    const {
+      data: gambar,
+      error: gambarError,
+    } = await supabase
+      .from("produk_gambar")
+      .select("id, url")
+      .eq("produk_id", item.id);
+
+    if (gambarError) {
+      setMessage(
+        "Gagal membaca gambar produk: " +
+          gambarError.message
+      );
+      setMessageType("error");
+      setSavingId(null);
+      return;
+    }
+
+    /*
+     * LANGKAH 2
+     * Cek apakah produk pernah digunakan
+     * dalam pesanan.
+     *
+     * Produk yang pernah dipesan tidak boleh
+     * dihapus permanen.
+     */
+    const {
+      data: pernahDipesan,
+      error: cekError,
+    } = await supabase.rpc(
+      "cek_produk_pernah_dipesan",
+      {
+        p_produk_id: item.id,
+      }
+    );
+
+    if (cekError) {
+      setMessage(
+        "Gagal memeriksa riwayat pesanan: " +
+          cekError.message
+      );
+      setMessageType("error");
+      setSavingId(null);
+      return;
+    }
+
+    if (pernahDipesan === true) {
+      setMessage(
+        `Produk "${item.nama}" tidak dapat dihapus permanen karena memiliki riwayat pesanan. Produk tetap berada di Trash.`
+      );
+      setMessageType("error");
+      setSavingId(null);
+      return;
+    }
+
+    /*
+     * LANGKAH 3
+     * Hapus record produk melalui RPC yang
+     * sudah kita buat di database.
+     *
+     * RPC juga memeriksa:
+     * - Admin Utama
+     * - produk harus berada di Trash
+     * - tidak boleh punya riwayat pesanan
+     */
+    const {
+      error: deleteError,
+    } = await supabase.rpc(
+      "hapus_produk_permanen",
+      {
+        p_produk_id: item.id,
+      }
+    );
+
+    if (deleteError) {
+      console.error(
+        "Gagal hapus permanen:",
+        deleteError
+      );
+
+      let pesan =
+        deleteError.message ||
+        "Gagal menghapus produk permanen.";
+
+      if (
+        pesan
+          .toLowerCase()
+          .includes("riwayat pesanan")
+      ) {
+        pesan =
+          "Produk tidak dapat dihapus permanen karena memiliki riwayat pesanan.";
+      }
+
+      setMessage(pesan);
+      setMessageType("error");
+      setSavingId(null);
+      return;
+    }
+
+    /*
+     * LANGKAH 4
+     * Record database sudah berhasil dihapus.
+     *
+     * Sekarang hapus file fisik dari Storage.
+     *
+     * Supabase Storage harus dihapus melalui
+     * Storage API, bukan DELETE SQL.
+     */
+    const storagePaths = (gambar || [])
+      .map((foto) =>
+        getStoragePathFromUrl(foto.url)
+      )
+      .filter(Boolean);
+
+    let storageWarning = "";
+
+    if (storagePaths.length > 0) {
+      const {
+        error: storageError,
+      } = await supabase.storage
+        .from("produk")
+        .remove(storagePaths);
+
+      if (storageError) {
+        console.error(
+          "Gagal menghapus gambar Storage:",
+          storageError
+        );
+
+        storageWarning =
+          " Data produk sudah terhapus, tetapi ada foto Storage yang gagal dihapus dan perlu dibersihkan.";
+      }
+    }
+
+    setMessage(
+      `Produk "${item.nama}" berhasil dihapus permanen.${storageWarning}`
+    );
+
+    setMessageType(
+      storageWarning
+        ? "warning"
+        : "success"
+    );
 
     await loadProduk();
     setSavingId(null);
@@ -112,10 +362,13 @@ export default function TrashProdukPage() {
 
     const tanggal = new Date(value);
 
-    return tanggal.toLocaleString("id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    return tanggal.toLocaleString(
+      "id-ID",
+      {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }
+    );
   }
 
   return (
@@ -198,7 +451,7 @@ export default function TrashProdukPage() {
 
         .trash-table {
           width: 100%;
-          min-width: 950px;
+          min-width: 1080px;
           border-collapse: collapse;
           table-layout: fixed;
         }
@@ -231,23 +484,23 @@ export default function TrashProdukPage() {
         }
 
         .col-product {
-          width: 23%;
+          width: 21%;
         }
 
         .col-sku {
-          width: 14%;
+          width: 12%;
         }
 
         .col-category {
-          width: 14%;
-        }
-
-        .col-brand {
           width: 13%;
         }
 
+        .col-brand {
+          width: 12%;
+        }
+
         .col-deleted {
-          width: 17%;
+          width: 15%;
         }
 
         .col-status {
@@ -255,7 +508,7 @@ export default function TrashProdukPage() {
         }
 
         .col-action {
-          width: 11%;
+          width: 19%;
         }
 
         .product-name {
@@ -285,17 +538,58 @@ export default function TrashProdukPage() {
           font-weight: 600;
         }
 
-        .restore-button {
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .restore-button,
+        .delete-button {
           width: 100%;
           min-height: 38px;
           padding: 8px 10px;
           white-space: nowrap;
         }
 
+        .delete-button {
+          border: 1px solid #d7b6b6;
+          border-radius: 8px;
+          background: #fff5f5;
+          color: #9a3f3f;
+          cursor: pointer;
+          font-size: 14px;
+        }
+
+        .delete-button:hover:not(:disabled) {
+          background: #fceaea;
+        }
+
+        .delete-button:disabled,
+        .restore-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .trash-empty {
           padding: 30px 10px;
           text-align: center;
           color: #777;
+        }
+
+        .message-success {
+          background: #edf8ef;
+          color: #2f6b3a;
+        }
+
+        .message-error {
+          background: #fff0f0;
+          color: #8b3838;
+        }
+
+        .message-warning {
+          background: #fff8e8;
+          color: #7a5b1f;
         }
 
         @media (max-width: 800px) {
@@ -317,8 +611,8 @@ export default function TrashProdukPage() {
           <h1>Trash Produk</h1>
 
           <p>
-            Produk yang dihapus sementara dan
-            masih dapat dipulihkan.
+            Produk yang dihapus sementara
+            dan masih dapat dipulihkan.
           </p>
         </div>
 
@@ -353,12 +647,29 @@ export default function TrashProdukPage() {
 
         <div className="trash-info">
           Produk di sini belum dihapus permanen.
-          Gunakan <strong>Restore</strong> untuk
-          mengembalikannya ke daftar produk.
+          <strong> Restore</strong> untuk
+          mengembalikan produk menjadi Aktif.
+          <br />
+          <strong>Hapus Permanen</strong> hanya
+          dapat dilakukan jika produk belum pernah
+          digunakan dalam pesanan.
         </div>
 
         {message && (
-          <div className="admin-message">
+          <div
+            className={`admin-message ${
+              messageType === "success"
+                ? "message-success"
+                : messageType === "error"
+                ? "message-error"
+                : messageType === "warning"
+                ? "message-warning"
+                : ""
+            }`}
+            style={{
+              marginBottom: "20px",
+            }}
+          >
             {message}
           </div>
         )}
@@ -385,6 +696,7 @@ export default function TrashProdukPage() {
                 className="trash-clear"
                 onClick={() => setSearch("")}
                 aria-label="Hapus pencarian"
+                title="Hapus pencarian"
               >
                 ×
               </button>
@@ -445,70 +757,93 @@ export default function TrashProdukPage() {
 
               <tbody>
 
-                {filteredProduk.map((item) => (
+                {filteredProduk.map(
+                  (item) => (
 
-                  <tr key={item.id}>
+                    <tr key={item.id}>
 
-                    <td>
-                      <div className="product-name">
-                        {item.nama}
-                      </div>
-                    </td>
+                      <td>
+                        <div className="product-name">
+                          {item.nama}
+                        </div>
+                      </td>
 
-                    <td>
-                      <span className="sku-text">
-                        {item.sku || "-"}
-                      </span>
-                    </td>
-
-                    <td>
-                      {item.kategori?.nama || (
-                        <span className="muted-text">
-                          -
+                      <td>
+                        <span className="sku-text">
+                          {item.sku || "-"}
                         </span>
-                      )}
-                    </td>
+                      </td>
 
-                    <td>
-                      {item.brand?.nama || (
-                        <span className="muted-text">
-                          -
+                      <td>
+                        {item.kategori?.nama || (
+                          <span className="muted-text">
+                            -
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        {item.brand?.nama || (
+                          <span className="muted-text">
+                            -
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        {formatTanggal(
+                          item.deleted_at
+                        )}
+                      </td>
+
+                      <td>
+                        <span className="trash-badge">
+                          Trash
                         </span>
-                      )}
-                    </td>
+                      </td>
 
-                    <td>
-                      {formatTanggal(
-                        item.deleted_at
-                      )}
-                    </td>
+                      <td>
 
-                    <td>
-                      <span className="trash-badge">
-                        Trash
-                      </span>
-                    </td>
+                        <div className="action-buttons">
 
-                    <td>
-                      <button
-                        type="button"
-                        className="admin-secondary-button restore-button"
-                        onClick={() =>
-                          restoreProduk(item)
-                        }
-                        disabled={
-                          savingId === item.id
-                        }
-                      >
-                        {savingId === item.id
-                          ? "Memulihkan..."
-                          : "Restore"}
-                      </button>
-                    </td>
+                          <button
+                            type="button"
+                            className="admin-secondary-button restore-button"
+                            onClick={() =>
+                              restoreProduk(item)
+                            }
+                            disabled={
+                              savingId === item.id
+                            }
+                          >
+                            {savingId === item.id
+                              ? "Memproses..."
+                              : "Restore"}
+                          </button>
 
-                  </tr>
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() =>
+                              hapusPermanen(item)
+                            }
+                            disabled={
+                              savingId === item.id
+                            }
+                          >
+                            {savingId === item.id
+                              ? "Memproses..."
+                              : "Hapus Permanen"}
+                          </button>
 
-                ))}
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
 
               </tbody>
 
