@@ -1,392 +1,370 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 
 const tahapSeleksi = [
-  {
-    key: "pendaftaran",
-    nomor: "01",
-    judul: "Pendaftaran",
-    icon: "📝",
-  },
-  {
-    key: "seleksi_berkas",
-    nomor: "02",
-    judul: "Seleksi Berkas",
-    icon: "📄",
-  },
-  {
-    key: "psikotest",
-    nomor: "03",
-    judul: "Psikotest",
-    icon: "🧠",
-  },
-  {
-    key: "interview",
-    nomor: "04",
-    judul: "Interview",
-    icon: "💬",
-  },
-  {
-    key: "tes_kerja",
-    nomor: "05",
-    judul: "Tes Kerja",
-    icon: "🛠️",
-  },
-  {
-    key: "pengumuman",
-    nomor: "06",
-    judul: "Pengumuman",
-    icon: "📢",
-  },
+  { value: "pendaftaran", label: "Pendaftaran" },
+  { value: "seleksi_berkas", label: "Seleksi Berkas" },
+  { value: "psikotest", label: "Psikotest" },
+  { value: "interview", label: "Interview" },
+  { value: "tes_kerja", label: "Tes Kerja" },
+  { value: "pengumuman", label: "Pengumuman" },
 ];
 
 const statusOptions = [
-  {
-    value: "draft",
-    label: "Belum Dipublikasikan",
-  },
-  {
-    value: "dibuka",
-    label: "Pendaftaran Dibuka",
-  },
-  {
-    value: "proses_seleksi",
-    label: "Proses Seleksi",
-  },
-  {
-    value: "ditutup",
-    label: "Lowongan Ditutup",
-  },
-  {
-    value: "terisi",
-    label: "Lowongan Telah Terisi",
-  },
+  { value: "draft", label: "Draft" },
+  { value: "dibuka", label: "Pendaftaran Dibuka" },
+  { value: "proses_seleksi", label: "Proses Seleksi" },
+  { value: "ditutup", label: "Lowongan Ditutup" },
+  { value: "terisi", label: "Lowongan Telah Terisi" },
 ];
 
 const initialForm = {
   posisi: "",
-  gambar_url: "",
+  lokasi: "",
   deskripsi: "",
   persyaratan: "",
-  lokasi: "",
   google_form_url: "",
   status: "draft",
   tahap_seleksi: "pendaftaran",
   tanggal_buka: "",
   tanggal_tutup: "",
   pengumuman: "",
-  aktif: true,
   urutan: 0,
+  aktif: true,
+  gambar_url: "",
 };
 
-function getStatusLabel(status) {
-  const item = statusOptions.find(
-    (option) => option.value === status
-  );
+function isoToDisplayDate(value) {
+  if (!value) return "";
 
-  return item
-    ? item.label
-    : "Belum Dipublikasikan";
-}
+  const parts = String(value).split("-");
 
-function getTahapLabel(tahap) {
-  const item = tahapSeleksi.find(
-    (option) => option.key === tahap
-  );
-
-  return item ? item.judul : "Pendaftaran";
-}
-
-function formatTanggal(tanggal) {
-  if (!tanggal) return "-";
-
-  const date = new Date(`${tanggal}T00:00:00`);
-
-  if (Number.isNaN(date.getTime())) {
-    return tanggal;
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-}
-
-function isoToDisplayDate(tanggal) {
-  if (!tanggal) return "";
-
-  const parts = tanggal.split("-");
-
-  if (parts.length !== 3) {
-    return "";
-  }
+  if (parts.length !== 3) return "";
 
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function displayToIsoDate(value) {
-  const clean = value.trim();
-
-  if (!clean) {
+  if (!value) {
     return {
       value: null,
-      error: "",
+      valid: true,
     };
   }
 
-  const match = clean.match(
-    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
-  );
+  const cleaned = value.replace(/[^\d]/g, "");
 
-  if (!match) {
+  if (cleaned.length !== 8) {
     return {
       value: null,
-      error: "Format tanggal harus DD/MM/YYYY.",
+      valid: false,
     };
   }
 
-  const day = Number(match[1]);
-  const month = Number(match[2]);
-  const year = Number(match[3]);
+  const day = cleaned.slice(0, 2);
+  const month = cleaned.slice(2, 4);
+  const year = cleaned.slice(4, 8);
+
+  const dayNumber = Number(day);
+  const monthNumber = Number(month);
+  const yearNumber = Number(year);
+
+  if (
+    !Number.isInteger(dayNumber) ||
+    !Number.isInteger(monthNumber) ||
+    !Number.isInteger(yearNumber)
+  ) {
+    return {
+      value: null,
+      valid: false,
+    };
+  }
+
+  if (yearNumber < 1900 || yearNumber > 2100) {
+    return {
+      value: null,
+      valid: false,
+    };
+  }
 
   const date = new Date(
-    year,
-    month - 1,
-    day
+    yearNumber,
+    monthNumber - 1,
+    dayNumber
   );
 
-  const valid =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day;
-
-  if (!valid) {
+  if (
+    date.getFullYear() !== yearNumber ||
+    date.getMonth() !== monthNumber - 1 ||
+    date.getDate() !== dayNumber
+  ) {
     return {
       value: null,
-      error: "Tanggal yang dimasukkan tidak valid.",
+      valid: false,
     };
   }
 
   return {
-    value: `${year}-${String(month).padStart(
-      2,
-      "0"
-    )}-${String(day).padStart(2, "0")}`,
-    error: "",
+    value: `${year}-${month}-${day}`,
+    valid: true,
   };
 }
 
-export default function AdminLokerPage() {
-  const router = useRouter();
+function formatDateInput(value) {
+  const digits = value.replace(/[^\d]/g, "").slice(0, 8);
 
-  const [lowongan, setLowongan] = useState([]);
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  if (digits.length <= 4) {
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  }
+
+  return `${digits.slice(0, 2)}/${digits.slice(
+    2,
+    4
+  )}/${digits.slice(4, 8)}`;
+}
+
+function isoToDateInput(value) {
+  if (!value) return "";
+
+  return value;
+}
+
+function getStatusInfo(status) {
+  const map = {
+    dibuka: {
+      label: "PENDAFTARAN DIBUKA",
+      background: "#dcfce7",
+      color: "#166534",
+    },
+    proses_seleksi: {
+      label: "PROSES SELEKSI",
+      background: "#dbeafe",
+      color: "#1d4ed8",
+    },
+    ditutup: {
+      label: "LOWONGAN DITUTUP",
+      background: "#fee2e2",
+      color: "#991b1b",
+    },
+    terisi: {
+      label: "LOWONGAN TELAH TERISI",
+      background: "#f3f4f6",
+      color: "#374151",
+    },
+    draft: {
+      label: "DRAFT",
+      background: "#fef3c7",
+      color: "#92400e",
+    },
+  };
+
+  return (
+    map[status] || {
+      label: status || "DRAFT",
+      background: "#f3f4f6",
+      color: "#374151",
+    }
+  );
+}
+
+function getTahapLabel(value) {
+  const item = tahapSeleksi.find(
+    (item) => item.value === value
+  );
+
+  return item ? item.label : value || "-";
+}
+
+export default function AdminLokerPage() {
+  const supabase = getSupabase();
 
   const [loading, setLoading] = useState(true);
-  const [authChecking, setAuthChecking] =
-    useState(true);
-
   const [saving, setSaving] = useState(false);
-  const [processingId, setProcessingId] =
-    useState(null);
 
+  const [lowongan, setLowongan] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] =
-    useState(null);
-
   const [search, setSearch] = useState("");
-  const [filter, setFilter] =
-    useState("semua");
+  const [filterStatus, setFilterStatus] = useState("semua");
 
-  const [form, setForm] =
-    useState(initialForm);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
-  const [gambarFile, setGambarFile] =
-    useState(null);
+  const [form, setForm] = useState(initialForm);
 
-  const [gambarPreview, setGambarPreview] =
-    useState("");
+  const [gambarFile, setGambarFile] = useState(null);
+  const [gambarPreview, setGambarPreview] = useState("");
+
+  const tanggalBukaPickerRef = useRef(null);
+  const tanggalTutupPickerRef = useRef(null);
 
   useEffect(() => {
-    let mounted = true;
+    loadLowongan();
+  }, []);
 
-    async function checkSession() {
-      const supabase = getSupabase();
-
-      if (!supabase) {
-        if (!mounted) return;
-
-        setError(
-          "Koneksi Supabase belum tersedia."
-        );
-        setLoading(false);
-        setAuthChecking(false);
-        return;
-      }
-
-      const {
-        data: { session },
-        error: sessionError,
-      } =
-        await supabase.auth.getSession();
-
-      if (!mounted) return;
-
-      if (sessionError) {
-        console.error(sessionError);
-
-        setError(
-          `Gagal memeriksa sesi login: ${sessionError.message}`
-        );
-
-        setLoading(false);
-        setAuthChecking(false);
-        return;
-      }
-
-      if (!session) {
-        router.replace("/admin/login");
-        return;
-      }
-
-      setAuthChecking(false);
-
-      await loadLowongan(supabase);
-    }
-
-    checkSession();
-
-    const supabase = getSupabase();
-
-    if (!supabase) {
-      return () => {
-        mounted = false;
-      };
-    }
-
-    const {
-      data: { subscription },
-    } =
-      supabase.auth.onAuthStateChange(
-        (event, session) => {
-          if (!mounted) return;
-
-          if (
-            event === "SIGNED_OUT" ||
-            !session
-          ) {
-            router.replace("/admin/login");
-          }
-        }
-      );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [router]);
-
-  async function loadLowongan(
-    supabaseInstance = null
-  ) {
+  async function loadLowongan() {
     setLoading(true);
     setError("");
 
-    const supabase =
-      supabaseInstance || getSupabase();
+    try {
+      if (!supabase) {
+        setError("Koneksi database belum tersedia.");
+        setLoading(false);
+        return;
+      }
 
-    if (!supabase) {
+      const { data, error: fetchError } = await supabase
+        .from("lowongan_kerja")
+        .select(
+          "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
+        )
+        .order("urutan", { ascending: true })
+        .order("id", { ascending: false });
+
+      if (fetchError) {
+        setError(
+          `Gagal mengambil data lowongan: ${fetchError.message}`
+        );
+        setLowongan([]);
+      } else {
+        setLowongan(data || []);
+      }
+    } catch (err) {
       setError(
-        "Koneksi Supabase belum tersedia."
+        `Terjadi kesalahan: ${
+          err?.message || "Tidak diketahui"
+        }`
       );
-      setLoading(false);
-      return;
     }
 
-    const {
-      data: { session },
-      error: sessionError,
-    } =
-      await supabase.auth.getSession();
-
-    if (sessionError) {
-      console.error(sessionError);
-
-      setError(
-        `Gagal memeriksa sesi login: ${sessionError.message}`
-      );
-
-      setLoading(false);
-      return;
-    }
-
-    if (!session) {
-      router.replace("/admin/login");
-      return;
-    }
-
-    const {
-      data,
-      error: fetchError,
-    } = await supabase
-      .from("lowongan_kerja")
-      .select(
-        "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
-      )
-      .order("urutan", {
-        ascending: true,
-      })
-      .order("id", {
-        ascending: false,
-      });
-
-    if (fetchError) {
-      console.error(fetchError);
-
-      setError(
-        `Gagal mengambil data lowongan: ${fetchError.message}`
-      );
-
-      setLoading(false);
-      return;
-    }
-
-    setLowongan(data || []);
     setLoading(false);
   }
 
-  function handleChange(event) {
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = event.target;
+  function resetImage() {
+    setGambarFile(null);
+    setGambarPreview("");
+  }
 
-    setForm((current) => ({
-      ...current,
+  function resetForm() {
+    setForm(initialForm);
+    setEditingId(null);
+    resetImage();
+    setShowForm(false);
+  }
+
+  function openAddForm() {
+    setError("");
+    setSuccess("");
+    setForm(initialForm);
+    setEditingId(null);
+    resetImage();
+    setShowForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function openEditForm(item) {
+    setError("");
+    setSuccess("");
+
+    setEditingId(item.id);
+
+    setForm({
+      posisi: item.posisi || "",
+      lokasi: item.lokasi || "",
+      deskripsi: item.deskripsi || "",
+      persyaratan: item.persyaratan || "",
+      google_form_url: item.google_form_url || "",
+      status: item.status || "draft",
+      tahap_seleksi:
+        item.tahap_seleksi || "pendaftaran",
+      tanggal_buka: isoToDisplayDate(
+        item.tanggal_buka
+      ),
+      tanggal_tutup: isoToDisplayDate(
+        item.tanggal_tutup
+      ),
+      pengumuman: item.pengumuman || "",
+      urutan: item.urutan ?? 0,
+      aktif: item.aktif !== false,
+      gambar_url: item.gambar_url || "",
+    });
+
+    setGambarFile(null);
+    setGambarPreview(item.gambar_url || "");
+    setShowForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function handleChange(event) {
+    const { name, value, type, checked } =
+      event.target;
+
+    setForm((prev) => ({
+      ...prev,
       [name]:
-        type === "checkbox"
-          ? checked
-          : value,
+        type === "checkbox" ? checked : value,
+    }));
+  }
+
+  function handleDateChange(event) {
+    const { name, value } = event.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: formatDateInput(value),
+    }));
+  }
+
+  function openDatePicker(ref) {
+    const input = ref.current;
+
+    if (!input) return;
+
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.click();
+      }
+    } catch {
+      input.click();
+    }
+  }
+
+  function handleNativeDateChange(
+    event,
+    fieldName
+  ) {
+    const isoValue = event.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      [fieldName]: isoToDisplayDate(isoValue),
     }));
   }
 
   function handleImageChange(event) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
-    if (!file) {
-      setGambarFile(null);
-      return;
-    }
+    if (!file) return;
+
+    setError("");
 
     const allowedTypes = [
       "image/jpeg",
@@ -400,7 +378,6 @@ export default function AdminLokerPage() {
       );
 
       event.target.value = "";
-      setGambarFile(null);
       return;
     }
 
@@ -410,11 +387,9 @@ export default function AdminLokerPage() {
       );
 
       event.target.value = "";
-      setGambarFile(null);
       return;
     }
 
-    setError("");
     setGambarFile(file);
 
     const previewUrl =
@@ -423,1375 +398,443 @@ export default function AdminLokerPage() {
     setGambarPreview(previewUrl);
   }
 
-  function resetImage() {
-    setGambarFile(null);
-    setGambarPreview("");
-  }
-
-  function resetForm() {
-    setForm(initialForm);
-    setEditingId(null);
-    resetImage();
-  }
-
-  function openAddForm() {
-    resetForm();
-
-    setSuccess("");
-    setError("");
-    setShowForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  function openEditForm(item) {
-    setForm({
-      posisi: item.posisi || "",
-      gambar_url: item.gambar_url || "",
-      deskripsi: item.deskripsi || "",
-      persyaratan: item.persyaratan || "",
-      lokasi: item.lokasi || "",
-      google_form_url:
-        item.google_form_url || "",
-      status: item.status || "draft",
-      tahap_seleksi:
-        item.tahap_seleksi ||
-        "pendaftaran",
-      tanggal_buka:
-        isoToDisplayDate(
-          item.tanggal_buka
-        ),
-      tanggal_tutup:
-        isoToDisplayDate(
-          item.tanggal_tutup
-        ),
-      pengumuman:
-        item.pengumuman || "",
-      aktif: Boolean(item.aktif),
-      urutan: item.urutan ?? 0,
-    });
-
-    setEditingId(item.id);
-    setGambarFile(null);
-    setGambarPreview(
-      item.gambar_url || ""
-    );
-
-    setSuccess("");
-    setError("");
-    setShowForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  async function uploadImage(
-    supabase,
-    file
-  ) {
-    if (!file) {
-      return {
-        url: null,
-        error: null,
-      };
+  async function uploadImage() {
+    if (!gambarFile) {
+      return form.gambar_url || "";
     }
 
     const extension =
-      file.name
+      gambarFile.name
         .split(".")
         .pop()
         ?.toLowerCase() || "jpg";
 
-    const fileName =
-      `lowongan-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 10)}.${extension}`;
+    const safePosition =
+      (form.posisi || "lowongan")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 50);
 
-    const filePath =
-      `lowongan/${fileName}`;
+    const fileName = `${Date.now()}-${safePosition}.${extension}`;
 
-    const {
-      error: uploadError,
-    } = await supabase.storage
-      .from("lowongan-images")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type,
-      });
+    const filePath = `lowongan/${fileName}`;
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("lowongan-images")
+        .upload(filePath, gambarFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: gambarFile.type,
+        });
 
     if (uploadError) {
-      return {
-        url: null,
-        error: uploadError,
-      };
+      throw new Error(
+        `Gagal upload gambar: ${uploadError.message}`
+      );
     }
 
-    const {
-      data: publicUrlData,
-    } =
+    const { data } =
       supabase.storage
         .from("lowongan-images")
         .getPublicUrl(filePath);
 
-    return {
-      url:
-        publicUrlData?.publicUrl ||
-        null,
-      error: null,
-    };
+    return data?.publicUrl || "";
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
+    setSaving(true);
     setError("");
     setSuccess("");
 
-    if (!form.posisi.trim()) {
-      setError(
-        "Nama posisi lowongan wajib diisi."
-      );
-      return;
-    }
-
-    const tanggalBuka =
-      displayToIsoDate(
-        form.tanggal_buka
-      );
-
-    if (tanggalBuka.error) {
-      setError(
-        `Tanggal Buka: ${tanggalBuka.error}`
-      );
-      return;
-    }
-
-    const tanggalTutup =
-      displayToIsoDate(
-        form.tanggal_tutup
-      );
-
-    if (tanggalTutup.error) {
-      setError(
-        `Tanggal Tutup: ${tanggalTutup.error}`
-      );
-      return;
-    }
-
-    if (
-      tanggalBuka.value &&
-      tanggalTutup.value &&
-      tanggalTutup.value <
-        tanggalBuka.value
-    ) {
-      setError(
-        "Tanggal Tutup tidak boleh lebih awal dari Tanggal Buka."
-      );
-      return;
-    }
-
-    const supabase = getSupabase();
-
-    if (!supabase) {
-      setError(
-        "Koneksi Supabase belum tersedia."
-      );
-      return;
-    }
-
-    const {
-      data: { session },
-      error: sessionError,
-    } =
-      await supabase.auth.getSession();
-
-    if (sessionError) {
-      setError(
-        `Gagal memeriksa sesi login: ${sessionError.message}`
-      );
-      return;
-    }
-
-    if (!session) {
-      router.replace("/admin/login");
-      return;
-    }
-
-    setSaving(true);
-
-    let gambarUrl =
-      form.gambar_url || null;
-
-    if (gambarFile) {
-      const uploadResult =
-        await uploadImage(
-          supabase,
-          gambarFile
+    try {
+      if (!supabase) {
+        throw new Error(
+          "Koneksi database belum tersedia."
         );
-
-      if (uploadResult.error) {
-        console.error(
-          uploadResult.error
-        );
-
-        setError(
-          `Gagal mengupload gambar: ${uploadResult.error.message}`
-        );
-
-        setSaving(false);
-        return;
       }
 
-      gambarUrl =
-        uploadResult.url;
-    }
+      if (!form.posisi.trim()) {
+        throw new Error(
+          "Posisi lowongan wajib diisi."
+        );
+      }
 
-    const payload = {
-      posisi: form.posisi.trim(),
+      const tanggalBuka =
+        displayToIsoDate(form.tanggal_buka);
 
-      gambar_url:
-        gambarUrl,
+      const tanggalTutup =
+        displayToIsoDate(form.tanggal_tutup);
 
-      deskripsi:
-        form.deskripsi.trim() || null,
+      if (!tanggalBuka.valid) {
+        throw new Error(
+          "Tanggal buka tidak valid. Gunakan format DD/MM/YYYY."
+        );
+      }
 
-      persyaratan:
-        form.persyaratan.trim() || null,
+      if (!tanggalTutup.valid) {
+        throw new Error(
+          "Tanggal tutup tidak valid. Gunakan format DD/MM/YYYY."
+        );
+      }
 
-      lokasi:
-        form.lokasi.trim() || null,
+      if (
+        tanggalBuka.value &&
+        tanggalTutup.value &&
+        tanggalTutup.value < tanggalBuka.value
+      ) {
+        throw new Error(
+          "Tanggal tutup tidak boleh lebih awal dari tanggal buka."
+        );
+      }
 
-      google_form_url:
-        form.google_form_url.trim() ||
-        null,
+      let gambarUrl = form.gambar_url || "";
 
-      status: form.status,
+      if (gambarFile) {
+        gambarUrl = await uploadImage();
+      }
 
-      tahap_seleksi:
-        form.tahap_seleksi,
+      const payload = {
+        posisi: form.posisi.trim(),
+        lokasi: form.lokasi.trim(),
+        deskripsi: form.deskripsi.trim(),
+        persyaratan: form.persyaratan.trim(),
+        google_form_url:
+          form.google_form_url.trim(),
+        status: form.status,
+        tahap_seleksi:
+          form.tahap_seleksi,
+        tanggal_buka:
+          tanggalBuka.value,
+        tanggal_tutup:
+          tanggalTutup.value,
+        pengumuman:
+          form.pengumuman.trim(),
+        urutan:
+          Number(form.urutan) || 0,
+        aktif: form.aktif,
+        gambar_url: gambarUrl,
+      };
 
-      tanggal_buka:
-        tanggalBuka.value,
+      if (editingId) {
+        const { error: updateError } =
+          await supabase
+            .from("lowongan_kerja")
+            .update(payload)
+            .eq("id", editingId);
 
-      tanggal_tutup:
-        tanggalTutup.value,
+        if (updateError) {
+          throw new Error(
+            `Gagal memperbarui lowongan: ${updateError.message}`
+          );
+        }
 
-      pengumuman:
-        form.pengumuman.trim() || null,
+        setSuccess(
+          "Lowongan kerja berhasil diperbarui."
+        );
+      } else {
+        const { error: insertError } =
+          await supabase
+            .from("lowongan_kerja")
+            .insert(payload);
 
-      aktif: Boolean(form.aktif),
+        if (insertError) {
+          throw new Error(
+            `Gagal menambahkan lowongan: ${insertError.message}`
+          );
+        }
 
-      urutan:
-        Number(form.urutan) || 0,
-    };
+        setSuccess(
+          "Lowongan kerja berhasil ditambahkan."
+        );
+      }
 
-    let result;
+      resetForm();
+      await loadLowongan();
 
-    if (editingId) {
-      result = await supabase
-        .from("lowongan_kerja")
-        .update(payload)
-        .eq("id", editingId);
-    } else {
-      result = await supabase
-        .from("lowongan_kerja")
-        .insert(payload);
-    }
-
-    if (result.error) {
-      console.error(result.error);
-
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } catch (err) {
       setError(
-        `Gagal menyimpan lowongan: ${result.error.message}`
+        err?.message ||
+          "Terjadi kesalahan saat menyimpan data."
       );
-
-      setSaving(false);
-      return;
     }
 
     setSaving(false);
-
-    setSuccess(
-      editingId
-        ? "Lowongan berhasil diperbarui."
-        : "Lowongan berhasil ditambahkan."
-    );
-
-    resetForm();
-    setShowForm(false);
-
-    await loadLowongan(supabase);
   }
 
-  async function hapusLowongan(item) {
-    const yakin = window.confirm(
-      `Hapus lowongan "${item.posisi}"?\n\nData lowongan ini akan dihapus dari database.`
+  async function handleDelete(id) {
+    const confirmed = window.confirm(
+      "Yakin ingin menghapus lowongan ini?"
     );
 
-    if (!yakin) return;
+    if (!confirmed) return;
 
-    setProcessingId(item.id);
     setError("");
     setSuccess("");
 
-    const supabase = getSupabase();
+    try {
+      const { error: deleteError } =
+        await supabase
+          .from("lowongan_kerja")
+          .delete()
+          .eq("id", id);
 
-    if (!supabase) {
-      setError(
-        "Koneksi Supabase belum tersedia."
-      );
-      setProcessingId(null);
-      return;
-    }
+      if (deleteError) {
+        throw new Error(
+          `Gagal menghapus lowongan: ${deleteError.message}`
+        );
+      }
 
-    const {
-      data: { session },
-    } =
-      await supabase.auth.getSession();
-
-    if (!session) {
-      router.replace("/admin/login");
-      return;
-    }
-
-    const {
-      error: deleteError,
-    } = await supabase
-      .from("lowongan_kerja")
-      .delete()
-      .eq("id", item.id);
-
-    if (deleteError) {
-      console.error(deleteError);
-
-      setError(
-        `Gagal menghapus lowongan: ${deleteError.message}`
+      setSuccess(
+        "Lowongan kerja berhasil dihapus."
       );
 
-      setProcessingId(null);
-      return;
+      await loadLowongan();
+    } catch (err) {
+      setError(
+        err?.message ||
+          "Gagal menghapus lowongan."
+      );
     }
-
-    setLowongan((current) =>
-      current.filter(
-        (itemLowongan) =>
-          itemLowongan.id !== item.id
-      )
-    );
-
-    setProcessingId(null);
-
-    setSuccess(
-      "Lowongan berhasil dihapus."
-    );
   }
 
-  async function toggleAktif(item) {
-    setProcessingId(item.id);
+  async function toggleActive(item) {
     setError("");
     setSuccess("");
 
-    const supabase = getSupabase();
+    try {
+      const { error: updateError } =
+        await supabase
+          .from("lowongan_kerja")
+          .update({
+            aktif: !item.aktif,
+          })
+          .eq("id", item.id);
 
-    if (!supabase) {
+      if (updateError) {
+        throw new Error(
+          `Gagal mengubah status tampil: ${updateError.message}`
+        );
+      }
+
+      await loadLowongan();
+    } catch (err) {
       setError(
-        "Koneksi Supabase belum tersedia."
+        err?.message ||
+          "Gagal mengubah status lowongan."
       );
-      setProcessingId(null);
-      return;
     }
-
-    const {
-      data: { session },
-    } =
-      await supabase.auth.getSession();
-
-    if (!session) {
-      router.replace("/admin/login");
-      return;
-    }
-
-    const {
-      error: updateError,
-    } =
-      await supabase
-        .from("lowongan_kerja")
-        .update({
-          aktif: !item.aktif,
-        })
-        .eq("id", item.id);
-
-    if (updateError) {
-      console.error(updateError);
-
-      setError(
-        `Gagal mengubah status: ${updateError.message}`
-      );
-
-      setProcessingId(null);
-      return;
-    }
-
-    setLowongan((current) =>
-      current.map((currentItem) =>
-        currentItem.id === item.id
-          ? {
-              ...currentItem,
-              aktif: !currentItem.aktif,
-            }
-          : currentItem
-      )
-    );
-
-    setProcessingId(null);
-
-    setSuccess(
-      item.aktif
-        ? "Lowongan berhasil dinonaktifkan."
-        : "Lowongan berhasil diaktifkan."
-    );
   }
 
-  const filteredLowongan =
-    lowongan.filter((item) => {
+  const filteredLowongan = lowongan.filter(
+    (item) => {
       const keyword =
         search.trim().toLowerCase();
 
       const matchesSearch =
         !keyword ||
-        (item.posisi || "")
-          .toLowerCase()
+        item.posisi
+          ?.toLowerCase()
           .includes(keyword) ||
-        (item.lokasi || "")
-          .toLowerCase()
+        item.lokasi
+          ?.toLowerCase()
           .includes(keyword);
 
-      const matchesFilter =
-        filter === "semua" ||
-        (filter === "aktif" &&
-          item.aktif) ||
-        (filter === "nonaktif" &&
-          !item.aktif) ||
-        (filter === "dibuka" &&
-          item.status === "dibuka") ||
-        (filter === "proses" &&
-          item.status ===
-            "proses_seleksi");
+      const matchesStatus =
+        filterStatus === "semua" ||
+        item.status === filterStatus;
 
       return (
-        matchesSearch &&
-        matchesFilter
+        matchesSearch && matchesStatus
       );
-    });
+    }
+  );
 
-  const totalLowongan =
-    lowongan.length;
+  const total = lowongan.length;
 
-  const aktif =
-    lowongan.filter(
-      (item) => item.aktif
-    ).length;
+  const aktif = lowongan.filter(
+    (item) => item.aktif
+  ).length;
 
-  const dibuka =
-    lowongan.filter(
-      (item) =>
-        item.status === "dibuka" &&
-        item.aktif
-    ).length;
+  const nonaktif = lowongan.filter(
+    (item) => !item.aktif
+  ).length;
 
-  const nonaktif =
-    lowongan.filter(
-      (item) => !item.aktif
-    ).length;
-
-  if (authChecking) {
-    return (
-      <main className="lokerAdminPage">
-        <div className="loadingPage">
-          Memeriksa sesi Admin...
-        </div>
-
-        <style>{`
-          .lokerAdminPage {
-            width: 100%;
-            min-height: 100%;
-            color: #3f2f24;
-          }
-
-          .loadingPage {
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #76685d;
-            font-size: 14px;
-          }
-        `}</style>
-      </main>
-    );
-  }
+  const dibuka = lowongan.filter(
+    (item) =>
+      item.status === "dibuka" &&
+      item.aktif
+  ).length;
 
   return (
     <main className="lokerAdminPage">
-      <div className="page">
-        <div className="topbar">
-          <div>
-            <div className="eyebrow">
-              ADMINISTRASI WEBSITE
-            </div>
-
-            <h1>Lowongan Kerja</h1>
-
-            <p>
-              Kelola informasi lowongan
-              kerja yang ditampilkan pada
-              halaman publik.
-            </p>
-          </div>
-
-          <div className="topActions">
-            <Link
-              href="/loker"
-              target="_blank"
-              className="previewButton"
-            >
-              👁 Lihat Halaman Loker
-            </Link>
-
-            <button
-              type="button"
-              className="addButton"
-              onClick={openAddForm}
-            >
-              + Tambah Lowongan
-            </button>
-          </div>
-        </div>
-
-        {success && (
-          <div className="success">
-            ✓ {success}
-          </div>
-        )}
-
-        {error && (
-          <div className="error">
-            {error}
-          </div>
-        )}
-
-        <div className="summary">
-          <div className="summaryCard">
-            <span>
-              Total Lowongan
-            </span>
-            <strong>
-              {totalLowongan}
-            </strong>
-          </div>
-
-          <div className="summaryCard">
-            <span>Aktif</span>
-            <strong>
-              {aktif}
-            </strong>
-          </div>
-
-          <div className="summaryCard">
-            <span>
-              Pendaftaran Dibuka
-            </span>
-            <strong>
-              {dibuka}
-            </strong>
-          </div>
-
-          <div className="summaryCard">
-            <span>Nonaktif</span>
-            <strong>
-              {nonaktif}
-            </strong>
-          </div>
-        </div>
-
-        {showForm && (
-          <section className="formCard">
-            <div className="formHeader">
-              <div>
-                <div className="eyebrow">
-                  {editingId
-                    ? "EDIT LOWONGAN"
-                    : "LOWONGAN BARU"}
-                </div>
-
-                <h2>
-                  {editingId
-                    ? "Edit Lowongan Kerja"
-                    : "Tambah Lowongan Kerja"}
-                </h2>
-
-                <p>
-                  Isi informasi lowongan
-                  yang akan ditampilkan
-                  kepada calon pelamar.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="closeButton"
-                onClick={() => {
-                  setShowForm(false);
-                  resetForm();
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-            >
-              <div className="formGrid">
-                <div className="field full">
-                  <label htmlFor="posisi">
-                    Posisi Lowongan *
-                  </label>
-
-                  <input
-                    id="posisi"
-                    name="posisi"
-                    value={form.posisi}
-                    onChange={handleChange}
-                    placeholder="Contoh: Staff Toko"
-                    required
-                  />
-                </div>
-
-                <div className="field">
-                  <label htmlFor="lokasi">
-                    Lokasi
-                  </label>
-
-                  <input
-                    id="lokasi"
-                    name="lokasi"
-                    value={form.lokasi}
-                    onChange={handleChange}
-                    placeholder="Contoh: Sinar Kasih Kota"
-                  />
-                </div>
-
-                <div className="field">
-                  <label htmlFor="urutan">
-                    Urutan Tampil
-                  </label>
-
-                  <input
-                    id="urutan"
-                    name="urutan"
-                    type="number"
-                    min="0"
-                    value={form.urutan}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="field">
-                  <label htmlFor="status">
-                    Status Lowongan
-                  </label>
-
-                  <select
-                    id="status"
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                  >
-                    {statusOptions.map(
-                      (option) => (
-                        <option
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label htmlFor="tahap_seleksi">
-                    Tahap Seleksi
-                  </label>
-
-                  <select
-                    id="tahap_seleksi"
-                    name="tahap_seleksi"
-                    value={
-                      form.tahap_seleksi
-                    }
-                    onChange={handleChange}
-                  >
-                    {tahapSeleksi.map(
-                      (item) => (
-                        <option
-                          key={item.key}
-                          value={item.key}
-                        >
-                          {item.nomor} —{" "}
-                          {item.judul}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label htmlFor="tanggal_buka">
-                    Tanggal Buka
-                  </label>
-
-                  <input
-                    id="tanggal_buka"
-                    name="tanggal_buka"
-                    type="text"
-                    inputMode="numeric"
-                    value={
-                      form.tanggal_buka
-                    }
-                    onChange={handleChange}
-                    placeholder="DD/MM/YYYY"
-                    maxLength="10"
-                  />
-
-                  <small>
-                    Format: DD/MM/YYYY
-                    <br />
-                    Contoh: 30/09/2026
-                  </small>
-                </div>
-
-                <div className="field">
-                  <label htmlFor="tanggal_tutup">
-                    Tanggal Tutup
-                  </label>
-
-                  <input
-                    id="tanggal_tutup"
-                    name="tanggal_tutup"
-                    type="text"
-                    inputMode="numeric"
-                    value={
-                      form.tanggal_tutup
-                    }
-                    onChange={handleChange}
-                    placeholder="DD/MM/YYYY"
-                    maxLength="10"
-                  />
-
-                  <small>
-                    Format: DD/MM/YYYY
-                    <br />
-                    Contoh: 30/09/2026
-                  </small>
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="gambar_file">
-                    Gambar Lowongan
-                  </label>
-
-                  <div className="uploadBox">
-                    {gambarPreview && (
-                      <div className="imagePreviewWrap">
-                        <img
-                          src={gambarPreview}
-                          alt="Preview gambar lowongan"
-                          className="imagePreview"
-                        />
-                      </div>
-                    )}
-
-                    <input
-                      id="gambar_file"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={
-                        handleImageChange
-                      }
-                    />
-
-                    <small>
-                      Pilih gambar dari komputer.
-                      Format JPG, PNG, atau WEBP.
-                      Maksimal 5 MB.
-                    </small>
-
-                    {gambarFile && (
-                      <div className="selectedFile">
-                        ✓{" "}
-                        {gambarFile.name}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="deskripsi">
-                    Deskripsi Posisi
-                  </label>
-
-                  <textarea
-                    id="deskripsi"
-                    name="deskripsi"
-                    rows="6"
-                    value={
-                      form.deskripsi
-                    }
-                    onChange={handleChange}
-                    placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
-                  />
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="persyaratan">
-                    Persyaratan
-                  </label>
-
-                  <textarea
-                    id="persyaratan"
-                    name="persyaratan"
-                    rows="7"
-                    value={
-                      form.persyaratan
-                    }
-                    onChange={handleChange}
-                    placeholder={
-                      "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
-                    }
-                  />
-
-                  <small>
-                    Gunakan baris baru untuk
-                    setiap persyaratan agar
-                    lebih mudah dibaca.
-                  </small>
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="google_form_url">
-                    Link Google Form Lamaran
-                  </label>
-
-                  <input
-                    id="google_form_url"
-                    name="google_form_url"
-                    type="url"
-                    value={
-                      form.google_form_url
-                    }
-                    onChange={handleChange}
-                    placeholder="https://forms.google.com/..."
-                  />
-
-                  <small>
-                    Tombol lamaran pada
-                    website akan menggunakan
-                    link ini.
-                  </small>
-                </div>
-
-                <div className="field full">
-                  <label htmlFor="pengumuman">
-                    Pengumuman
-                  </label>
-
-                  <textarea
-                    id="pengumuman"
-                    name="pengumuman"
-                    rows="4"
-                    value={
-                      form.pengumuman
-                    }
-                    onChange={handleChange}
-                    placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
-                  />
-                </div>
-
-                <div className="field full">
-                  <label className="checkLabel">
-                    <input
-                      type="checkbox"
-                      name="aktif"
-                      checked={form.aktif}
-                      onChange={handleChange}
-                    />
-
-                    <span>
-                      Tampilkan lowongan
-                      ini di website
-                      publik
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="formActions">
-                <button
-                  type="button"
-                  className="cancelButton"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
-                  disabled={saving}
-                >
-                  Batal
-                </button>
-
-                <button
-                  type="submit"
-                  className="saveButton"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Menyimpan..."
-                    : editingId
-                      ? "Simpan Perubahan"
-                      : "Simpan Lowongan"}
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        <div className="toolbar">
-          <div className="searchWrap">
-            <input
-              type="search"
-              placeholder="Cari posisi atau lokasi..."
-              value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
-            />
-
-            {search && (
-              <button
-                type="button"
-                className="clearSearch"
-                onClick={() =>
-                  setSearch("")
-                }
-                aria-label="Hapus pencarian"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          <div className="filters">
-            {[
-              ["semua", "Semua"],
-              ["aktif", "Aktif"],
-              ["dibuka", "Dibuka"],
-              ["proses", "Proses Seleksi"],
-              ["nonaktif", "Nonaktif"],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={
-                  filter === value
-                    ? "filter active"
-                    : "filter"
-                }
-                onClick={() =>
-                  setFilter(value)
-                }
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="card">
-          {loading ? (
-            <div className="empty">
-              Memuat data lowongan...
-            </div>
-          ) : filteredLowongan.length ===
-            0 ? (
-            <div className="empty">
-              <div className="emptyIcon">
-                💼
-              </div>
-
-              <strong>
-                {search ||
-                filter !== "semua"
-                  ? "Tidak ada lowongan yang sesuai."
-                  : "Belum ada data lowongan."}
-              </strong>
-
-              <p>
-                {search ||
-                filter !== "semua"
-                  ? "Coba ubah pencarian atau filter."
-                  : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
-              </p>
-            </div>
-          ) : (
-            <div className="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Urutan</th>
-                    <th>Posisi</th>
-                    <th>Lokasi</th>
-                    <th>Status</th>
-                    <th>Tahap</th>
-                    <th>Periode</th>
-                    <th>Tampil</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredLowongan.map(
-                    (item) => (
-                      <tr key={item.id}>
-                        <td>
-                          {item.urutan ?? 0}
-                        </td>
-
-                        <td>
-                          <div className="positionCell">
-                            {item.gambar_url ? (
-                              <img
-                                src={
-                                  item.gambar_url
-                                }
-                                alt=""
-                                className="thumb"
-                              />
-                            ) : (
-                              <div className="thumbPlaceholder">
-                                💼
-                              </div>
-                            )}
-
-                            <div>
-                              <strong>
-                                {item.posisi ||
-                                  "-"}
-                              </strong>
-
-                              <small>
-                                ID #{item.id}
-                              </small>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          {item.lokasi ||
-                            "-"}
-                        </td>
-
-                        <td>
-                          <span
-                            className={`status status-${item.status}`}
-                          >
-                            {getStatusLabel(
-                              item.status
-                            )}
-                          </span>
-                        </td>
-
-                        <td>
-                          {getTahapLabel(
-                            item.tahap_seleksi
-                          )}
-                        </td>
-
-                        <td>
-                          <div className="dateCell">
-                            <span>
-                              {formatTanggal(
-                                item.tanggal_buka
-                              )}
-                            </span>
-
-                            <small>
-                              sampai{" "}
-                              {formatTanggal(
-                                item.tanggal_tutup
-                              )}
-                            </small>
-                          </div>
-                        </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            className={
-                              item.aktif
-                                ? "toggle active"
-                                : "toggle"
-                            }
-                            onClick={() =>
-                              toggleAktif(
-                                item
-                              )
-                            }
-                            disabled={
-                              processingId ===
-                              item.id
-                            }
-                          >
-                            {item.aktif
-                              ? "Aktif"
-                              : "Nonaktif"}
-                          </button>
-                        </td>
-
-                        <td>
-                          <div className="actions">
-                            <button
-                              type="button"
-                              className="editButton"
-                              onClick={() =>
-                                openEditForm(
-                                  item
-                                )
-                              }
-                            >
-                              Edit
-                            </button>
-
-                            <button
-                              type="button"
-                              className="deleteButton"
-                              onClick={() =>
-                                hapusLowongan(
-                                  item
-                                )
-                              }
-                              disabled={
-                                processingId ===
-                                item.id
-                              }
-                            >
-                              {processingId ===
-                              item.id
-                                ? "..."
-                                : "Hapus"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
       <style>{`
         .lokerAdminPage {
           width: 100%;
           min-height: 100%;
-          color: #3f2f24;
+          box-sizing: border-box;
         }
 
         .page {
           width: 100%;
           max-width: none;
           margin: 0;
+          box-sizing: border-box;
         }
 
-        .topbar {
+        .pageHeader {
           display: flex;
+          align-items: flex-start;
           justify-content: space-between;
-          align-items: center;
           gap: 20px;
           margin-bottom: 24px;
         }
 
-        .eyebrow {
-          margin-bottom: 6px;
-          color: #9a806a;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-        }
-
-        h1 {
+        .pageHeader h1 {
           margin: 0 0 7px;
-          color: #3f2f24;
           font-size: 30px;
           line-height: 1.2;
+          color: #111827;
+          font-weight: 800;
         }
 
-        .topbar p {
+        .pageHeader p {
           margin: 0;
-          color: #76685d;
+          color: #6b7280;
+          font-size: 14px;
+          line-height: 1.6;
         }
 
-        .topActions {
+        .headerActions {
           display: flex;
           gap: 10px;
-          align-items: center;
           flex-wrap: wrap;
+          justify-content: flex-end;
         }
 
-        .previewButton,
-        .addButton {
+        .button {
+          min-height: 42px;
+          padding: 0 16px;
+          border-radius: 10px;
+          border: 1px solid transparent;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 44px;
-          padding: 0 18px;
-          border-radius: 8px;
+          gap: 8px;
           text-decoration: none;
-          font-weight: 700;
           font-size: 14px;
-          box-sizing: border-box;
-          white-space: nowrap;
+          font-weight: 700;
           cursor: pointer;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
         }
 
-        .previewButton {
-          background: #fff;
-          border: 1px solid #cfc1b1;
-          color: #4b3326;
+        .buttonPrimary {
+          background: #111827;
+          color: #ffffff;
         }
 
-        .previewButton:hover {
-          background: #f3eadf;
+        .buttonPrimary:hover {
+          background: #000000;
         }
 
-        .addButton {
-          border: 1px solid #4b3326;
-          background: #4b3326;
-          color: #fff;
+        .buttonSecondary {
+          background: #ffffff;
+          color: #111827;
+          border-color: #d1d5db;
         }
 
-        .addButton:hover {
-          background: #39251b;
+        .buttonSecondary:hover {
+          background: #f9fafb;
         }
 
-        .success,
-        .error {
-          margin-bottom: 18px;
-          padding: 14px 16px;
-          border-radius: 9px;
-          font-weight: 600;
+        .buttonDanger {
+          background: #fff1f2;
+          color: #be123c;
+          border-color: #fecdd3;
         }
 
-        .success {
-          background: #e9f7ed;
-          border: 1px solid #b9dfc4;
-          color: #28713a;
+        .buttonDanger:hover {
+          background: #ffe4e6;
         }
 
-        .error {
-          background: #fff0f0;
-          border: 1px solid #e4bcbc;
-          color: #9b2929;
+        .buttonSmall {
+          min-height: 36px;
+          padding: 0 11px;
+          font-size: 13px;
+          border-radius: 8px;
         }
 
-        .summary {
+        .summaryGrid {
           display: grid;
-          grid-template-columns:
-            repeat(4, minmax(0, 1fr));
-          gap: 18px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
           margin-bottom: 22px;
         }
 
         .summaryCard {
-          background: #fff;
-          border: 1px solid #dfd2c3;
-          border-radius: 12px;
-          padding: 20px;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 14px;
+          padding: 18px;
+          box-sizing: border-box;
         }
 
-        .summaryCard span {
-          display: block;
-          color: #76685d;
-          margin-bottom: 8px;
+        .summaryLabel {
           font-size: 13px;
+          color: #6b7280;
+          margin-bottom: 8px;
         }
 
-        .summaryCard strong {
+        .summaryValue {
           font-size: 28px;
-          color: #3f2f24;
+          line-height: 1;
+          font-weight: 800;
+          color: #111827;
+        }
+
+        .card {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 14px;
+          box-sizing: border-box;
+        }
+
+        .cardHeader {
+          padding: 18px 20px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .cardHeader h2 {
+          margin: 0 0 5px;
+          font-size: 18px;
+          color: #111827;
+        }
+
+        .cardHeader p {
+          margin: 0;
+          font-size: 13px;
+          color: #6b7280;
         }
 
         .formCard {
-          margin-bottom: 24px;
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #dfd2c3;
-          border-radius: 14px;
-          box-shadow:
-            0 8px 25px
-            rgba(75, 51, 38, 0.05);
+          margin-bottom: 22px;
         }
 
-        .formHeader {
-          display: flex;
-          justify-content: space-between;
-          gap: 20px;
-          margin-bottom: 24px;
-          padding-bottom: 18px;
-          border-bottom:
-            1px solid #eee5dc;
-        }
-
-        .formHeader h2 {
-          margin: 0 0 6px;
-          color: #3f2f24;
-          font-size: 22px;
-        }
-
-        .formHeader p {
-          margin: 0;
-          color: #76685d;
-          font-size: 13px;
-        }
-
-        .closeButton {
-          width: 38px;
-          height: 38px;
-          flex-shrink: 0;
-          border: 1px solid #d8cabc;
-          border-radius: 8px;
-          background: #fff;
-          color: #6c5b50;
-          font-size: 25px;
-          line-height: 1;
-          cursor: pointer;
+        .formBody {
+          padding: 22px;
         }
 
         .formGrid {
           display: grid;
-          grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 18px;
         }
 
@@ -1801,210 +844,205 @@ export default function AdminLokerPage() {
           gap: 7px;
         }
 
-        .field.full {
+        .fieldFull {
           grid-column: 1 / -1;
         }
 
         .field label {
-          color: #4b3326;
           font-size: 13px;
           font-weight: 700;
+          color: #374151;
         }
 
-        .field input,
-        .field select,
-        .field textarea {
+        .required {
+          color: #dc2626;
+        }
+
+        .input,
+        .textarea,
+        .select {
           width: 100%;
+          min-height: 43px;
           box-sizing: border-box;
-          padding: 12px 13px;
-          border: 1px solid #cfc1b1;
-          border-radius: 8px;
-          background: #fff;
-          color: #3f2f24;
-          font-family: inherit;
+          border: 1px solid #d1d5db;
+          border-radius: 9px;
+          background: #ffffff;
+          padding: 10px 12px;
+          color: #111827;
           font-size: 14px;
           outline: none;
+          transition: border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
-        .field textarea {
+        .input:focus,
+        .textarea:focus,
+        .select:focus {
+          border-color: #111827;
+          box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+        }
+
+        .textarea {
+          min-height: 130px;
           resize: vertical;
+          font-family: inherit;
           line-height: 1.6;
         }
 
-        .field input:focus,
-        .field select:focus,
-        .field textarea:focus {
-          border-color: #8d6c53;
-          box-shadow:
-            0 0 0 3px
-            rgba(141, 108, 83, 0.1);
+        .dateWrapper {
+          position: relative;
+          width: 100%;
         }
 
-        .field small {
-          color: #8a796e;
-          font-size: 11px;
+        .dateDisplay {
+          padding-right: 48px;
+        }
+
+        .calendarButton {
+          position: absolute;
+          top: 50%;
+          right: 7px;
+          transform: translateY(-50%);
+          width: 34px;
+          height: 34px;
+          border: 0;
+          border-radius: 8px;
+          background: #f3f4f6;
+          color: #374151;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 18px;
+          z-index: 3;
+        }
+
+        .calendarButton:hover {
+          background: #e5e7eb;
+        }
+
+        .hiddenDatePicker {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+          left: 0;
+          bottom: 0;
+        }
+
+        .fieldHint {
+          margin: 0;
+          color: #6b7280;
+          font-size: 12px;
           line-height: 1.5;
         }
 
         .uploadBox {
+          border: 2px dashed #d1d5db;
+          border-radius: 12px;
           padding: 18px;
-          border: 1px dashed #cfc1b1;
-          border-radius: 10px;
-          background: #faf6f0;
+          background: #fafafa;
         }
 
-        .uploadBox input[type="file"] {
-          padding: 10px;
-          background: #fff;
-          cursor: pointer;
+        .uploadRow {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex-wrap: wrap;
         }
 
-        .imagePreviewWrap {
-          margin-bottom: 14px;
+        .fileInput {
+          font-size: 13px;
+          color: #374151;
+          max-width: 100%;
         }
 
         .imagePreview {
-          display: block;
-          width: 220px;
-          max-width: 100%;
-          max-height: 160px;
+          width: 150px;
+          height: 100px;
           object-fit: cover;
           border-radius: 10px;
-          border: 1px solid #dfd2c3;
+          border: 1px solid #e5e7eb;
+          background: #f3f4f6;
         }
 
-        .selectedFile {
-          margin-top: 10px;
-          color: #28713a;
+        .uploadInfo {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .uploadInfo strong {
+          display: block;
+          color: #111827;
+          font-size: 13px;
+          margin-bottom: 5px;
+        }
+
+        .uploadInfo span {
+          display: block;
+          color: #6b7280;
           font-size: 12px;
-          font-weight: 700;
+          line-height: 1.5;
         }
 
-        .checkLabel {
-          display: flex !important;
-          flex-direction: row !important;
+        .checkboxRow {
+          display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 13px 14px;
-          border: 1px solid #dfd2c3;
-          border-radius: 9px;
-          background: #faf6f0;
-          cursor: pointer;
+          gap: 9px;
+          min-height: 43px;
         }
 
-        .checkLabel input {
+        .checkboxRow input {
           width: 18px;
           height: 18px;
-          margin: 0;
+          accent-color: #111827;
         }
 
         .formActions {
           display: flex;
           justify-content: flex-end;
           gap: 10px;
-          margin-top: 24px;
+          margin-top: 22px;
           padding-top: 20px;
-          border-top:
-            1px solid #eee5dc;
+          border-top: 1px solid #e5e7eb;
         }
 
-        .cancelButton,
-        .saveButton {
-          min-height: 44px;
-          padding: 0 18px;
-          border-radius: 8px;
-          font-weight: 700;
-          cursor: pointer;
+        .alert {
+          border-radius: 10px;
+          padding: 13px 15px;
+          margin-bottom: 18px;
+          font-size: 14px;
+          line-height: 1.5;
         }
 
-        .cancelButton {
-          border: 1px solid #cfc1b1;
-          background: #fff;
-          color: #4b3326;
+        .alertError {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
         }
 
-        .saveButton {
-          border: 1px solid #4b3326;
-          background: #4b3326;
-          color: #fff;
-        }
-
-        .cancelButton:disabled,
-        .saveButton:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
+        .alertSuccess {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          color: #166534;
         }
 
         .toolbar {
+          padding: 16px 20px;
+          border-bottom: 1px solid #e5e7eb;
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 18px;
-        }
-
-        .searchWrap {
-          position: relative;
-          flex: 1;
-          max-width: 550px;
-        }
-
-        .searchWrap input {
-          width: 100%;
-          box-sizing: border-box;
-          padding:
-            12px 42px 12px 14px;
-          border: 1px solid #cfc1b1;
-          border-radius: 8px;
-          background: #fff;
-          font-size: 14px;
-          color: #3f2f24;
-        }
-
-        .clearSearch {
-          position: absolute;
-          right: 8px;
-          top: 50%;
-          transform:
-            translateY(-50%);
-          width: 28px;
-          height: 28px;
-          border: none;
-          background: transparent;
-          color: #76685d;
-          font-size: 23px;
-          cursor: pointer;
-        }
-
-        .filters {
-          display: flex;
-          gap: 7px;
+          gap: 10px;
           flex-wrap: wrap;
-          justify-content: flex-end;
         }
 
-        .filter {
-          padding: 10px 14px;
-          border: 1px solid #cfc1b1;
-          background: #fff;
-          color: #4b3326;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
+        .searchInput {
+          flex: 1;
+          min-width: 220px;
         }
 
-        .filter.active {
-          background: #4b3326;
-          color: #fff;
-          border-color: #4b3326;
-        }
-
-        .card {
-          width: 100%;
-          background: #fff;
-          border: 1px solid #dfd2c3;
-          border-radius: 12px;
-          overflow: hidden;
+        .statusFilter {
+          width: 210px;
         }
 
         .tableWrap {
@@ -2015,288 +1053,959 @@ export default function AdminLokerPage() {
         table {
           width: 100%;
           border-collapse: collapse;
-          min-width: 1150px;
-        }
-
-        th,
-        td {
-          padding: 14px;
-          border-bottom:
-            1px solid #eee5dc;
-          text-align: left;
-          vertical-align: middle;
+          min-width: 1050px;
         }
 
         th {
-          background: #faf6f0;
-          color: #5f5045;
+          background: #f9fafb;
+          color: #6b7280;
+          text-align: left;
           font-size: 12px;
+          font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.03em;
+          padding: 13px 15px;
+          border-bottom: 1px solid #e5e7eb;
+          white-space: nowrap;
         }
 
-        tbody tr:last-child td {
-          border-bottom: none;
+        td {
+          padding: 15px;
+          border-bottom: 1px solid #f3f4f6;
+          vertical-align: middle;
+          font-size: 13px;
+          color: #374151;
         }
 
         .positionCell {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-          min-width: 230px;
+          min-width: 220px;
         }
 
-        .positionCell strong {
-          display: block;
-          color: #3f2f24;
-          font-size: 14px;
-          margin-bottom: 3px;
+        .positionTitle {
+          font-weight: 800;
+          color: #111827;
+          margin-bottom: 4px;
         }
 
-        .positionCell small {
-          color: #9a8b80;
-          font-size: 11px;
+        .locationText {
+          color: #6b7280;
+          font-size: 12px;
         }
 
-        .thumb,
-        .thumbPlaceholder {
-          width: 48px;
-          height: 48px;
-          flex-shrink: 0;
-          border-radius: 8px;
+        .thumbnail {
+          width: 70px;
+          height: 50px;
           object-fit: cover;
+          border-radius: 7px;
+          border: 1px solid #e5e7eb;
+          background: #f3f4f6;
         }
 
-        .thumbPlaceholder {
+        .noImage {
+          width: 70px;
+          height: 50px;
+          border-radius: 7px;
+          background: #f3f4f6;
+          color: #9ca3af;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f3eadf;
-          color: #755337;
-          font-size: 22px;
+          font-size: 11px;
+          text-align: center;
         }
 
-        .status {
+        .badge {
           display: inline-flex;
           align-items: center;
-          min-height: 28px;
-          padding: 5px 9px;
           border-radius: 999px;
+          padding: 6px 9px;
           font-size: 11px;
           font-weight: 800;
           white-space: nowrap;
         }
 
-        .status-draft {
-          background: #f1eeee;
-          color: #7a6d68;
+        .activeBadge {
+          background: #dcfce7;
+          color: #166534;
         }
 
-        .status-dibuka {
-          background: #dcf8e7;
-          color: #16834b;
-        }
-
-        .status-proses_seleksi {
-          background: #e5f0ff;
-          color: #3575c5;
-        }
-
-        .status-ditutup {
-          background: #f0e9e5;
-          color: #80695d;
-        }
-
-        .status-terisi {
-          background: #eee5ff;
-          color: #7650c9;
-        }
-
-        .dateCell span,
-        .dateCell small {
-          display: block;
-        }
-
-        .dateCell span {
-          color: #4b3326;
-          font-weight: 600;
-          font-size: 13px;
-        }
-
-        .dateCell small {
-          margin-top: 3px;
-          color: #918178;
-          font-size: 11px;
-        }
-
-        .toggle {
-          min-width: 78px;
-          padding: 7px 10px;
-          border: none;
-          border-radius: 999px;
-          background: #f1eeee;
-          color: #796d68;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .toggle.active {
-          background: #e8f5e9;
-          color: #2f6d35;
-        }
-
-        .toggle:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
+        .inactiveBadge {
+          background: #f3f4f6;
+          color: #6b7280;
         }
 
         .actions {
           display: flex;
           gap: 7px;
-          align-items: center;
-        }
-
-        .editButton,
-        .deleteButton {
-          padding: 8px 12px;
-          border-radius: 7px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-
-        .editButton {
-          border: none;
-          background: #f3eadf;
-          color: #4b3326;
-        }
-
-        .deleteButton {
-          border: none;
-          background: #f7dddd;
-          color: #9b2929;
-        }
-
-        .deleteButton:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
+          flex-wrap: wrap;
         }
 
         .empty {
-          padding: 55px 30px;
+          padding: 55px 20px;
           text-align: center;
-          color: #76685d;
+          color: #6b7280;
         }
 
         .emptyIcon {
-          margin-bottom: 12px;
-          font-size: 40px;
+          font-size: 42px;
+          margin-bottom: 10px;
         }
 
-        .empty strong {
-          display: block;
-          color: #4b3326;
-          font-size: 17px;
+        .empty h3 {
+          margin: 0 0 6px;
+          color: #111827;
+          font-size: 18px;
         }
 
         .empty p {
-          margin: 7px 0 0;
-          color: #8b7a70;
+          margin: 0;
           font-size: 13px;
         }
 
-        @media (max-width: 1100px) {
-          .summary {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-          }
-
-          .topbar {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .toolbar {
-            align-items: stretch;
-            flex-direction: column;
-          }
-
-          .searchWrap {
-            max-width: none;
-          }
-
-          .filters {
-            justify-content: flex-start;
-          }
+        .loading {
+          padding: 50px 20px;
+          text-align: center;
+          color: #6b7280;
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 1000px) {
+          .summaryGrid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
           .formGrid {
             grid-template-columns: 1fr;
           }
 
-          .field.full {
+          .fieldFull {
             grid-column: auto;
-          }
-
-          .summary {
-            grid-template-columns: 1fr;
-          }
-
-          .topActions {
-            width: 100%;
-          }
-
-          .previewButton,
-          .addButton {
-            flex: 1;
-          }
-
-          .filters {
-            width: 100%;
-          }
-
-          .filter {
-            flex: 1;
           }
         }
 
-        @media (max-width: 520px) {
-          h1 {
-            font-size: 26px;
+        @media (max-width: 700px) {
+          .pageHeader {
+            flex-direction: column;
           }
 
-          .formCard {
-            padding: 18px;
+          .headerActions {
+            width: 100%;
+            justify-content: flex-start;
+          }
+
+          .summaryGrid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .summaryCard {
+            padding: 14px;
+          }
+
+          .summaryValue {
+            font-size: 24px;
+          }
+
+          .formBody {
+            padding: 16px;
+          }
+
+          .toolbar {
+            padding: 14px;
+          }
+
+          .statusFilter {
+            width: 100%;
           }
 
           .formActions {
             flex-direction: column-reverse;
           }
 
-          .cancelButton,
-          .saveButton {
+          .formActions .button {
             width: 100%;
           }
 
-          .topActions {
+          .uploadRow {
+            align-items: flex-start;
             flex-direction: column;
           }
+        }
 
-          .previewButton,
-          .addButton {
-            width: 100%;
-            flex: none;
+        @media (max-width: 480px) {
+          .summaryGrid {
+            grid-template-columns: 1fr;
           }
 
-          .imagePreview {
-            width: 100%;
-            max-height: 200px;
+          .pageHeader h1 {
+            font-size: 25px;
           }
         }
       `}</style>
+
+      <div className="page">
+        <div className="pageHeader">
+          <div>
+            <h1>Lowongan Kerja</h1>
+            <p>
+              Kelola informasi lowongan kerja
+              yang tampil di website Sinar Kasih.
+            </p>
+          </div>
+
+          <div className="headerActions">
+            <Link
+              href="/loker"
+              target="_blank"
+              className="button buttonSecondary"
+            >
+              👁 Lihat Halaman Loker
+            </Link>
+
+            <button
+              type="button"
+              className="button buttonPrimary"
+              onClick={openAddForm}
+            >
+              + Tambah Lowongan
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="alert alertError">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="alert alertSuccess">
+            {success}
+          </div>
+        )}
+
+        <div className="summaryGrid">
+          <div className="summaryCard">
+            <div className="summaryLabel">
+              Total Lowongan
+            </div>
+            <div className="summaryValue">
+              {total}
+            </div>
+          </div>
+
+          <div className="summaryCard">
+            <div className="summaryLabel">
+              Aktif
+            </div>
+            <div className="summaryValue">
+              {aktif}
+            </div>
+          </div>
+
+          <div className="summaryCard">
+            <div className="summaryLabel">
+              Nonaktif
+            </div>
+            <div className="summaryValue">
+              {nonaktif}
+            </div>
+          </div>
+
+          <div className="summaryCard">
+            <div className="summaryLabel">
+              Pendaftaran Dibuka
+            </div>
+            <div className="summaryValue">
+              {dibuka}
+            </div>
+          </div>
+        </div>
+
+        {showForm && (
+          <section className="card formCard">
+            <div className="cardHeader">
+              <h2>
+                {editingId
+                  ? "Edit Lowongan Kerja"
+                  : "Tambah Lowongan Kerja"}
+              </h2>
+
+              <p>
+                Isi informasi lowongan yang
+                akan ditampilkan kepada
+                calon pelamar.
+              </p>
+            </div>
+
+            <div className="formBody">
+              <form onSubmit={handleSubmit}>
+                <div className="formGrid">
+                  <div className="field">
+                    <label>
+                      Posisi Lowongan{" "}
+                      <span className="required">
+                        *
+                      </span>
+                    </label>
+
+                    <input
+                      className="input"
+                      name="posisi"
+                      value={form.posisi}
+                      onChange={handleChange}
+                      placeholder="Contoh: Teknisi Listrik"
+                      required
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Lokasi
+                    </label>
+
+                    <input
+                      className="input"
+                      name="lokasi"
+                      value={form.lokasi}
+                      onChange={handleChange}
+                      placeholder="Contoh: Ambon"
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Urutan Tampil
+                    </label>
+
+                    <input
+                      className="input"
+                      type="number"
+                      name="urutan"
+                      value={form.urutan}
+                      onChange={handleChange}
+                      min="0"
+                    />
+
+                    <p className="fieldHint">
+                      Angka lebih kecil akan
+                      ditampilkan lebih dahulu.
+                    </p>
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Status Lowongan
+                    </label>
+
+                    <select
+                      className="select"
+                      name="status"
+                      value={form.status}
+                      onChange={handleChange}
+                    >
+                      {statusOptions.map(
+                        (item) => (
+                          <option
+                            key={item.value}
+                            value={item.value}
+                          >
+                            {item.label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Tahap Seleksi
+                    </label>
+
+                    <select
+                      className="select"
+                      name="tahap_seleksi"
+                      value={
+                        form.tahap_seleksi
+                      }
+                      onChange={handleChange}
+                    >
+                      {tahapSeleksi.map(
+                        (item) => (
+                          <option
+                            key={item.value}
+                            value={item.value}
+                          >
+                            {item.label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Tanggal Buka
+                    </label>
+
+                    <div className="dateWrapper">
+                      <input
+                        className="input dateDisplay"
+                        name="tanggal_buka"
+                        value={
+                          form.tanggal_buka
+                        }
+                        onChange={
+                          handleDateChange
+                        }
+                        placeholder="DD/MM/YYYY"
+                        inputMode="numeric"
+                        maxLength={10}
+                        autoComplete="off"
+                      />
+
+                      <button
+                        type="button"
+                        className="calendarButton"
+                        onClick={() =>
+                          openDatePicker(
+                            tanggalBukaPickerRef
+                          )
+                        }
+                        aria-label="Pilih tanggal buka"
+                        title="Pilih tanggal"
+                      >
+                        📅
+                      </button>
+
+                      <input
+                        ref={
+                          tanggalBukaPickerRef
+                        }
+                        type="date"
+                        className="hiddenDatePicker"
+                        value={isoToDateInput(
+                          displayToIsoDate(
+                            form.tanggal_buka
+                          ).value || ""
+                        )}
+                        onChange={(event) =>
+                          handleNativeDateChange(
+                            event,
+                            "tanggal_buka"
+                          )
+                        }
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    <p className="fieldHint">
+                      Pilih dari kalender atau
+                      ketik dengan format
+                      DD/MM/YYYY.
+                    </p>
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Tanggal Tutup
+                    </label>
+
+                    <div className="dateWrapper">
+                      <input
+                        className="input dateDisplay"
+                        name="tanggal_tutup"
+                        value={
+                          form.tanggal_tutup
+                        }
+                        onChange={
+                          handleDateChange
+                        }
+                        placeholder="DD/MM/YYYY"
+                        inputMode="numeric"
+                        maxLength={10}
+                        autoComplete="off"
+                      />
+
+                      <button
+                        type="button"
+                        className="calendarButton"
+                        onClick={() =>
+                          openDatePicker(
+                            tanggalTutupPickerRef
+                          )
+                        }
+                        aria-label="Pilih tanggal tutup"
+                        title="Pilih tanggal"
+                      >
+                        📅
+                      </button>
+
+                      <input
+                        ref={
+                          tanggalTutupPickerRef
+                        }
+                        type="date"
+                        className="hiddenDatePicker"
+                        value={isoToDateInput(
+                          displayToIsoDate(
+                            form.tanggal_tutup
+                          ).value || ""
+                        )}
+                        onChange={(event) =>
+                          handleNativeDateChange(
+                            event,
+                            "tanggal_tutup"
+                          )
+                        }
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    <p className="fieldHint">
+                      Pilih dari kalender atau
+                      ketik dengan format
+                      DD/MM/YYYY.
+                    </p>
+                  </div>
+
+                  <div className="field fieldFull">
+                    <label>
+                      Gambar Lowongan
+                    </label>
+
+                    <div className="uploadBox">
+                      <div className="uploadRow">
+                        {gambarPreview ? (
+                          <img
+                            src={gambarPreview}
+                            alt="Preview gambar lowongan"
+                            className="imagePreview"
+                          />
+                        ) : (
+                          <div className="noImage">
+                            Belum ada
+                            gambar
+                          </div>
+                        )}
+
+                        <div className="uploadInfo">
+                          <strong>
+                            Upload gambar
+                            lowongan
+                          </strong>
+
+                          <span>
+                            Format JPG, PNG,
+                            atau WEBP.
+                            Maksimal 5 MB.
+                          </span>
+
+                          {gambarFile && (
+                            <span>
+                              File:{" "}
+                              {gambarFile.name}
+                            </span>
+                          )}
+                        </div>
+
+                        <input
+                          className="fileInput"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={
+                            handleImageChange
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="field fieldFull">
+                    <label>
+                      Link Form Pendaftaran
+                    </label>
+
+                    <input
+                      className="input"
+                      type="url"
+                      name="google_form_url"
+                      value={
+                        form.google_form_url
+                      }
+                      onChange={handleChange}
+                      placeholder="https://forms.google.com/..."
+                    />
+
+                    <p className="fieldHint">
+                      Masukkan link formulir
+                      pendaftaran jika
+                      tersedia.
+                    </p>
+                  </div>
+
+                  <div className="field fieldFull">
+                    <label>
+                      Deskripsi Posisi
+                    </label>
+
+                    <textarea
+                      className="textarea"
+                      name="deskripsi"
+                      value={form.deskripsi}
+                      onChange={handleChange}
+                      placeholder="Jelaskan posisi dan pekerjaan yang akan dilakukan..."
+                    />
+                  </div>
+
+                  <div className="field fieldFull">
+                    <label>
+                      Persyaratan
+                    </label>
+
+                    <textarea
+                      className="textarea"
+                      name="persyaratan"
+                      value={
+                        form.persyaratan
+                      }
+                      onChange={handleChange}
+                      placeholder="Tuliskan persyaratan calon pelamar..."
+                    />
+                  </div>
+
+                  <div className="field fieldFull">
+                    <label>
+                      Pengumuman
+                    </label>
+
+                    <textarea
+                      className="textarea"
+                      name="pengumuman"
+                      value={
+                        form.pengumuman
+                      }
+                      onChange={handleChange}
+                      placeholder="Informasi tambahan atau pengumuman untuk pelamar..."
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>
+                      Tampilkan di Website
+                    </label>
+
+                    <div className="checkboxRow">
+                      <input
+                        type="checkbox"
+                        name="aktif"
+                        checked={form.aktif}
+                        onChange={handleChange}
+                        id="aktifLowongan"
+                      />
+
+                      <label
+                        htmlFor="aktifLowongan"
+                      >
+                        Aktif dan tampil di
+                        halaman lowongan
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formActions">
+                  <button
+                    type="button"
+                    className="button buttonSecondary"
+                    onClick={resetForm}
+                    disabled={saving}
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="button buttonPrimary"
+                    disabled={saving}
+                  >
+                    {saving
+                      ? "Menyimpan..."
+                      : editingId
+                      ? "Simpan Perubahan"
+                      : "Simpan Lowongan"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        )}
+
+        <section className="card">
+          <div className="cardHeader">
+            <h2>
+              Daftar Lowongan
+            </h2>
+
+            <p>
+              Kelola semua lowongan kerja
+              yang tersedia.
+            </p>
+          </div>
+
+          <div className="toolbar">
+            <input
+              className="input searchInput"
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              placeholder="Cari posisi atau lokasi..."
+            />
+
+            <select
+              className="select statusFilter"
+              value={filterStatus}
+              onChange={(event) =>
+                setFilterStatus(
+                  event.target.value
+                )
+              }
+            >
+              <option value="semua">
+                Semua Status
+              </option>
+
+              {statusOptions.map(
+                (item) => (
+                  <option
+                    key={item.value}
+                    value={item.value}
+                  >
+                    {item.label}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+
+          {loading ? (
+            <div className="loading">
+              Memuat data lowongan...
+            </div>
+          ) : filteredLowongan.length ===
+            0 ? (
+            <div className="empty">
+              <div className="emptyIcon">
+                💼
+              </div>
+
+              <h3>
+                Belum ada data lowongan
+              </h3>
+
+              <p>
+                Tambahkan lowongan kerja
+                menggunakan tombol
+                &quot;+ Tambah Lowongan&quot;.
+              </p>
+            </div>
+          ) : (
+            <div className="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>
+                      Gambar
+                    </th>
+                    <th>
+                      Posisi
+                    </th>
+                    <th>
+                      Status
+                    </th>
+                    <th>
+                      Tahap
+                    </th>
+                    <th>
+                      Tanggal
+                    </th>
+                    <th>
+                      Tampil
+                    </th>
+                    <th>
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredLowongan.map(
+                    (item) => {
+                      const status =
+                        getStatusInfo(
+                          item.status
+                        );
+
+                      return (
+                        <tr
+                          key={item.id}
+                        >
+                          <td>
+                            {item.gambar_url ? (
+                              <img
+                                src={
+                                  item.gambar_url
+                                }
+                                alt={
+                                  item.posisi
+                                }
+                                className="thumbnail"
+                              />
+                            ) : (
+                              <div className="noImage">
+                                Tidak ada
+                              </div>
+                            )}
+                          </td>
+
+                          <td>
+                            <div className="positionCell">
+                              <div className="positionTitle">
+                                {
+                                  item.posisi
+                                }
+                              </div>
+
+                              <div className="locationText">
+                                📍{" "}
+                                {item.lokasi ||
+                                  "Lokasi belum diisi"}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span
+                              className="badge"
+                              style={{
+                                background:
+                                  status.background,
+                                color:
+                                  status.color,
+                              }}
+                            >
+                              {
+                                status.label
+                              }
+                            </span>
+                          </td>
+
+                          <td>
+                            {
+                              getTahapLabel(
+                                item.tahap_seleksi
+                              )
+                            }
+                          </td>
+
+                          <td>
+                            <div>
+                              {item.tanggal_buka
+                                ? isoToDisplayDate(
+                                    item.tanggal_buka
+                                  )
+                                : "-"}
+                            </div>
+
+                            <div
+                              style={{
+                                color:
+                                  "#6b7280",
+                                fontSize:
+                                  "12px",
+                                marginTop:
+                                  "4px",
+                              }}
+                            >
+                              s/d{" "}
+                              {item.tanggal_tutup
+                                ? isoToDisplayDate(
+                                    item.tanggal_tutup
+                                  )
+                                : "-"}
+                            </div>
+                          </td>
+
+                          <td>
+                            <button
+                              type="button"
+                              className="button buttonSmall"
+                              style={{
+                                background:
+                                  item.aktif
+                                    ? "#dcfce7"
+                                    : "#f3f4f6",
+                                color:
+                                  item.aktif
+                                    ? "#166534"
+                                    : "#6b7280",
+                                borderColor:
+                                  item.aktif
+                                    ? "#bbf7d0"
+                                    : "#e5e7eb",
+                              }}
+                              onClick={() =>
+                                toggleActive(
+                                  item
+                                )
+                              }
+                            >
+                              {item.aktif
+                                ? "Aktif"
+                                : "Nonaktif"}
+                            </button>
+                          </td>
+
+                          <td>
+                            <div className="actions">
+                              <button
+                                type="button"
+                                className="button buttonSmall buttonSecondary"
+                                onClick={() =>
+                                  openEditForm(
+                                    item
+                                  )
+                                }
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                className="button buttonSmall buttonDanger"
+                                onClick={() =>
+                                  handleDelete(
+                                    item.id
+                                  )
+                                }
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
