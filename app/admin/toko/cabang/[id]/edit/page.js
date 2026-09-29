@@ -18,10 +18,14 @@ export default function Page() {
     alamat: "",
     telepon: "",
     google_maps_url: "",
+    google_review_url: "",
     foto: "",
     aktif: true,
     urutan: 1,
   });
+
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState("");
 
   useEffect(() => {
     async function loadCabang() {
@@ -38,7 +42,7 @@ export default function Page() {
       const { data, error: loadError } = await supabase
         .from("cabang_toko")
         .select(
-          "id, nama, alamat, telepon, google_maps_url, foto, aktif, urutan"
+          "id, nama, alamat, telepon, google_maps_url, google_review_url, foto, aktif, urutan"
         )
         .eq("id", params.id)
         .maybeSingle();
@@ -60,11 +64,13 @@ export default function Page() {
         alamat: data.alamat || "",
         telepon: data.telepon || "",
         google_maps_url: data.google_maps_url || "",
+        google_review_url: data.google_review_url || "",
         foto: data.foto || "",
         aktif: data.aktif !== false,
         urutan: data.urutan ?? 1,
       });
 
+      setFotoPreview(data.foto || "");
       setLoading(false);
     }
 
@@ -78,6 +84,48 @@ export default function Page() {
       ...current,
       [name]: type === "checkbox" ? checked : value,
     }));
+  }
+
+  function handleFotoChange(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("File yang dipilih harus berupa gambar.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Ukuran foto maksimal 5 MB.");
+      return;
+    }
+
+    setError("");
+    setFotoFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setFotoPreview(previewUrl);
+  }
+
+  async function hapusFotoLama(supabase, fotoUrl) {
+    if (!fotoUrl) return;
+
+    try {
+      const marker = "/storage/v1/object/public/cabang-toko/";
+
+      if (!fotoUrl.includes(marker)) return;
+
+      const filePath = fotoUrl.split(marker)[1];
+
+      if (!filePath) return;
+
+      await supabase.storage
+        .from("cabang-toko")
+        .remove([filePath]);
+    } catch (err) {
+      console.warn("Foto lama tidak berhasil dihapus:", err);
+    }
   }
 
   async function simpan(event) {
@@ -106,30 +154,67 @@ export default function Page() {
       return;
     }
 
-    const { error: updateError } = await supabase
-      .from("cabang_toko")
-      .update({
-        nama: form.nama.trim(),
-        alamat: form.alamat.trim(),
-        telepon: form.telepon.trim() || null,
-        google_maps_url: form.google_maps_url.trim() || null,
-        foto: form.foto.trim() || null,
-        aktif: form.aktif,
-        urutan: Number(form.urutan) || 1,
-      })
-      .eq("id", params.id);
+    try {
+      let fotoUrl = form.foto || null;
 
-    if (updateError) {
-      setError(updateError.message);
+      if (fotoFile) {
+        const extension =
+          fotoFile.name.split(".").pop()?.toLowerCase() || "jpg";
+
+        const filePath = `cabang/${params.id}/utama-${Date.now()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("cabang-toko")
+          .upload(filePath, fotoFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage
+          .from("cabang-toko")
+          .getPublicUrl(filePath);
+
+        fotoUrl = publicUrl;
+
+        if (form.foto) {
+          await hapusFotoLama(supabase, form.foto);
+        }
+      }
+
+      const { error: updateError } = await supabase
+        .from("cabang_toko")
+        .update({
+          nama: form.nama.trim(),
+          alamat: form.alamat.trim(),
+          telepon: form.telepon.trim() || null,
+          google_maps_url: form.google_maps_url.trim() || null,
+          google_review_url: form.google_review_url.trim() || null,
+          foto: fotoUrl,
+          aktif: form.aktif,
+          urutan: Number(form.urutan) || 1,
+        })
+        .eq("id", params.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setSuccess("Data cabang berhasil disimpan.");
+
+      setTimeout(() => {
+        router.push("/admin/toko");
+      }, 600);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Gagal menyimpan data cabang.");
       setSaving(false);
-      return;
     }
-
-    setSuccess("Data cabang berhasil disimpan.");
-
-    setTimeout(() => {
-      router.push("/admin/toko");
-    }, 600);
   }
 
   if (loading) {
@@ -160,9 +245,7 @@ export default function Page() {
 
       {error && <div className="error-box">{error}</div>}
 
-      {success && (
-        <div className="success-box">{success}</div>
-      )}
+      {success && <div className="success-box">{success}</div>}
 
       <form onSubmit={simpan} className="form-card">
         <div className="form-grid">
@@ -211,23 +294,43 @@ export default function Page() {
             />
 
             <small>
-              Masukkan link Google Maps cabang.
+              Link lokasi cabang di Google Maps.
             </small>
           </div>
 
           <div className="field full">
-            <label>URL Foto Cabang</label>
+            <label>Google Review</label>
 
             <input
-              name="foto"
-              value={form.foto}
+              name="google_review_url"
+              value={form.google_review_url}
               onChange={handleChange}
-              placeholder="https://..."
+              placeholder="https://g.page/r/..."
             />
 
             <small>
-              Untuk sementara menggunakan URL foto.
+              Link langsung untuk pelanggan memberikan ulasan Google.
             </small>
+          </div>
+
+          <div className="field full">
+            <label>Foto Cabang</label>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFotoChange}
+            />
+
+            <small>
+              Pilih foto baru jika ingin mengganti foto cabang. Maksimal 5 MB.
+            </small>
+
+            {fotoPreview && (
+              <div className="preview">
+                <img src={fotoPreview} alt="Foto cabang" />
+              </div>
+            )}
           </div>
 
           <div className="field">
@@ -360,6 +463,23 @@ export default function Page() {
         .field textarea:focus {
           outline: none;
           border-color: #8a654a;
+        }
+
+        .preview {
+          margin-top: 10px;
+          width: 320px;
+          height: 200px;
+          border: 1px solid #ddd0c3;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #f5f0e8;
+        }
+
+        .preview img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         .check-row {
