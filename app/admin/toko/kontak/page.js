@@ -5,6 +5,33 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+function normalizeSocialUrl(value, platform) {
+  const text = (value || "").trim();
+
+  if (!text) return "";
+
+  if (/^https?:\/\//i.test(text)) {
+    return text;
+  }
+
+  const username = text
+    .replace(/^@/, "")
+    .replace(/^\/+/, "")
+    .trim();
+
+  if (!username) return "";
+
+  if (platform === "instagram") {
+    return `https://instagram.com/${username}`;
+  }
+
+  if (platform === "tiktok") {
+    return `https://www.tiktok.com/@${username}`;
+  }
+
+  return text;
+}
+
 export default function KontakTokoPage() {
   const router = useRouter();
 
@@ -61,8 +88,14 @@ export default function KontakTokoPage() {
     setData({
       id: kontak.id,
       whatsapp: kontak.whatsapp || "",
-      instagram: kontak.instagram || "",
-      tiktok: kontak.tiktok || "",
+      instagram: normalizeSocialUrl(
+        kontak.instagram || "",
+        "instagram"
+      ),
+      tiktok: normalizeSocialUrl(
+        kontak.tiktok || "",
+        "tiktok"
+      ),
       email: kontak.email || "",
     });
 
@@ -98,48 +131,107 @@ export default function KontakTokoPage() {
       return;
     }
 
+    const instagramUrl = normalizeSocialUrl(
+      data.instagram,
+      "instagram"
+    );
+
+    const tiktokUrl = normalizeSocialUrl(
+      data.tiktok,
+      "tiktok"
+    );
+
     const { error: updateError } = await supabase
       .from("kontak_toko")
       .update({
         whatsapp: data.whatsapp.trim() || null,
-        instagram: data.instagram.trim() || null,
-        tiktok: data.tiktok.trim() || null,
+        instagram: instagramUrl || null,
+        tiktok: tiktokUrl || null,
         email: data.email.trim() || null,
       })
       .eq("id", data.id);
 
     if (updateError) {
       console.error(updateError);
-      setError(`Gagal menyimpan perubahan: ${updateError.message}`);
+      setError(
+        `Gagal menyimpan perubahan: ${updateError.message}`
+      );
       setSaving(false);
       return;
     }
+
+    setData((current) => ({
+      ...current,
+      instagram: instagramUrl,
+      tiktok: tiktokUrl,
+    }));
 
     setMessage("Informasi toko & kontak berhasil disimpan.");
     setSaving(false);
   }
 
+  const backButtonStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "11px 16px",
+    borderRadius: "8px",
+    background: "#ffffff",
+    border: "1px solid #d7c8b8",
+    color: "#4b3326",
+    textDecoration: "none",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+  };
+
+  const socialLinkStyle = {
+    display: "inline-block",
+    marginTop: "8px",
+    color: "#765239",
+    fontSize: "13px",
+    fontWeight: 700,
+    textDecoration: "underline",
+    wordBreak: "break-all",
+  };
+
   if (loading) {
     return (
       <div className="admin">
-        <div className="adminhead">SINAR KASIH — ADMIN PANEL</div>
+        <div className="adminhead">
+          SINAR KASIH — ADMIN PANEL
+        </div>
 
         <div className="adminlayout">
           <aside className="side">
             <Link href="/admin">Dashboard</Link>
             <Link href="/admin/produk">Produk</Link>
             <Link href="/admin/pesanan">Pesanan</Link>
-            <Link href="/admin/pesanan/trash">Trash Pesanan</Link>
-            <Link href="/admin/tampilan">Tampilan Website</Link>
-            <Link href="/admin/toko">Toko & Kontak</Link>
-            <Link href="/admin/pelanggan">Pelanggan</Link>
-            <Link href="/admin/statistik">Statistik</Link>
-            <Link href="/admin/pengaturan">Pengaturan</Link>
+            <Link href="/admin/pesanan/trash">
+              Trash Pesanan
+            </Link>
+            <Link href="/admin/tampilan">
+              Tampilan Website
+            </Link>
+            <Link href="/admin/toko">
+              Toko & Kontak
+            </Link>
+            <Link href="/admin/pelanggan">
+              Pelanggan
+            </Link>
+            <Link href="/admin/statistik">
+              Statistik
+            </Link>
+            <Link href="/admin/pengaturan">
+              Pengaturan
+            </Link>
           </aside>
 
           <main className="dash">
             <div className="page">
-              <div className="loading">Memuat informasi toko...</div>
+              <div className="loading">
+                Memuat informasi toko...
+              </div>
             </div>
           </main>
         </div>
@@ -209,46 +301,85 @@ export default function KontakTokoPage() {
 
   return (
     <div className="admin">
-      <div className="adminhead">SINAR KASIH — ADMIN PANEL</div>
+      <div className="adminhead">
+        SINAR KASIH — ADMIN PANEL
+      </div>
 
       <div className="adminlayout">
         <aside className="side">
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/produk">Produk</Link>
           <Link href="/admin/pesanan">Pesanan</Link>
-          <Link href="/admin/pesanan/trash">Trash Pesanan</Link>
-          <Link href="/admin/tampilan">Tampilan Website</Link>
-          <Link href="/admin/toko">Toko & Kontak</Link>
-          <Link href="/admin/pelanggan">Pelanggan</Link>
-          <Link href="/admin/statistik">Statistik</Link>
-          <Link href="/admin/pengaturan">Pengaturan</Link>
+          <Link href="/admin/pesanan/trash">
+            Trash Pesanan
+          </Link>
+          <Link href="/admin/tampilan">
+            Tampilan Website
+          </Link>
+          <Link href="/admin/toko">
+            Toko & Kontak
+          </Link>
+          <Link href="/admin/pelanggan">
+            Pelanggan
+          </Link>
+          <Link href="/admin/statistik">
+            Statistik
+          </Link>
+          <Link href="/admin/pengaturan">
+            Pengaturan
+          </Link>
         </aside>
 
         <main className="dash">
           <div className="page">
+
             <div className="topbar">
               <div>
                 <h1>Informasi Toko & Kontak</h1>
+
                 <p>
-                  Kelola kontak utama yang digunakan oleh website Sinar Kasih.
+                  Kelola kontak utama yang digunakan oleh
+                  website Sinar Kasih.
                 </p>
               </div>
 
-              <Link href="/admin/toko" className="backButton">
+              {/* TOMBOL KEMBALI */}
+              <Link
+                href="/admin/toko"
+                style={backButtonStyle}
+              >
                 ← Kembali ke Toko & Kontak
               </Link>
             </div>
 
-            {message && <div className="success">{message}</div>}
+            {message && (
+              <div className="success">
+                {message}
+              </div>
+            )}
 
-            {error && <div className="error">{error}</div>}
+            {error && (
+              <div className="error">
+                {error}
+              </div>
+            )}
 
-            <form onSubmit={handleSave} className="card">
-              <div className="cardTitle">Kontak Utama Toko</div>
+            <form
+              onSubmit={handleSave}
+              className="card"
+            >
+              <div className="cardTitle">
+                Kontak Utama Toko
+              </div>
 
               <div className="grid">
+
+                {/* WHATSAPP */}
                 <div className="field">
-                  <label htmlFor="whatsapp">WhatsApp</label>
+                  <label htmlFor="whatsapp">
+                    WhatsApp
+                  </label>
+
                   <input
                     id="whatsapp"
                     name="whatsapp"
@@ -257,13 +388,19 @@ export default function KontakTokoPage() {
                     onChange={handleChange}
                     placeholder="Contoh: 081285750033"
                   />
+
                   <small>
-                    Nomor WhatsApp utama yang digunakan pelanggan saat checkout.
+                    Nomor WhatsApp utama yang digunakan
+                    pelanggan saat checkout.
                   </small>
                 </div>
 
+                {/* EMAIL */}
                 <div className="field">
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="email">
+                    Email
+                  </label>
+
                   <input
                     id="email"
                     name="email"
@@ -274,39 +411,96 @@ export default function KontakTokoPage() {
                   />
                 </div>
 
+                {/* INSTAGRAM */}
                 <div className="field">
-                  <label htmlFor="instagram">Instagram</label>
+                  <label htmlFor="instagram">
+                    Instagram
+                  </label>
+
                   <input
                     id="instagram"
                     name="instagram"
-                    type="text"
+                    type="url"
                     value={data.instagram}
                     onChange={handleChange}
-                    placeholder="Contoh: @sinarkasih"
+                    placeholder="https://instagram.com/sinarkasih"
                   />
+
+                  {data.instagram && (
+                    <a
+                      href={normalizeSocialUrl(
+                        data.instagram,
+                        "instagram"
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={socialLinkStyle}
+                    >
+                      🔗 Buka Instagram
+                    </a>
+                  )}
+
+                  <small>
+                    Masukkan URL Instagram, misalnya:
+                    https://instagram.com/sinarkasih
+                  </small>
                 </div>
 
+                {/* TIKTOK */}
                 <div className="field">
-                  <label htmlFor="tiktok">TikTok</label>
+                  <label htmlFor="tiktok">
+                    TikTok
+                  </label>
+
                   <input
                     id="tiktok"
                     name="tiktok"
-                    type="text"
+                    type="url"
                     value={data.tiktok}
                     onChange={handleChange}
-                    placeholder="Contoh: @sinarkasih"
+                    placeholder="https://tiktok.com/@sinarkasih"
                   />
+
+                  {data.tiktok && (
+                    <a
+                      href={normalizeSocialUrl(
+                        data.tiktok,
+                        "tiktok"
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={socialLinkStyle}
+                    >
+                      🔗 Buka TikTok
+                    </a>
+                  )}
+
+                  <small>
+                    Masukkan URL TikTok, misalnya:
+                    https://tiktok.com/@sinarkasih
+                  </small>
                 </div>
+
               </div>
 
               <div className="actions">
-                <Link href="/admin/toko" className="cancelButton">
+
+                <Link
+                  href="/admin/toko"
+                  className="cancelButton"
+                >
                   Batal
                 </Link>
 
-                <button type="submit" disabled={saving}>
-                  {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                <button
+                  type="submit"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Menyimpan..."
+                    : "Simpan Perubahan"}
                 </button>
+
               </div>
             </form>
           </div>
@@ -383,21 +577,6 @@ export default function KontakTokoPage() {
           color: #76685d;
         }
 
-        .backButton {
-          background: #fff;
-          border: 1px solid #d7c8b8;
-          color: #4b3326;
-          padding: 11px 16px;
-          border-radius: 8px;
-          text-decoration: none;
-          font-weight: 600;
-          white-space: nowrap;
-        }
-
-        .backButton:hover {
-          background: #f3eadf;
-        }
-
         .success {
           margin-bottom: 18px;
           padding: 14px 16px;
@@ -435,7 +614,10 @@ export default function KontakTokoPage() {
 
         .grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+          );
           gap: 22px 24px;
         }
 
@@ -463,7 +645,9 @@ export default function KontakTokoPage() {
 
         input:focus {
           border-color: #9b7656;
-          box-shadow: 0 0 0 3px rgba(155, 118, 86, 0.12);
+          box-shadow:
+            0 0 0 3px
+            rgba(155, 118, 86, 0.12);
         }
 
         small {
@@ -500,6 +684,10 @@ export default function KontakTokoPage() {
           color: #4b3326;
         }
 
+        .cancelButton:hover {
+          background: #f3eadf;
+        }
+
         button {
           border: none;
           background: #4b3326;
@@ -533,6 +721,11 @@ export default function KontakTokoPage() {
           .topbar {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .topbar > a {
+            width: 100%;
+            box-sizing: border-box;
           }
 
           .grid {
