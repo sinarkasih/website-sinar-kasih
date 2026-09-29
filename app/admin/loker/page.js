@@ -154,9 +154,11 @@ export default function AdminLokerPage() {
 
     if (fetchError) {
       console.error(fetchError);
+
       setError(
         `Gagal mengambil data lowongan: ${fetchError.message}`
       );
+
       setLoading(false);
       return;
     }
@@ -272,9 +274,11 @@ export default function AdminLokerPage() {
 
     if (result.error) {
       console.error(result.error);
+
       setError(
         `Gagal menyimpan lowongan: ${result.error.message}`
       );
+
       setSaving(false);
       return;
     }
@@ -319,15 +323,19 @@ export default function AdminLokerPage() {
 
     if (deleteError) {
       console.error(deleteError);
+
       setError(
         `Gagal menghapus lowongan: ${deleteError.message}`
       );
+
       setProcessingId(null);
       return;
     }
 
     setLowongan((current) =>
-      current.filter((itemLowongan) => itemLowongan.id !== item.id)
+      current.filter(
+        (itemLowongan) => itemLowongan.id !== item.id
+      )
     );
 
     setProcessingId(null);
@@ -356,9 +364,11 @@ export default function AdminLokerPage() {
 
     if (updateError) {
       console.error(updateError);
+
       setError(
         `Gagal mengubah status: ${updateError.message}`
       );
+
       setProcessingId(null);
       return;
     }
@@ -407,723 +417,636 @@ export default function AdminLokerPage() {
   });
 
   const totalLowongan = lowongan.length;
-  const aktif = lowongan.filter((item) => item.aktif).length;
-  const dibuka = lowongan.filter(
-    (item) => item.status === "dibuka" && item.aktif
+
+  const aktif = lowongan.filter(
+    (item) => item.aktif
   ).length;
+
+  const dibuka = lowongan.filter(
+    (item) =>
+      item.status === "dibuka" && item.aktif
+  ).length;
+
   const nonaktif = lowongan.filter(
     (item) => !item.aktif
   ).length;
 
   return (
-    <div className="admin">
-      <div className="adminhead">
-        SINAR KASIH — ADMIN PANEL
-      </div>
+    <div className="lokerPage">
+      <div className="page">
+        <div className="topbar">
+          <div>
+            <div className="eyebrow">
+              ADMINISTRASI WEBSITE
+            </div>
 
-      <div className="adminlayout">
-        <aside className="side">
-          <Link href="/admin">Dashboard</Link>
+            <h1>Lowongan Kerja</h1>
 
-          <Link href="/admin/produk">Produk</Link>
+            <p>
+              Kelola informasi lowongan kerja yang
+              ditampilkan pada halaman publik.
+            </p>
+          </div>
 
-          <Link href="/admin/pesanan">Pesanan</Link>
+          <div className="topActions">
+            <Link
+              href="/loker"
+              target="_blank"
+              className="previewButton"
+            >
+              👁 Lihat Halaman Loker
+            </Link>
 
-          <Link href="/admin/pesanan/trash">
-            Trash Pesanan
-          </Link>
+            <button
+              type="button"
+              className="addButton"
+              onClick={openAddForm}
+            >
+              + Tambah Lowongan
+            </button>
+          </div>
+        </div>
 
-          <Link href="/admin/tampilan">
-            Tampilan Website
-          </Link>
+        {success && (
+          <div className="success">
+            ✓ {success}
+          </div>
+        )}
 
-          <Link href="/admin/toko">
-            Toko & Kontak
-          </Link>
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
 
-          <Link
-            href="/admin/loker"
-            className="active"
-          >
-            💼 Lowongan Kerja
-          </Link>
+        <div className="summary">
+          <div className="summaryCard">
+            <span>Total Lowongan</span>
+            <strong>{totalLowongan}</strong>
+          </div>
 
-          <Link href="/admin/pelanggan">
-            Pelanggan
-          </Link>
+          <div className="summaryCard">
+            <span>Aktif</span>
+            <strong>{aktif}</strong>
+          </div>
 
-          <Link href="/admin/statistik">
-            Statistik
-          </Link>
+          <div className="summaryCard">
+            <span>Pendaftaran Dibuka</span>
+            <strong>{dibuka}</strong>
+          </div>
 
-          <Link href="/admin/pengaturan">
-            Pengaturan
-          </Link>
-        </aside>
+          <div className="summaryCard">
+            <span>Nonaktif</span>
+            <strong>{nonaktif}</strong>
+          </div>
+        </div>
 
-        <main className="dash">
-          <div className="page">
-            <div className="topbar">
+        {showForm && (
+          <section className="formCard">
+            <div className="formHeader">
               <div>
                 <div className="eyebrow">
-                  ADMINISTRASI WEBSITE
+                  {editingId
+                    ? "EDIT LOWONGAN"
+                    : "LOWONGAN BARU"}
                 </div>
 
-                <h1>Lowongan Kerja</h1>
+                <h2>
+                  {editingId
+                    ? "Edit Lowongan Kerja"
+                    : "Tambah Lowongan Kerja"}
+                </h2>
 
                 <p>
-                  Kelola informasi lowongan kerja yang
-                  ditampilkan pada halaman publik.
+                  Isi informasi lowongan yang akan
+                  ditampilkan kepada calon pelamar.
                 </p>
               </div>
 
-              <div className="topActions">
-                <Link
-                  href="/loker"
-                  target="_blank"
-                  className="previewButton"
-                >
-                  👁 Lihat Halaman Loker
-                </Link>
-
-                <button
-                  type="button"
-                  className="addButton"
-                  onClick={openAddForm}
-                >
-                  + Tambah Lowongan
-                </button>
-              </div>
+              <button
+                type="button"
+                className="closeButton"
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                }}
+              >
+                ×
+              </button>
             </div>
 
-            {success && (
-              <div className="success">
-                ✓ {success}
-              </div>
-            )}
+            <form onSubmit={handleSubmit}>
+              <div className="formGrid">
+                <div className="field full">
+                  <label htmlFor="posisi">
+                    Posisi Lowongan *
+                  </label>
 
-            {error && (
-              <div className="error">
-                {error}
-              </div>
-            )}
+                  <input
+                    id="posisi"
+                    name="posisi"
+                    value={form.posisi}
+                    onChange={handleChange}
+                    placeholder="Contoh: Staff Toko"
+                    required
+                  />
+                </div>
 
-            <div className="summary">
-              <div className="summaryCard">
-                <span>Total Lowongan</span>
-                <strong>{totalLowongan}</strong>
-              </div>
+                <div className="field">
+                  <label htmlFor="lokasi">
+                    Lokasi
+                  </label>
 
-              <div className="summaryCard">
-                <span>Aktif</span>
-                <strong>{aktif}</strong>
-              </div>
+                  <input
+                    id="lokasi"
+                    name="lokasi"
+                    value={form.lokasi}
+                    onChange={handleChange}
+                    placeholder="Contoh: Sinar Kasih Kota"
+                  />
+                </div>
 
-              <div className="summaryCard">
-                <span>Pendaftaran Dibuka</span>
-                <strong>{dibuka}</strong>
-              </div>
+                <div className="field">
+                  <label htmlFor="urutan">
+                    Urutan Tampil
+                  </label>
 
-              <div className="summaryCard">
-                <span>Nonaktif</span>
-                <strong>{nonaktif}</strong>
-              </div>
-            </div>
+                  <input
+                    id="urutan"
+                    name="urutan"
+                    type="number"
+                    min="0"
+                    value={form.urutan}
+                    onChange={handleChange}
+                  />
+                </div>
 
-            {showForm && (
-              <section className="formCard">
-                <div className="formHeader">
-                  <div>
-                    <div className="eyebrow">
-                      {editingId
-                        ? "EDIT LOWONGAN"
-                        : "LOWONGAN BARU"}
-                    </div>
+                <div className="field">
+                  <label htmlFor="status">
+                    Status Lowongan
+                  </label>
 
-                    <h2>
-                      {editingId
-                        ? "Edit Lowongan Kerja"
-                        : "Tambah Lowongan Kerja"}
-                    </h2>
-
-                    <p>
-                      Isi informasi lowongan yang akan
-                      ditampilkan kepada calon pelamar.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="closeButton"
-                    onClick={() => {
-                      setShowForm(false);
-                      resetForm();
-                    }}
+                  <select
+                    id="status"
+                    name="status"
+                    value={form.status}
+                    onChange={handleChange}
                   >
-                    ×
-                  </button>
+                    {statusOptions.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="formGrid">
-                    <div className="field full">
-                      <label htmlFor="posisi">
-                        Posisi Lowongan *
-                      </label>
+                <div className="field">
+                  <label htmlFor="tahap_seleksi">
+                    Tahap Seleksi
+                  </label>
 
-                      <input
-                        id="posisi"
-                        name="posisi"
-                        value={form.posisi}
-                        onChange={handleChange}
-                        placeholder="Contoh: Staff Toko"
-                        required
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="lokasi">
-                        Lokasi
-                      </label>
-
-                      <input
-                        id="lokasi"
-                        name="lokasi"
-                        value={form.lokasi}
-                        onChange={handleChange}
-                        placeholder="Contoh: Sinar Kasih Kota"
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="urutan">
-                        Urutan Tampil
-                      </label>
-
-                      <input
-                        id="urutan"
-                        name="urutan"
-                        type="number"
-                        min="0"
-                        value={form.urutan}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="status">
-                        Status Lowongan
-                      </label>
-
-                      <select
-                        id="status"
-                        name="status"
-                        value={form.status}
-                        onChange={handleChange}
-                      >
-                        {statusOptions.map((option) => (
-                          <option
-                            key={option.value}
-                            value={option.value}
-                          >
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="tahap_seleksi">
-                        Tahap Seleksi
-                      </label>
-
-                      <select
-                        id="tahap_seleksi"
-                        name="tahap_seleksi"
-                        value={form.tahap_seleksi}
-                        onChange={handleChange}
-                      >
-                        {tahapSeleksi.map((item) => (
-                          <option
-                            key={item.key}
-                            value={item.key}
-                          >
-                            {item.nomor} — {item.judul}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="tanggal_buka">
-                        Tanggal Buka
-                      </label>
-
-                      <input
-                        id="tanggal_buka"
-                        name="tanggal_buka"
-                        type="date"
-                        value={form.tanggal_buka}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="tanggal_tutup">
-                        Tanggal Tutup
-                      </label>
-
-                      <input
-                        id="tanggal_tutup"
-                        name="tanggal_tutup"
-                        type="date"
-                        value={form.tanggal_tutup}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="field full">
-                      <label htmlFor="gambar_url">
-                        URL Gambar Lowongan
-                      </label>
-
-                      <input
-                        id="gambar_url"
-                        name="gambar_url"
-                        value={form.gambar_url}
-                        onChange={handleChange}
-                        placeholder="https://..."
-                      />
-
-                      <small>
-                        Masukkan URL gambar jika tersedia.
-                      </small>
-                    </div>
-
-                    <div className="field full">
-                      <label htmlFor="deskripsi">
-                        Deskripsi Posisi
-                      </label>
-
-                      <textarea
-                        id="deskripsi"
-                        name="deskripsi"
-                        rows="6"
-                        value={form.deskripsi}
-                        onChange={handleChange}
-                        placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
-                      />
-                    </div>
-
-                    <div className="field full">
-                      <label htmlFor="persyaratan">
-                        Persyaratan
-                      </label>
-
-                      <textarea
-                        id="persyaratan"
-                        name="persyaratan"
-                        rows="7"
-                        value={form.persyaratan}
-                        onChange={handleChange}
-                        placeholder={"Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"}
-                      />
-
-                      <small>
-                        Gunakan baris baru untuk setiap
-                        persyaratan agar lebih mudah dibaca.
-                      </small>
-                    </div>
-
-                    <div className="field full">
-                      <label htmlFor="google_form_url">
-                        Link Google Form Lamaran
-                      </label>
-
-                      <input
-                        id="google_form_url"
-                        name="google_form_url"
-                        type="url"
-                        value={form.google_form_url}
-                        onChange={handleChange}
-                        placeholder="https://forms.google.com/..."
-                      />
-
-                      <small>
-                        Tombol lamaran pada website akan
-                        menggunakan link ini.
-                      </small>
-                    </div>
-
-                    <div className="field full">
-                      <label htmlFor="pengumuman">
-                        Pengumuman
-                      </label>
-
-                      <textarea
-                        id="pengumuman"
-                        name="pengumuman"
-                        rows="4"
-                        value={form.pengumuman}
-                        onChange={handleChange}
-                        placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
-                      />
-                    </div>
-
-                    <div className="field full">
-                      <label className="checkLabel">
-                        <input
-                          type="checkbox"
-                          name="aktif"
-                          checked={form.aktif}
-                          onChange={handleChange}
-                        />
-
-                        <span>
-                          Tampilkan lowongan ini di
-                          website publik
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="formActions">
-                    <button
-                      type="button"
-                      className="cancelButton"
-                      onClick={() => {
-                        setShowForm(false);
-                        resetForm();
-                      }}
-                      disabled={saving}
-                    >
-                      Batal
-                    </button>
-
-                    <button
-                      type="submit"
-                      className="saveButton"
-                      disabled={saving}
-                    >
-                      {saving
-                        ? "Menyimpan..."
-                        : editingId
-                          ? "Simpan Perubahan"
-                          : "Simpan Lowongan"}
-                    </button>
-                  </div>
-                </form>
-              </section>
-            )}
-
-            <div className="toolbar">
-              <div className="searchWrap">
-                <input
-                  type="search"
-                  placeholder="Cari posisi atau lokasi..."
-                  value={search}
-                  onChange={(event) =>
-                    setSearch(event.target.value)
-                  }
-                />
-
-                {search && (
-                  <button
-                    type="button"
-                    className="clearSearch"
-                    onClick={() => setSearch("")}
-                    aria-label="Hapus pencarian"
+                  <select
+                    id="tahap_seleksi"
+                    name="tahap_seleksi"
+                    value={form.tahap_seleksi}
+                    onChange={handleChange}
                   >
-                    ×
-                  </button>
-                )}
+                    {tahapSeleksi.map((item) => (
+                      <option
+                        key={item.key}
+                        value={item.key}
+                      >
+                        {item.nomor} — {item.judul}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label htmlFor="tanggal_buka">
+                    Tanggal Buka
+                  </label>
+
+                  <input
+                    id="tanggal_buka"
+                    name="tanggal_buka"
+                    type="date"
+                    value={form.tanggal_buka}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="tanggal_tutup">
+                    Tanggal Tutup
+                  </label>
+
+                  <input
+                    id="tanggal_tutup"
+                    name="tanggal_tutup"
+                    type="date"
+                    value={form.tanggal_tutup}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="gambar_url">
+                    URL Gambar Lowongan
+                  </label>
+
+                  <input
+                    id="gambar_url"
+                    name="gambar_url"
+                    value={form.gambar_url}
+                    onChange={handleChange}
+                    placeholder="https://..."
+                  />
+
+                  <small>
+                    Masukkan URL gambar jika tersedia.
+                  </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="deskripsi">
+                    Deskripsi Posisi
+                  </label>
+
+                  <textarea
+                    id="deskripsi"
+                    name="deskripsi"
+                    rows="6"
+                    value={form.deskripsi}
+                    onChange={handleChange}
+                    placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
+                  />
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="persyaratan">
+                    Persyaratan
+                  </label>
+
+                  <textarea
+                    id="persyaratan"
+                    name="persyaratan"
+                    rows="7"
+                    value={form.persyaratan}
+                    onChange={handleChange}
+                    placeholder={`Contoh:
+Usia maksimal 30 tahun
+Pendidikan minimal SMA/SMK
+Mampu bekerja dalam tim`}
+                  />
+
+                  <small>
+                    Gunakan baris baru untuk setiap
+                    persyaratan agar lebih mudah dibaca.
+                  </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="google_form_url">
+                    Link Google Form Lamaran
+                  </label>
+
+                  <input
+                    id="google_form_url"
+                    name="google_form_url"
+                    type="url"
+                    value={form.google_form_url}
+                    onChange={handleChange}
+                    placeholder="https://forms.google.com/..."
+                  />
+
+                  <small>
+                    Tombol lamaran pada website akan
+                    menggunakan link ini.
+                  </small>
+                </div>
+
+                <div className="field full">
+                  <label htmlFor="pengumuman">
+                    Pengumuman
+                  </label>
+
+                  <textarea
+                    id="pengumuman"
+                    name="pengumuman"
+                    rows="4"
+                    value={form.pengumuman}
+                    onChange={handleChange}
+                    placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
+                  />
+                </div>
+
+                <div className="field full">
+                  <label className="checkLabel">
+                    <input
+                      type="checkbox"
+                      name="aktif"
+                      checked={form.aktif}
+                      onChange={handleChange}
+                    />
+
+                    <span>
+                      Tampilkan lowongan ini di
+                      website publik
+                    </span>
+                  </label>
+                </div>
               </div>
 
-              <div className="filters">
+              <div className="formActions">
                 <button
                   type="button"
-                  className={
-                    filter === "semua"
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter("semua")}
+                  className="cancelButton"
+                  onClick={() => {
+                    setShowForm(false);
+                    resetForm();
+                  }}
+                  disabled={saving}
                 >
-                  Semua
+                  Batal
                 </button>
 
                 <button
-                  type="button"
-                  className={
-                    filter === "aktif"
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter("aktif")}
+                  type="submit"
+                  className="saveButton"
+                  disabled={saving}
                 >
-                  Aktif
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    filter === "dibuka"
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter("dibuka")}
-                >
-                  Dibuka
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    filter === "proses"
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter("proses")}
-                >
-                  Proses Seleksi
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    filter === "nonaktif"
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter("nonaktif")}
-                >
-                  Nonaktif
+                  {saving
+                    ? "Menyimpan..."
+                    : editingId
+                      ? "Simpan Perubahan"
+                      : "Simpan Lowongan"}
                 </button>
               </div>
-            </div>
+            </form>
+          </section>
+        )}
 
-            <div className="card">
-              {loading ? (
-                <div className="empty">
-                  Memuat data lowongan...
-                </div>
-              ) : filteredLowongan.length === 0 ? (
-                <div className="empty">
-                  <div className="emptyIcon">
-                    💼
-                  </div>
+        <div className="toolbar">
+          <div className="searchWrap">
+            <input
+              type="search"
+              placeholder="Cari posisi atau lokasi..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
 
-                  <strong>
-                    {search || filter !== "semua"
-                      ? "Tidak ada lowongan yang sesuai."
-                      : "Belum ada data lowongan."}
-                  </strong>
-
-                  <p>
-                    {search || filter !== "semua"
-                      ? "Coba ubah pencarian atau filter."
-                      : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
-                  </p>
-                </div>
-              ) : (
-                <div className="tableWrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Urutan</th>
-                        <th>Posisi</th>
-                        <th>Lokasi</th>
-                        <th>Status</th>
-                        <th>Tahap</th>
-                        <th>Periode</th>
-                        <th>Tampil</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {filteredLowongan.map((item) => (
-                        <tr key={item.id}>
-                          <td>
-                            {item.urutan ?? 0}
-                          </td>
-
-                          <td>
-                            <div className="positionCell">
-                              {item.gambar_url ? (
-                                <img
-                                  src={item.gambar_url}
-                                  alt=""
-                                  className="thumb"
-                                />
-                              ) : (
-                                <div className="thumbPlaceholder">
-                                  💼
-                                </div>
-                              )}
-
-                              <div>
-                                <strong>
-                                  {item.posisi || "-"}
-                                </strong>
-
-                                <small>
-                                  ID #{item.id}
-                                </small>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>
-                            {item.lokasi || "-"}
-                          </td>
-
-                          <td>
-                            <span
-                              className={`status status-${item.status}`}
-                            >
-                              {getStatusLabel(
-                                item.status
-                              )}
-                            </span>
-                          </td>
-
-                          <td>
-                            {getTahapLabel(
-                              item.tahap_seleksi
-                            )}
-                          </td>
-
-                          <td>
-                            <div className="dateCell">
-                              <span>
-                                {formatTanggal(
-                                  item.tanggal_buka
-                                )}
-                              </span>
-
-                              <small>
-                                sampai{" "}
-                                {formatTanggal(
-                                  item.tanggal_tutup
-                                )}
-                              </small>
-                            </div>
-                          </td>
-
-                          <td>
-                            <button
-                              type="button"
-                              className={
-                                item.aktif
-                                  ? "toggle active"
-                                  : "toggle"
-                              }
-                              onClick={() =>
-                                toggleAktif(item)
-                              }
-                              disabled={
-                                processingId === item.id
-                              }
-                            >
-                              {item.aktif
-                                ? "Aktif"
-                                : "Nonaktif"}
-                            </button>
-                          </td>
-
-                          <td>
-                            <div className="actions">
-                              <button
-                                type="button"
-                                className="editButton"
-                                onClick={() =>
-                                  openEditForm(item)
-                                }
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                className="deleteButton"
-                                onClick={() =>
-                                  hapusLowongan(item)
-                                }
-                                disabled={
-                                  processingId === item.id
-                                }
-                              >
-                                {processingId === item.id
-                                  ? "..."
-                                  : "Hapus"}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            {search && (
+              <button
+                type="button"
+                className="clearSearch"
+                onClick={() => setSearch("")}
+                aria-label="Hapus pencarian"
+              >
+                ×
+              </button>
+            )}
           </div>
-        </main>
+
+          <div className="filters">
+            <button
+              type="button"
+              className={
+                filter === "semua"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("semua")}
+            >
+              Semua
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "aktif"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("aktif")}
+            >
+              Aktif
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "dibuka"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("dibuka")}
+            >
+              Dibuka
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "proses"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("proses")}
+            >
+              Proses Seleksi
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "nonaktif"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("nonaktif")}
+            >
+              Nonaktif
+            </button>
+          </div>
+        </div>
+
+        <div className="card">
+          {loading ? (
+            <div className="empty">
+              Memuat data lowongan...
+            </div>
+          ) : filteredLowongan.length === 0 ? (
+            <div className="empty">
+              <div className="emptyIcon">
+                💼
+              </div>
+
+              <strong>
+                {search || filter !== "semua"
+                  ? "Tidak ada lowongan yang sesuai."
+                  : "Belum ada data lowongan."}
+              </strong>
+
+              <p>
+                {search || filter !== "semua"
+                  ? "Coba ubah pencarian atau filter."
+                  : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
+              </p>
+            </div>
+          ) : (
+            <div className="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Urutan</th>
+                    <th>Posisi</th>
+                    <th>Lokasi</th>
+                    <th>Status</th>
+                    <th>Tahap</th>
+                    <th>Periode</th>
+                    <th>Tampil</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredLowongan.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        {item.urutan ?? 0}
+                      </td>
+
+                      <td>
+                        <div className="positionCell">
+                          {item.gambar_url ? (
+                            <img
+                              src={item.gambar_url}
+                              alt=""
+                              className="thumb"
+                            />
+                          ) : (
+                            <div className="thumbPlaceholder">
+                              💼
+                            </div>
+                          )}
+
+                          <div>
+                            <strong>
+                              {item.posisi || "-"}
+                            </strong>
+
+                            <small>
+                              ID #{item.id}
+                            </small>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td>
+                        {item.lokasi || "-"}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`status status-${item.status}`}
+                        >
+                          {getStatusLabel(
+                            item.status
+                          )}
+                        </span>
+                      </td>
+
+                      <td>
+                        {getTahapLabel(
+                          item.tahap_seleksi
+                        )}
+                      </td>
+
+                      <td>
+                        <div className="dateCell">
+                          <span>
+                            {formatTanggal(
+                              item.tanggal_buka
+                            )}
+                          </span>
+
+                          <small>
+                            sampai{" "}
+                            {formatTanggal(
+                              item.tanggal_tutup
+                            )}
+                          </small>
+                        </div>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className={
+                            item.aktif
+                              ? "toggle active"
+                              : "toggle"
+                          }
+                          onClick={() =>
+                            toggleAktif(item)
+                          }
+                          disabled={
+                            processingId === item.id
+                          }
+                        >
+                          {item.aktif
+                            ? "Aktif"
+                            : "Nonaktif"}
+                        </button>
+                      </td>
+
+                      <td>
+                        <div className="actions">
+                          <button
+                            type="button"
+                            className="editButton"
+                            onClick={() =>
+                              openEditForm(item)
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="deleteButton"
+                            onClick={() =>
+                              hapusLowongan(item)
+                            }
+                            disabled={
+                              processingId === item.id
+                            }
+                          >
+                            {processingId === item.id
+                              ? "..."
+                              : "Hapus"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       <style>{`
-        .admin {
-          min-height: 100vh;
-          background: #f5f0e8;
+        .lokerPage {
+          width: 100%;
           color: #3f2f24;
-        }
-
-        .adminhead {
-          padding: 18px 28px;
-          background: #4b3326;
-          color: #fff;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .adminlayout {
-          display: flex;
-          min-height: calc(100vh - 64px);
-        }
-
-        .side {
-          width: 240px;
-          flex-shrink: 0;
-          background: #fffaf3;
-          border-right: 1px solid #dfd2c3;
-          padding: 20px 14px;
-        }
-
-        .side a {
-          display: block;
-          padding: 12px 14px;
-          margin-bottom: 5px;
-          border-radius: 8px;
-          color: #4b3326;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .side a:hover,
-        .side a.active {
-          background: #eadcca;
-        }
-
-        .side a.active {
-          color: #3f291d;
-          font-weight: 800;
-          box-shadow: inset 3px 0 0 #4b3326;
-        }
-
-        .dash {
-          flex: 1;
-          min-width: 0;
-          padding: 28px;
         }
 
         .page {
@@ -1148,7 +1071,7 @@ export default function AdminLokerPage() {
           letter-spacing: 0.08em;
         }
 
-        h1 {
+        .topbar h1 {
           margin: 0 0 7px;
           color: #3f2f24;
           font-size: 30px;
@@ -1697,20 +1620,6 @@ export default function AdminLokerPage() {
         }
 
         @media (max-width: 800px) {
-          .adminlayout {
-            display: block;
-          }
-
-          .side {
-            width: auto;
-            border-right: none;
-            border-bottom: 1px solid #dfd2c3;
-          }
-
-          .dash {
-            padding: 20px;
-          }
-
           .formGrid {
             grid-template-columns: 1fr;
           }
@@ -1742,16 +1651,7 @@ export default function AdminLokerPage() {
         }
 
         @media (max-width: 520px) {
-          .adminhead {
-            padding: 16px 18px;
-            font-size: 17px;
-          }
-
-          .dash {
-            padding: 16px;
-          }
-
-          h1 {
+          .topbar h1 {
             font-size: 26px;
           }
 
