@@ -1322,9 +1322,7 @@ export default function AdminLokerPage() {
                             form.cover_url ||
                             undefined
                           }
-                          autoPlay
                           muted
-                          loop
                           controls
                           playsInline
                           preload="auto"
@@ -1708,34 +1706,53 @@ export default function AdminLokerPage() {
 
                           <td>
                             <div className="positionCell">
-                              {video ? (
-                                item.cover_url ? (
-                                  <img
-                                    src={
-                                      item.cover_url
-                                    }
-                                    alt=""
-                                    className="thumb"
-                                  />
-                                ) : (
-                                  <div className="videoThumbPlaceholder">
-                                    <span>
-                                      ▶
-                                    </span>
+                              {item.gambar_url ? (
+                                <div className="thumbMedia">
+                                  {video &&
+                                  item.cover_url ? (
+                                    <img
+                                      src={
+                                        item.cover_url
+                                      }
+                                      alt={`Thumbnail video ${
+                                        item.posisi ||
+                                        "lowongan"
+                                      }`}
+                                      className="thumb"
+                                    />
+                                  ) : !video ? (
+                                    <img
+                                      src={
+                                        item.gambar_url
+                                      }
+                                      alt={`Thumbnail ${
+                                        item.posisi ||
+                                        "lowongan"
+                                      }`}
+                                      className="thumb"
+                                    />
+                                  ) : (
+                                    <div className="videoThumbPlaceholder">
+                                      <span>
+                                        ▶
+                                      </span>
 
-                                    <small>
-                                      VIDEO
-                                    </small>
-                                  </div>
-                                )
-                              ) : item.gambar_url ? (
-                                <img
-                                  src={
-                                    item.gambar_url
-                                  }
-                                  alt=""
-                                  className="thumb"
-                                />
+                                      <small>
+                                        VIDEO
+                                      </small>
+                                    </div>
+                                  )}
+
+                                  {video &&
+                                    item.cover_url && (
+                                      <span
+                                        className="videoPlayBadge"
+                                        aria-label="Video"
+                                      >
+                                        ▶
+                                      </span>
+                                    )}
+                                </div>
                               ) : (
                                 <div className="thumbPlaceholder">
                                   💼
@@ -2177,7 +2194,7 @@ export default function AdminLokerPage() {
           width: 100%;
           height: 100%;
           object-fit: contain;
-          background: #f0e8df;
+          background: #191919;
         }
 
         .coverPreview {
@@ -2463,6 +2480,17 @@ export default function AdminLokerPage() {
           font-size: 11px;
         }
 
+        /* Thumbnail media pada tabel */
+        .thumbMedia {
+          position: relative;
+          width: 48px;
+          height: 48px;
+          flex-shrink: 0;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #f3eadf;
+        }
+
         .thumb,
         .thumbPlaceholder,
         .videoThumbPlaceholder {
@@ -2471,6 +2499,7 @@ export default function AdminLokerPage() {
           flex-shrink: 0;
           border-radius: 8px;
           object-fit: cover;
+          box-sizing: border-box;
         }
 
         .thumbPlaceholder,
@@ -2497,6 +2526,28 @@ export default function AdminLokerPage() {
           font-size: 7px;
           font-weight: 800;
           letter-spacing: 0.04em;
+        }
+
+        /* Tanda play kecil di atas cover video */
+        .videoPlayBadge {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 22px;
+          height: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: rgba(63, 47, 36, 0.88);
+          color: #fff;
+          font-size: 10px;
+          line-height: 1;
+          box-shadow:
+            0 2px 7px
+            rgba(0, 0, 0, 0.18);
+          pointer-events: none;
         }
 
         .status {
