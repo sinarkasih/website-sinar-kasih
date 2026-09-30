@@ -136,8 +136,10 @@ export default function TentangPage() {
           <div className="commitmentPoints">
             <div className="point">
               <span>✓</span>
+
               <div>
                 <strong>Produk Beragam</strong>
+
                 <p>
                   Berbagai kebutuhan listrik dan penerangan
                   dalam satu tempat.
@@ -147,8 +149,10 @@ export default function TentangPage() {
 
             <div className="point">
               <span>✓</span>
+
               <div>
                 <strong>Informasi Produk Jelas</strong>
+
                 <p>
                   Membantu pelanggan mengenali produk yang
                   tersedia.
@@ -158,8 +162,10 @@ export default function TentangPage() {
 
             <div className="point">
               <span>✓</span>
+
               <div>
                 <strong>Melayani Berbagai Kebutuhan</strong>
+
                 <p>
                   Untuk rumah, toko, kantor, maupun kebutuhan
                   usaha.
@@ -169,8 +175,10 @@ export default function TentangPage() {
 
             <div className="point">
               <span>✓</span>
+
               <div>
                 <strong>Hadir Secara Online</strong>
+
                 <p>
                   Informasi produk dan layanan dapat diakses
                   melalui website Sinar Kasih.
@@ -186,7 +194,9 @@ export default function TentangPage() {
               KENAPA SINAR KASIH
             </div>
 
-            <h2>Lebih Mudah Menemukan Kebutuhan Listrik</h2>
+            <h2>
+              Lebih Mudah Menemukan Kebutuhan Listrik
+            </h2>
 
             <p>
               Sinar Kasih terus berusaha memberikan pengalaman
@@ -197,7 +207,9 @@ export default function TentangPage() {
           <div className="whyGrid">
             <div className="whyCard">
               <span className="whyNumber">01</span>
+
               <h3>Pilihan Produk</h3>
+
               <p>
                 Beragam produk listrik dan penerangan untuk
                 berbagai kebutuhan.
@@ -206,7 +218,9 @@ export default function TentangPage() {
 
             <div className="whyCard">
               <span className="whyNumber">02</span>
+
               <h3>Mudah Dicari</h3>
+
               <p>
                 Katalog online membantu pelanggan melihat
                 berbagai produk dengan lebih mudah.
@@ -215,7 +229,9 @@ export default function TentangPage() {
 
             <div className="whyCard">
               <span className="whyNumber">03</span>
+
               <h3>Untuk Berbagai Kebutuhan</h3>
+
               <p>
                 Produk dapat digunakan untuk kebutuhan rumah,
                 toko, kantor, dan usaha.
@@ -288,8 +304,21 @@ export default function TentangPage() {
           margin-bottom: 18px;
         }
 
+        /*
+         * =====================================================
+         * JUDUL HERO
+         * =====================================================
+         *
+         * Tetap 2 baris seperti desain sebelumnya.
+         * Hanya posisi blok judul yang dibuat benar-benar
+         * berada di tengah secara horizontal.
+         */
         .hero h1 {
-          margin: 0;
+          width: 100%;
+          margin: 0 auto;
+          padding: 0;
+          text-align: center;
+
           color: #3f2f24;
           font-size: clamp(38px, 5vw, 62px);
           line-height: 1.08;
@@ -306,6 +335,7 @@ export default function TentangPage() {
           color: #76685d;
           font-size: 17px;
           line-height: 1.8;
+          text-align: center;
         }
 
         .content {
