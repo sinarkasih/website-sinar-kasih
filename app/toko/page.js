@@ -13,7 +13,13 @@ const HARI = [
 
 function WhatsAppIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
     </svg>
   );
@@ -21,7 +27,13 @@ function WhatsAppIcon() {
 
 function LocationIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M12 2a8 8 0 0 0-8 8c0 5.75 8 12 8 12s8-6.25 8-12a8 8 0 0 0-8-8Zm0 11.2A3.2 3.2 0 1 1 12 6.8a3.2 3.2 0 0 1 0 6.4Zm0-4.8a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z" />
     </svg>
   );
@@ -29,7 +41,13 @@ function LocationIcon() {
 
 function PhoneIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M6.62 10.79a15.47 15.47 0 0 0 6.59 6.59l2.2-2.2c.28-.28.67-.37 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2Z" />
     </svg>
   );
@@ -74,16 +92,23 @@ function formatJam(value) {
   if (!value) return "";
 
   const text = String(value);
-  return text.length >= 5 ? text.substring(0, 5) : text;
+
+  return text.length >= 5
+    ? text.substring(0, 5)
+    : text;
 }
 
 function formatJamOperasional(item) {
-  if (!item || !item.buka) return "Tutup";
+  if (!item || !item.buka) {
+    return "Tutup";
+  }
 
   const buka = formatJam(item.jam_buka);
   const tutup = formatJam(item.jam_tutup);
 
-  if (!buka || !tutup) return "Buka";
+  if (!buka || !tutup) {
+    return "Buka";
+  }
 
   return `${buka}–${tutup} WIT`;
 }
@@ -93,7 +118,9 @@ function formatTanggalIndonesia(value) {
 
   const parts = String(value).split("-");
 
-  if (parts.length !== 3) return value;
+  if (parts.length !== 3) {
+    return value;
+  }
 
   const [tahun, bulan, hari] = parts;
 
@@ -101,26 +128,45 @@ function formatTanggalIndonesia(value) {
 }
 
 function getTodayWIT() {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jayapura",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const formatter = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Jayapura",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
+  );
 
   return formatter.format(new Date());
 }
 
-function isDateInPeriod(today, tanggalMulai, tanggalSelesai) {
-  if (!today || !tanggalMulai || !tanggalSelesai) {
+function isDateInPeriod(
+  today,
+  tanggalMulai,
+  tanggalSelesai
+) {
+  if (
+    !today ||
+    !tanggalMulai ||
+    !tanggalSelesai
+  ) {
     return false;
   }
 
-  return today >= tanggalMulai && today <= tanggalSelesai;
+  return (
+    today >= tanggalMulai &&
+    today <= tanggalSelesai
+  );
 }
 
-function getRelevantSpecialPeriod(periods, today) {
-  if (!Array.isArray(periods)) return null;
+function getRelevantSpecialPeriod(
+  periods,
+  today
+) {
+  if (!Array.isArray(periods)) {
+    return null;
+  }
 
   const active = periods.find((period) =>
     isDateInPeriod(
@@ -144,7 +190,9 @@ function getRelevantSpecialPeriod(periods, today) {
         period.tanggal_mulai > today
     )
     .sort((a, b) =>
-      String(a.tanggal_mulai).localeCompare(
+      String(
+        a.tanggal_mulai
+      ).localeCompare(
         String(b.tanggal_mulai)
       )
     );
@@ -159,10 +207,14 @@ function getRelevantSpecialPeriod(periods, today) {
   return null;
 }
 
-function getNormalScheduleByDay(schedules, hari) {
+function getNormalScheduleByDay(
+  schedules,
+  hari
+) {
   return (
     schedules.find(
-      (item) => Number(item.hari) === Number(hari)
+      (item) =>
+        Number(item.hari) === Number(hari)
     ) || {
       hari,
       buka: false,
@@ -172,16 +224,25 @@ function getNormalScheduleByDay(schedules, hari) {
   );
 }
 
-function getSpecialScheduleByDay(details, hari) {
+function getSpecialScheduleByDay(
+  details,
+  hari
+) {
   return (
     details.find(
-      (item) => Number(item.hari) === Number(hari)
+      (item) =>
+        Number(item.hari) === Number(hari)
     ) || null
   );
 }
 
-function isDifferentSchedule(normal, special) {
-  if (!special) return false;
+function isDifferentSchedule(
+  normal,
+  special
+) {
+  if (!special) {
+    return false;
+  }
 
   if (normal.buka !== special.buka) {
     return true;
@@ -203,27 +264,37 @@ function getScheduleSummary(schedules) {
   const weekdaySchedules = HARI
     .filter((day) => day.value >= 1)
     .map((day) =>
-      getNormalScheduleByDay(schedules, day.value)
+      getNormalScheduleByDay(
+        schedules,
+        day.value
+      )
     );
 
   const first = weekdaySchedules[0];
-  const firstText = formatJamOperasional(first);
 
-  const allSame = weekdaySchedules.every(
-    (schedule) =>
-      formatJamOperasional(schedule) === firstText
-  );
+  const firstText =
+    formatJamOperasional(first);
+
+  const allSame =
+    weekdaySchedules.every(
+      (schedule) =>
+        formatJamOperasional(schedule) ===
+        firstText
+    );
 
   const weekdayText = allSame
     ? `Senin–Sabtu • ${firstText}`
     : "Senin–Sabtu • Lihat jam lengkap";
 
-  const sunday = getNormalScheduleByDay(
-    schedules,
-    0
-  );
+  const sunday =
+    getNormalScheduleByDay(
+      schedules,
+      0
+    );
 
-  return `${weekdayText} • Minggu ${formatJamOperasional(sunday)}`;
+  return `${weekdayText} • Minggu ${formatJamOperasional(
+    sunday
+  )}`;
 }
 
 function HoursAccordion({
@@ -288,21 +359,23 @@ export default async function Page() {
   const supabase = getSupabase();
 
   if (supabase) {
-    const { data, error } = await supabase
-      .from("cabang_toko")
-      .select(
-        "id, nama, alamat, telepon, google_maps_url, google_review_url, foto, aktif, urutan"
-      )
-      .eq("aktif", true)
-      .order("urutan", {
-        ascending: true,
-      })
-      .order("id", {
-        ascending: true,
-      });
+    const { data, error } =
+      await supabase
+        .from("cabang_toko")
+        .select(
+          "id, nama, alamat, telepon, google_maps_url, google_review_url, foto, aktif, urutan"
+        )
+        .eq("aktif", true)
+        .order("urutan", {
+          ascending: true,
+        })
+        .order("id", {
+          ascending: true,
+        });
 
     if (error) {
       console.error(error);
+
       errorMessage =
         "Data toko belum dapat dimuat.";
     } else {
@@ -334,21 +407,32 @@ export default async function Page() {
         .select(
           "id, cabang_id, hari, buka, jam_buka, jam_tutup"
         )
-        .in("cabang_id", cabangIds)
+        .in(
+          "cabang_id",
+          cabangIds
+        )
         .order("hari", {
           ascending: true,
         }),
 
       supabase
-        .from("periode_operasional_khusus")
+        .from(
+          "periode_operasional_khusus"
+        )
         .select(
           "id, cabang_id, nama, tanggal_mulai, tanggal_selesai, aktif"
         )
-        .in("cabang_id", cabangIds)
+        .in(
+          "cabang_id",
+          cabangIds
+        )
         .eq("aktif", true)
-        .order("tanggal_mulai", {
-          ascending: true,
-        }),
+        .order(
+          "tanggal_mulai",
+          {
+            ascending: true,
+          }
+        ),
     ]);
 
     if (normalResult.error) {
@@ -357,7 +441,8 @@ export default async function Page() {
         normalResult.error
       );
     } else {
-      jamNormal = normalResult.data || [];
+      jamNormal =
+        normalResult.data || [];
     }
 
     if (periodResult.error) {
@@ -535,9 +620,11 @@ export default async function Page() {
                       ) : (
                         <div className="noPhoto">
                           <span>🏪</span>
+
                           <strong>
                             Sinar Kasih
                           </strong>
+
                           <small>
                             Foto toko belum
                             tersedia
@@ -553,7 +640,9 @@ export default async function Page() {
                             TOKO / CABANG
                           </span>
 
-                          <h2>{item.nama}</h2>
+                          <h2>
+                            {item.nama}
+                          </h2>
                         </div>
 
                         <span className="activeBadge">
@@ -567,8 +656,13 @@ export default async function Page() {
                         </span>
 
                         <div>
-                          <strong>Alamat</strong>
-                          <p>{item.alamat}</p>
+                          <strong>
+                            Alamat
+                          </strong>
+
+                          <p>
+                            {item.alamat}
+                          </p>
                         </div>
                       </div>
 
@@ -582,6 +676,7 @@ export default async function Page() {
                             <strong>
                               Telepon / WhatsApp
                             </strong>
+
                             <p>
                               {item.telepon}
                             </p>
@@ -610,7 +705,9 @@ export default async function Page() {
                                 className="hoursRow"
                               >
                                 <span>
-                                  {hari.label}
+                                  {
+                                    hari.label
+                                  }
                                 </span>
 
                                 <strong
@@ -648,10 +745,13 @@ export default async function Page() {
                                 {isUpcoming
                                   ? "Akan berlaku "
                                   : "Berlaku "}
+
                                 {formatTanggalIndonesia(
                                   specialPeriod.tanggal_mulai
                                 )}
+
                                 {" – "}
+
                                 {formatTanggalIndonesia(
                                   specialPeriod.tanggal_selesai
                                 )}
@@ -796,7 +896,10 @@ export default async function Page() {
 
         .tokoGrid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+          );
           gap: 24px;
         }
 
@@ -805,7 +908,9 @@ export default async function Page() {
           background: #fff;
           border: 1px solid #e1d7cc;
           border-radius: 18px;
-          box-shadow: 0 8px 25px rgba(75, 51, 38, 0.07);
+          box-shadow:
+            0 8px 25px
+            rgba(75, 51, 38, 0.07);
         }
 
         .tokoPhoto {
@@ -916,6 +1021,11 @@ export default async function Page() {
           font-size: 14px;
         }
 
+        /*
+          JAM OPERASIONAL
+          Dibuat tanpa padding kiri agar
+          ikon sejajar dengan Alamat dan Telepon.
+        */
         .hoursAccordion {
           margin-top: 20px;
           overflow: hidden;
@@ -929,7 +1039,7 @@ export default async function Page() {
           align-items: center;
           justify-content: space-between;
           gap: 15px;
-          padding: 15px 17px;
+          padding: 15px 0;
           cursor: pointer;
           list-style: none;
         }
@@ -989,6 +1099,7 @@ export default async function Page() {
         .hoursAccordionChevron {
           flex-shrink: 0;
           color: #765b45;
+          padding-right: 1px;
           font-size: 22px;
           line-height: 1;
           transition: transform 0.2s ease;
@@ -1000,7 +1111,7 @@ export default async function Page() {
         }
 
         .hoursAccordionContent {
-          padding: 0 17px 16px;
+          padding: 0 0 16px;
           border-top: 1px solid #eee5dc;
         }
 
@@ -1037,21 +1148,27 @@ export default async function Page() {
           background: #fffaf0;
         }
 
-        .specialAccordion .hoursAccordionIcon {
+        .specialAccordion
+          .hoursAccordionIcon {
           background: #f4e4c6;
           color: #9a6c28;
           font-size: 16px;
         }
 
-        .specialAccordion .hoursAccordionText strong {
+        .specialAccordion
+          .hoursAccordionText
+          strong {
           color: #60482d;
         }
 
-        .specialAccordion .hoursAccordionText small {
+        .specialAccordion
+          .hoursAccordionText
+          small {
           color: #987d5c;
         }
 
-        .specialAccordion .hoursAccordionSummary {
+        .specialAccordion
+          .hoursAccordionSummary {
           color: #745735;
         }
 
@@ -1208,11 +1325,11 @@ export default async function Page() {
           }
 
           .hoursAccordionButton {
-            padding: 14px;
+            padding: 14px 0;
           }
 
           .hoursAccordionContent {
-            padding: 0 14px 14px;
+            padding: 0 0 14px;
           }
 
           .hoursAccordionSummary {
