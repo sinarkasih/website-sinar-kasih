@@ -660,11 +660,21 @@ export default function CaraPesanPage() {
             </div>
           </div>
         </section>
+
+        <div className="backArea">
+          <Link
+            href="/lainnya"
+            className="backButton"
+          >
+            ← Kembali ke Informasi & Layanan
+          </Link>
+        </div>
       </main>
 
       <style>{`
         .caraPesanPage {
           min-height: 100vh;
+          padding-bottom: 70px;
           background: #f8f6f2;
           color: #30251f;
         }
@@ -1198,7 +1208,7 @@ export default function CaraPesanPage() {
         .quickSection {
           width: min(980px, calc(100% - 40px));
           margin: 0 auto;
-          padding: 0 0 80px;
+          padding: 0 0 28px;
         }
 
         .quickCard {
@@ -1280,6 +1290,36 @@ export default function CaraPesanPage() {
           opacity: 0.92;
         }
 
+        .backArea {
+          width: min(980px, calc(100% - 40px));
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .backButton {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 46px;
+          padding: 0 20px;
+          border: 1px solid #d4c5b5;
+          border-radius: 10px;
+          background: #ffffff;
+          color: #5f432e;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 700;
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            opacity 0.2s ease;
+        }
+
+        .backButton:hover {
+          background: #f5ede4;
+          transform: translateY(-1px);
+        }
+
         @media (max-width: 700px) {
           .hero {
             padding: 58px 18px 52px;
@@ -1295,7 +1335,8 @@ export default function CaraPesanPage() {
           }
 
           .informationSection,
-          .quickSection {
+          .quickSection,
+          .backArea {
             width: min(100% - 28px, 980px);
           }
 
@@ -1342,6 +1383,10 @@ export default function CaraPesanPage() {
 
           .primaryButton,
           .secondaryButton {
+            width: 100%;
+          }
+
+          .backButton {
             width: 100%;
           }
         }
