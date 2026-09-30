@@ -360,10 +360,6 @@ export default function TokoPage() {
       <style jsx>{`
         .page {
           width: 100%;
-          max-width: none;
-          box-sizing: border-box;
-          padding: 28px;
-          color: #3f2f24;
         }
 
         .topbar {
@@ -392,8 +388,8 @@ export default function TokoPage() {
         }
 
         .contactButton,
-        .addButton,
-        .hoursButton {
+        .hoursButton,
+        .addButton {
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -408,25 +404,16 @@ export default function TokoPage() {
           transition: 0.15s ease;
         }
 
-        .contactButton {
+        .contactButton,
+        .hoursButton {
           background: #fff;
           border: 1px solid #cfc1b1;
           color: #4b3326;
         }
 
-        .contactButton:hover {
-          background: #f3eadf;
-          border-color: #bba995;
-        }
-
-        .hoursButton {
-          background: #f3eadf;
-          border: 1px solid #cfc1b1;
-          color: #4b3326;
-        }
-
+        .contactButton:hover,
         .hoursButton:hover {
-          background: #eadcca;
+          background: #f3eadf;
           border-color: #bba995;
         }
 
@@ -665,10 +652,6 @@ export default function TokoPage() {
         }
 
         @media (max-width: 800px) {
-          .page {
-            padding: 20px;
-          }
-
           .summary {
             grid-template-columns: 1fr;
           }
