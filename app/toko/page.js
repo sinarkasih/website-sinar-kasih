@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+const HARI = [
+  { value: 0, label: "Minggu" },
+  { value: 1, label: "Senin" },
+  { value: 2, label: "Selasa" },
+  { value: 3, label: "Rabu" },
+  { value: 4, label: "Kamis" },
+  { value: 5, label: "Jumat" },
+  { value: 6, label: "Sabtu" },
+];
+
 function WhatsAppIcon() {
   return (
     <svg
@@ -10,7 +20,7 @@ function WhatsAppIcon() {
       fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5.0.17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
+      <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
     </svg>
   );
 }
@@ -105,34 +115,6 @@ function formatJamOperasional(item) {
   return `${buka}–${tutup} WIT`;
 }
 
-function getHariLabel(hari) {
-  const labels = {
-    0: "Minggu",
-    1: "Senin",
-    2: "Selasa",
-    3: "Rabu",
-    4: "Kamis",
-    5: "Jumat",
-    6: "Sabtu",
-  };
-
-  return labels[Number(hari)] || "";
-}
-
-function getHariSingkat(hari) {
-  const labels = {
-    0: "Minggu",
-    1: "Senin",
-    2: "Selasa",
-    3: "Rabu",
-    4: "Kamis",
-    5: "Jumat",
-    6: "Sabtu",
-  };
-
-  return labels[Number(hari)] || "";
-}
-
 function formatTanggalIndonesia(value) {
   if (!value) return "";
 
@@ -148,15 +130,12 @@ function formatTanggalIndonesia(value) {
 }
 
 function getTodayWIT() {
-  const formatter = new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Jayapura",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }
-  );
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jayapura",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
   return formatter.format(new Date());
 }
@@ -176,10 +155,7 @@ function isDateInPeriod(
   );
 }
 
-function findSpecialPeriod(
-  periods,
-  today
-) {
+function findSpecialPeriod(periods, today) {
   if (!Array.isArray(periods)) {
     return null;
   }
@@ -263,8 +239,12 @@ export default async function Page() {
         "id, nama, alamat, telepon, google_maps_url, google_review_url, foto, aktif, urutan"
       )
       .eq("aktif", true)
-      .order("urutan", { ascending: true })
-      .order("id", { ascending: true });
+      .order("urutan", {
+        ascending: true,
+      })
+      .order("id", {
+        ascending: true,
+      });
 
     if (error) {
       console.error(error);
