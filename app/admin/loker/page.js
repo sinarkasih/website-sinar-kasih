@@ -69,6 +69,7 @@ const statusOptions = [
 const initialForm = {
   posisi: "",
   gambar_url: "",
+  cover_url: "",
   deskripsi: "",
   persyaratan: "",
   lokasi: "",
@@ -249,6 +250,17 @@ function getMediaTypeFromFile(file) {
   return null;
 }
 
+function createSafeFileName(position) {
+  return (
+    (position || "lowongan")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 50) ||
+    "lowongan"
+  );
+}
+
 export default function AdminLokerPage() {
   const [lowongan, setLowongan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -264,8 +276,7 @@ export default function AdminLokerPage() {
   const [editingId, setEditingId] =
     useState(null);
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
   const [filter, setFilter] =
     useState("semua");
 
@@ -274,11 +285,14 @@ export default function AdminLokerPage() {
 
   const [mediaFile, setMediaFile] =
     useState(null);
-
   const [mediaPreview, setMediaPreview] =
     useState("");
-
   const [mediaType, setMediaType] =
+    useState("");
+
+  const [coverFile, setCoverFile] =
+    useState(null);
+  const [coverPreview, setCoverPreview] =
     useState("");
 
   const tanggalBukaPickerRef =
@@ -309,7 +323,7 @@ export default function AdminLokerPage() {
       await supabase
         .from("lowongan_kerja")
         .select(
-          "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
+          "id, posisi, gambar_url, cover_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
         )
         .order("urutan", {
           ascending: true,
@@ -399,6 +413,9 @@ export default function AdminLokerPage() {
     setMediaFile(null);
     setMediaPreview("");
     setMediaType("");
+
+    setCoverFile(null);
+    setCoverPreview("");
   }
 
   function resetForm() {
@@ -425,6 +442,8 @@ export default function AdminLokerPage() {
       posisi: item.posisi || "",
       gambar_url:
         item.gambar_url || "",
+      cover_url:
+        item.cover_url || "",
       deskripsi:
         item.deskripsi || "",
       persyaratan:
@@ -454,7 +473,6 @@ export default function AdminLokerPage() {
     setEditingId(item.id);
 
     setMediaFile(null);
-
     setMediaPreview(
       item.gambar_url || ""
     );
@@ -465,6 +483,11 @@ export default function AdminLokerPage() {
         : item.gambar_url
         ? "image"
         : ""
+    );
+
+    setCoverFile(null);
+    setCoverPreview(
+      item.cover_url || ""
     );
 
     setSuccess("");
@@ -530,36 +553,98 @@ export default function AdminLokerPage() {
     setMediaPreview(previewUrl);
   }
 
-  async function uploadMedia() {
-    if (!mediaFile) {
-      return form.gambar_url || "";
+  function handleCoverChange(event) {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    setError("");
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+      setError(
+        "Format cover harus JPG, PNG, atau WEBP."
+      );
+
+      event.target.value = "";
+      return;
     }
 
+    const maxSize =
+      20 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setError(
+        "Ukuran cover maksimal 20 MB."
+      );
+
+      event.target.value = "";
+      return;
+    }
+
+    setCoverFile(file);
+
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setCoverPreview(previewUrl);
+  }
+
+  function removeMedia() {
+    setMediaFile(null);
+    setMediaPreview("");
+    setMediaType("");
+
+    setForm((current) => ({
+      ...current,
+      gambar_url: "",
+    }));
+  }
+
+  function removeCover() {
+    setCoverFile(null);
+    setCoverPreview("");
+
+    setForm((current) => ({
+      ...current,
+      cover_url: "",
+    }));
+  }
+
+  async function uploadFile(
+    file,
+    type
+  ) {
+    if (!file) return "";
+
     const extension =
-      mediaFile.name
+      file.name
         .split(".")
         .pop()
-        ?.toLowerCase() ||
-      "jpg";
+        ?.toLowerCase() || "jpg";
 
     const safePosition =
-      (
-        form.posisi ||
-        "lowongan"
-      )
-        .toLowerCase()
-        .replace(
-          /[^a-z0-9]+/g,
-          "-"
-        )
-        .replace(
-          /^-+|-+$/g,
-          ""
-        )
-        .slice(0, 50);
+      createSafeFileName(
+        form.posisi
+      );
+
+    const prefix =
+      type === "cover"
+        ? "cover"
+        : "media";
 
     const fileName =
-      `${Date.now()}-${safePosition}.${extension}`;
+      `${prefix}-${Date.now()}-${safePosition}.${extension}`;
 
     const filePath =
       `lowongan/${fileName}`;
@@ -573,23 +658,23 @@ export default function AdminLokerPage() {
       );
     }
 
-    const { error: uploadError } =
-      await supabase.storage
-        .from("lowongan-images")
-        .upload(
-          filePath,
-          mediaFile,
-          {
-            cacheControl: "3600",
-            upsert: false,
-            contentType:
-              mediaFile.type,
-          }
-        );
+    const {
+      error: uploadError,
+    } = await supabase.storage
+      .from("lowongan-images")
+      .upload(
+        filePath,
+        file,
+        {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        }
+      );
 
     if (uploadError) {
       throw new Error(
-        `Gagal upload media: ${uploadError.message}`
+        `Gagal upload ${type === "cover" ? "cover" : "media"}: ${uploadError.message}`
       );
     }
 
@@ -602,6 +687,28 @@ export default function AdminLokerPage() {
 
     return (
       data?.publicUrl || ""
+    );
+  }
+
+  async function uploadMedia() {
+    if (!mediaFile) {
+      return form.gambar_url || "";
+    }
+
+    return uploadFile(
+      mediaFile,
+      "media"
+    );
+  }
+
+  async function uploadCover() {
+    if (!coverFile) {
+      return form.cover_url || "";
+    }
+
+    return uploadFile(
+      coverFile,
+      "cover"
     );
   }
 
@@ -670,9 +777,17 @@ export default function AdminLokerPage() {
       let gambarUrl =
         form.gambar_url || null;
 
+      let coverUrl =
+        form.cover_url || null;
+
       if (mediaFile) {
         gambarUrl =
           await uploadMedia();
+      }
+
+      if (coverFile) {
+        coverUrl =
+          await uploadCover();
       }
 
       const payload = {
@@ -681,6 +796,9 @@ export default function AdminLokerPage() {
 
         gambar_url:
           gambarUrl,
+
+        cover_url:
+          coverUrl,
 
         deskripsi:
           form.deskripsi.trim() ||
@@ -733,14 +851,18 @@ export default function AdminLokerPage() {
             .eq(
               "id",
               editingId
-            );
+            )
+            .select("id")
+            .single();
       } else {
         result =
           await supabase
             .from(
               "lowongan_kerja"
             )
-            .insert(payload);
+            .insert(payload)
+            .select("id")
+            .single();
       }
 
       if (result.error) {
@@ -750,6 +872,12 @@ export default function AdminLokerPage() {
 
         throw new Error(
           `Gagal menyimpan lowongan: ${result.error.message}`
+        );
+      }
+
+      if (!result.data?.id) {
+        throw new Error(
+          "Data tidak memberikan konfirmasi ID setelah disimpan."
         );
       }
 
@@ -775,9 +903,9 @@ export default function AdminLokerPage() {
         err?.message ||
           "Terjadi kesalahan saat menyimpan lowongan."
       );
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   }
 
   async function hapusLowongan(item) {
@@ -864,10 +992,7 @@ export default function AdminLokerPage() {
       .update({
         aktif: !item.aktif,
       })
-      .eq(
-        "id",
-        item.id
-      );
+      .eq("id", item.id);
 
     if (updateError) {
       console.error(
@@ -907,60 +1032,43 @@ export default function AdminLokerPage() {
   }
 
   const filteredLowongan =
-    lowongan.filter(
-      (item) => {
-        const keyword =
-          search
-            .trim()
-            .toLowerCase();
+    lowongan.filter((item) => {
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
 
-        const matchesSearch =
-          !keyword ||
-          (
-            item.posisi ||
-            ""
-          )
-            .toLowerCase()
-            .includes(keyword) ||
-          (
-            item.lokasi ||
-            ""
-          )
-            .toLowerCase()
-            .includes(keyword);
+      const matchesSearch =
+        !keyword ||
+        (item.posisi || "")
+          .toLowerCase()
+          .includes(keyword) ||
+        (item.lokasi || "")
+          .toLowerCase()
+          .includes(keyword);
 
-        const matchesFilter =
-          filter ===
-            "semua" ||
-          (
-            filter ===
-              "aktif" &&
-            item.aktif
-          ) ||
-          (
-            filter ===
-              "nonaktif" &&
-            !item.aktif
-          ) ||
-          (
-            filter ===
-              "dibuka" &&
-            item.status ===
-              "dibuka"
-          ) ||
-          (
-            filter ===
-              "proses" &&
-            item.status ===
-              "proses_seleksi"
-          );
+      const matchesFilter =
+        filter === "semua" ||
+        (filter ===
+          "aktif" &&
+          item.aktif) ||
+        (filter ===
+          "nonaktif" &&
+          !item.aktif) ||
+        (filter ===
+          "dibuka" &&
+          item.status ===
+            "dibuka") ||
+        (filter ===
+          "proses" &&
+          item.status ===
+            "proses_seleksi");
 
-        return (
-          matchesSearch &&
-          matchesFilter
-        );
-      }
-    );
+      return (
+        matchesSearch &&
+        matchesFilter
+      );
+    });
 
   const totalLowongan =
     lowongan.length;
@@ -1067,7 +1175,9 @@ export default function AdminLokerPage() {
           </div>
 
           <div className="summaryCard">
-            <span>Nonaktif</span>
+            <span>
+              Nonaktif
+            </span>
 
             <strong>
               {nonaktif}
@@ -1376,6 +1486,7 @@ export default function AdminLokerPage() {
                   </small>
                 </div>
 
+                {/* MEDIA UTAMA */}
                 <div className="field full">
                   <label>
                     Foto / Video Lowongan
@@ -1389,6 +1500,10 @@ export default function AdminLokerPage() {
                         <video
                           src={
                             mediaPreview
+                          }
+                          poster={
+                            coverPreview ||
+                            undefined
                           }
                           muted
                           controls
@@ -1409,6 +1524,7 @@ export default function AdminLokerPage() {
                           <span>
                             🖼️
                           </span>
+
                           <small>
                             Belum ada
                             media
@@ -1419,12 +1535,13 @@ export default function AdminLokerPage() {
 
                     <div className="mediaUploadInfo">
                       <strong>
-                        Upload foto atau
-                        video
+                        Foto / Video Lowongan
                       </strong>
 
                       <p>
-                        Bisa menggunakan:
+                        Media utama yang
+                        ditampilkan pada
+                        lowongan.
                       </p>
 
                       <ul>
@@ -1453,17 +1570,132 @@ export default function AdminLokerPage() {
                         </div>
                       )}
 
-                      <label className="chooseMediaButton">
-                        📁 Pilih Foto /
-                        Video
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
-                          onChange={
-                            handleMediaChange
+                      <div className="mediaButtons">
+                        <label className="chooseMediaButton">
+                          📁 Pilih Foto /
+                          Video
+
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                            onChange={
+                              handleMediaChange
+                            }
+                          />
+                        </label>
+
+                        {mediaPreview && (
+                          <button
+                            type="button"
+                            className="removeButton"
+                            onClick={
+                              removeMedia
+                            }
+                          >
+                            🗑 Hapus Media
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* COVER */}
+                <div className="field full">
+                  <label>
+                    Cover / Thumbnail
+                  </label>
+
+                  <div className="coverUploadBox">
+                    <div className="coverPreview">
+                      {coverPreview ? (
+                        <img
+                          src={
+                            coverPreview
                           }
+                          alt="Preview cover lowongan"
+                          className="coverPreviewContent"
                         />
-                      </label>
+                      ) : (
+                        <div className="coverPlaceholder">
+                          <span>
+                            🖼️
+                          </span>
+
+                          <small>
+                            Belum ada
+                            cover
+                          </small>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="coverUploadInfo">
+                      <strong>
+                        Cover / Thumbnail
+                      </strong>
+
+                      <p>
+                        Cover digunakan
+                        sebagai gambar
+                        awal untuk video
+                        agar tidak tampil
+                        hitam sebelum video
+                        dimainkan.
+                      </p>
+
+                      <ul>
+                        <li>
+                          JPG, PNG, WEBP
+                        </li>
+                        <li>
+                          Maksimal 20 MB
+                        </li>
+                        <li>
+                          Disarankan rasio
+                          4:5
+                        </li>
+                      </ul>
+
+                      {coverFile && (
+                        <div className="selectedMedia">
+                          <strong>
+                            Cover dipilih:
+                          </strong>
+
+                          <span>
+                            {
+                              coverFile.name
+                            }
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="mediaButtons">
+                        <label className="chooseCoverButton">
+                          🖼️ Pilih Cover
+
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={
+                              handleCoverChange
+                            }
+                          />
+                        </label>
+
+                        {coverPreview && (
+                          <button
+                            type="button"
+                            className="removeButton"
+                            onClick={
+                              removeCover
+                            }
+                          >
+                            🗑 Hapus Cover
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1588,9 +1820,7 @@ export default function AdminLokerPage() {
                   type="button"
                   className="cancelButton"
                   onClick={() => {
-                    setShowForm(
-                      false
-                    );
+                    setShowForm(false);
                     resetForm();
                   }}
                   disabled={
@@ -1623,15 +1853,12 @@ export default function AdminLokerPage() {
             <input
               type="search"
               placeholder="Cari posisi atau lokasi..."
-              value={
-                search
-              }
+              value={search}
               onChange={(
                 event
               ) =>
                 setSearch(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
             />
@@ -1652,18 +1879,9 @@ export default function AdminLokerPage() {
 
           <div className="filters">
             {[
-              [
-                "semua",
-                "Semua",
-              ],
-              [
-                "aktif",
-                "Aktif",
-              ],
-              [
-                "dibuka",
-                "Dibuka",
-              ],
+              ["semua", "Semua"],
+              ["aktif", "Aktif"],
+              ["dibuka", "Dibuka"],
               [
                 "proses",
                 "Proses Seleksi",
@@ -1781,6 +1999,10 @@ export default function AdminLokerPage() {
                                 src={
                                   item.gambar_url
                                 }
+                                poster={
+                                  item.cover_url ||
+                                  undefined
+                                }
                                 muted
                                 playsInline
                                 preload="metadata"
@@ -1790,6 +2012,14 @@ export default function AdminLokerPage() {
                               <img
                                 src={
                                   item.gambar_url
+                                }
+                                alt=""
+                                className="thumb"
+                              />
+                            ) : item.cover_url ? (
+                              <img
+                                src={
+                                  item.cover_url
                                 }
                                 alt=""
                                 className="thumb"
@@ -1813,6 +2043,12 @@ export default function AdminLokerPage() {
                                   item.id
                                 }
                               </small>
+
+                              {item.cover_url && (
+                                <span className="coverBadge">
+                                  ✓ Cover
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -2201,7 +2437,8 @@ export default function AdminLokerPage() {
           bottom: 0;
         }
 
-        .mediaUploadBox {
+        .mediaUploadBox,
+        .coverUploadBox {
           display: grid;
           grid-template-columns:
             220px minmax(0, 1fr);
@@ -2212,7 +2449,13 @@ export default function AdminLokerPage() {
           background: #faf7f3;
         }
 
-        .mediaPreview {
+        .coverUploadBox {
+          background: #fdf9f4;
+          border-color: #d8c3ad;
+        }
+
+        .mediaPreview,
+        .coverPreview {
           width: 100%;
           height: 145px;
           overflow: hidden;
@@ -2221,14 +2464,20 @@ export default function AdminLokerPage() {
           border: 1px solid #dfd2c3;
         }
 
-        .mediaPreviewContent {
+        .coverPreview {
+          background: #f4ebe1;
+        }
+
+        .mediaPreviewContent,
+        .coverPreviewContent {
           display: block;
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
 
-        .mediaPlaceholder {
+        .mediaPlaceholder,
+        .coverPlaceholder {
           width: 100%;
           height: 100%;
           display: flex;
@@ -2239,33 +2488,40 @@ export default function AdminLokerPage() {
           color: #9a806a;
         }
 
-        .mediaPlaceholder span {
+        .mediaPlaceholder span,
+        .coverPlaceholder span {
           font-size: 32px;
         }
 
-        .mediaPlaceholder small {
+        .mediaPlaceholder small,
+        .coverPlaceholder small {
           font-size: 11px;
           color: #8a796e;
         }
 
-        .mediaUploadInfo {
+        .mediaUploadInfo,
+        .coverUploadInfo {
           min-width: 0;
         }
 
-        .mediaUploadInfo > strong {
+        .mediaUploadInfo > strong,
+        .coverUploadInfo > strong {
           display: block;
           margin-bottom: 5px;
           color: #4b3326;
           font-size: 15px;
         }
 
-        .mediaUploadInfo p {
+        .mediaUploadInfo p,
+        .coverUploadInfo p {
           margin: 0 0 4px;
           color: #76685d;
           font-size: 13px;
+          line-height: 1.5;
         }
 
-        .mediaUploadInfo ul {
+        .mediaUploadInfo ul,
+        .coverUploadInfo ul {
           margin: 4px 0 12px;
           padding-left: 18px;
           color: #76685d;
@@ -2289,26 +2545,62 @@ export default function AdminLokerPage() {
           word-break: break-all;
         }
 
-        .chooseMediaButton {
+        .mediaButtons {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .chooseMediaButton,
+        .chooseCoverButton {
           display: inline-flex !important;
           align-items: center;
           justify-content: center;
           min-height: 40px;
           padding: 0 14px;
           border-radius: 8px;
-          background: #4b3326;
           color: #fff !important;
           cursor: pointer;
           font-size: 13px !important;
           font-weight: 700 !important;
         }
 
+        .chooseMediaButton {
+          background: #4b3326;
+        }
+
+        .chooseCoverButton {
+          background: #755337;
+        }
+
         .chooseMediaButton:hover {
           background: #39251b;
         }
 
-        .chooseMediaButton input {
+        .chooseCoverButton:hover {
+          background: #5e412a;
+        }
+
+        .chooseMediaButton input,
+        .chooseCoverButton input {
           display: none;
+        }
+
+        .removeButton {
+          min-height: 40px;
+          padding: 0 13px;
+          border: 1px solid #e1c0bd;
+          border-radius: 8px;
+          background: #fff5f4;
+          color: #9b2929;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .removeButton:hover {
+          background: #fbe8e6;
         }
 
         .checkLabel {
@@ -2487,6 +2779,7 @@ export default function AdminLokerPage() {
         .positionCell small {
           color: #9a8b80;
           font-size: 11px;
+          display: block;
         }
 
         .thumb,
@@ -2505,6 +2798,17 @@ export default function AdminLokerPage() {
           background: #f3eadf;
           color: #755337;
           font-size: 22px;
+        }
+
+        .coverBadge {
+          display: inline-flex;
+          margin-top: 4px;
+          padding: 3px 6px;
+          border-radius: 999px;
+          background: #edf7ee;
+          color: #32713a;
+          font-size: 9px;
+          font-weight: 800;
         }
 
         .status {
@@ -2693,11 +2997,13 @@ export default function AdminLokerPage() {
             flex: 1;
           }
 
-          .mediaUploadBox {
+          .mediaUploadBox,
+          .coverUploadBox {
             grid-template-columns: 1fr;
           }
 
-          .mediaPreview {
+          .mediaPreview,
+          .coverPreview {
             max-width: 320px;
           }
         }
@@ -2728,6 +3034,17 @@ export default function AdminLokerPage() {
           .addButton {
             width: 100%;
             flex: none;
+          }
+
+          .mediaButtons {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .chooseMediaButton,
+          .chooseCoverButton,
+          .removeButton {
+            width: 100%;
           }
         }
       `}</style>
