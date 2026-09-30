@@ -38,11 +38,9 @@ export default function TokoPage() {
 
     if (fetchError) {
       console.error(fetchError);
-
       setError(
         `Gagal mengambil data cabang: ${fetchError.message}`
       );
-
       setLoading(false);
       return;
     }
@@ -84,7 +82,6 @@ export default function TokoPage() {
 
     if (deleteError) {
       console.error(deleteError);
-
       setError(deleteError.message);
       setProcessingId(null);
       return;
@@ -115,9 +112,7 @@ export default function TokoPage() {
       (filter === "aktif" && item.aktif) ||
       (filter === "nonaktif" && !item.aktif);
 
-    const keyword = search
-      .trim()
-      .toLowerCase();
+    const keyword = search.trim().toLowerCase();
 
     const matchesSearch =
       !keyword ||
@@ -136,302 +131,259 @@ export default function TokoPage() {
 
   return (
     <main className="page">
-      <div className="pageInner">
+      <div className="topbar">
+        <div>
+          <h1>Toko & Kontak</h1>
 
-        {/* HEADER HALAMAN */}
-        <div className="topbar">
-          <div>
-            <div className="eyebrow">
-              ADMINISTRASI TOKO
-            </div>
-
-            <h1>Toko &amp; Kontak</h1>
-
-            <p>
-              Kelola cabang toko dan informasi kontak
-              utama Sinar Kasih.
-            </p>
-          </div>
-
-          <div className="topActions">
-            <Link
-              href="/admin/toko/kontak"
-              className="contactButton"
-            >
-              Informasi Toko &amp; Kontak
-            </Link>
-
-            <Link
-              href="/admin/toko/jam-operasional"
-              className="hoursButton"
-            >
-              🕐 Jam Operasional
-            </Link>
-
-            <Link
-              href="/admin/toko/cabang/tambah"
-              className="addButton"
-            >
-              + Tambah Cabang
-            </Link>
-          </div>
+          <p>
+            Kelola cabang toko dan informasi kontak utama
+            Sinar Kasih.
+          </p>
         </div>
 
-        {/* RINGKASAN CABANG */}
-        <div className="summary">
-          <div className="summaryCard">
-            <span>Total Cabang</span>
-            <strong>{totalCabang}</strong>
-          </div>
-
-          <div className="summaryCard">
-            <span>Aktif</span>
-            <strong>{aktif}</strong>
-          </div>
-
-          <div className="summaryCard">
-            <span>Nonaktif</span>
-            <strong>{nonaktif}</strong>
-          </div>
-        </div>
-
-        {/* SEARCH DAN FILTER */}
-        <div className="toolbar">
-          <div className="searchWrap">
-            <input
-              type="search"
-              placeholder="Cari nama, alamat, atau telepon..."
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
-
-            {search && (
-              <button
-                type="button"
-                className="clearSearch"
-                onClick={() => setSearch("")}
-                aria-label="Hapus pencarian"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          <div className="filters">
-            <button
-              type="button"
-              className={
-                filter === "semua"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() => setFilter("semua")}
-            >
-              Semua
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "aktif"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() => setFilter("aktif")}
-            >
-              Aktif
-            </button>
-
-            <button
-              type="button"
-              className={
-                filter === "nonaktif"
-                  ? "filter active"
-                  : "filter"
-              }
-              onClick={() =>
-                setFilter("nonaktif")
-              }
-            >
-              Nonaktif
-            </button>
-          </div>
-        </div>
-
-        {/* ERROR */}
-        {error && (
-          <div
-            className="error"
-            role="alert"
-            aria-live="assertive"
+        <div className="topActions">
+          <Link
+            href="/admin/toko/kontak"
+            className="contactButton"
           >
-            {error}
-          </div>
-        )}
+            Informasi Toko & Kontak
+          </Link>
 
-        {/* DATA CABANG */}
-        <div className="card">
-          {loading ? (
-            <div className="empty">
-              Memuat data cabang...
-            </div>
-          ) : filteredCabang.length === 0 ? (
-            <div className="empty">
-              {search || filter !== "semua"
-                ? "Tidak ada cabang yang sesuai dengan pencarian/filter."
-                : "Belum ada data cabang."}
-            </div>
-          ) : (
-            <div className="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Urutan</th>
-                    <th>Nama Cabang</th>
-                    <th>Alamat</th>
-                    <th>Telepon</th>
-                    <th>Google Maps</th>
-                    <th>Google Review</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
+          <Link
+            href="/admin/toko/cabang/tambah"
+            className="addButton"
+          >
+            + Tambah Cabang
+          </Link>
+        </div>
+      </div>
 
-                <tbody>
-                  {filteredCabang.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        {item.urutan ?? "-"}
-                      </td>
+      <div className="summary">
+        <div className="summaryCard">
+          <span>Total Cabang</span>
+          <strong>{totalCabang}</strong>
+        </div>
 
-                      <td>
-                        <strong>
-                          {item.nama || "-"}
-                        </strong>
-                      </td>
+        <div className="summaryCard">
+          <span>Aktif</span>
+          <strong>{aktif}</strong>
+        </div>
 
-                      <td>
-                        {item.alamat || "-"}
-                      </td>
+        <div className="summaryCard">
+          <span>Nonaktif</span>
+          <strong>{nonaktif}</strong>
+        </div>
+      </div>
 
-                      <td>
-                        {item.telepon || "-"}
-                      </td>
+      <div className="toolbar">
+        <div className="searchWrap">
+          <input
+            type="search"
+            placeholder="Cari nama, alamat, atau telepon..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+          />
 
-                      <td>
-                        {item.google_maps_url ? (
-                          <a
-                            href={
-                              item.google_maps_url
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="linkButton"
-                          >
-                            📍 Buka Lokasi
-                          </a>
-                        ) : (
-                          <span className="muted">
-                            Belum ada
-                          </span>
-                        )}
-                      </td>
-
-                      <td>
-                        {item.google_review_url ? (
-                          <a
-                            href={
-                              item.google_review_url
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="linkButton"
-                          >
-                            ⭐ Beri Ulasan
-                          </a>
-                        ) : (
-                          <span className="muted">
-                            Belum ada
-                          </span>
-                        )}
-                      </td>
-
-                      <td>
-                        <span
-                          className={
-                            item.aktif
-                              ? "status activeStatus"
-                              : "status inactiveStatus"
-                          }
-                        >
-                          {item.aktif
-                            ? "Aktif"
-                            : "Nonaktif"}
-                        </span>
-                      </td>
-
-                      <td>
-                        <div className="actions">
-                          <Link
-                            href={`/admin/toko/cabang/${item.id}/edit`}
-                            className="editButton"
-                          >
-                            Edit
-                          </Link>
-
-                          <button
-                            type="button"
-                            className="deleteButton"
-                            onClick={() =>
-                              hapusCabang(item)
-                            }
-                            disabled={
-                              processingId ===
-                              item.id
-                            }
-                          >
-                            {processingId ===
-                            item.id
-                              ? "Menghapus..."
-                              : "Hapus"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {search && (
+            <button
+              type="button"
+              className="clearSearch"
+              onClick={() => setSearch("")}
+              aria-label="Hapus pencarian"
+            >
+              ×
+            </button>
           )}
         </div>
+
+        <div className="filters">
+          <button
+            type="button"
+            className={
+              filter === "semua"
+                ? "filter active"
+                : "filter"
+            }
+            onClick={() => setFilter("semua")}
+          >
+            Semua
+          </button>
+
+          <button
+            type="button"
+            className={
+              filter === "aktif"
+                ? "filter active"
+                : "filter"
+            }
+            onClick={() => setFilter("aktif")}
+          >
+            Aktif
+          </button>
+
+          <button
+            type="button"
+            className={
+              filter === "nonaktif"
+                ? "filter active"
+                : "filter"
+            }
+            onClick={() =>
+              setFilter("nonaktif")
+            }
+          >
+            Nonaktif
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="error" role="alert">
+          {error}
+        </div>
+      )}
+
+      <div className="card">
+        {loading ? (
+          <div className="empty">
+            Memuat data cabang...
+          </div>
+        ) : filteredCabang.length === 0 ? (
+          <div className="empty">
+            {search || filter !== "semua"
+              ? "Tidak ada cabang yang sesuai dengan pencarian/filter."
+              : "Belum ada data cabang."}
+          </div>
+        ) : (
+          <div className="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Urutan</th>
+                  <th>Nama Cabang</th>
+                  <th>Alamat</th>
+                  <th>Telepon</th>
+                  <th>Google Maps</th>
+                  <th>Google Review</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredCabang.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      {item.urutan ?? "-"}
+                    </td>
+
+                    <td>
+                      <strong>
+                        {item.nama || "-"}
+                      </strong>
+                    </td>
+
+                    <td>
+                      {item.alamat || "-"}
+                    </td>
+
+                    <td>
+                      {item.telepon || "-"}
+                    </td>
+
+                    <td>
+                      {item.google_maps_url ? (
+                        <a
+                          href={
+                            item.google_maps_url
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="linkButton"
+                        >
+                          📍 Buka Lokasi
+                        </a>
+                      ) : (
+                        <span className="muted">
+                          Belum ada
+                        </span>
+                      )}
+                    </td>
+
+                    <td>
+                      {item.google_review_url ? (
+                        <a
+                          href={
+                            item.google_review_url
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="linkButton"
+                        >
+                          ⭐ Beri Ulasan
+                        </a>
+                      ) : (
+                        <span className="muted">
+                          Belum ada
+                        </span>
+                      )}
+                    </td>
+
+                    <td>
+                      <span
+                        className={
+                          item.aktif
+                            ? "status activeStatus"
+                            : "status inactiveStatus"
+                        }
+                      >
+                        {item.aktif
+                          ? "Aktif"
+                          : "Nonaktif"}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="actions">
+                        <Link
+                          href={`/admin/toko/cabang/${item.id}/edit`}
+                          className="editButton"
+                        >
+                          Edit
+                        </Link>
+
+                        <button
+                          type="button"
+                          className="deleteButton"
+                          onClick={() =>
+                            hapusCabang(item)
+                          }
+                          disabled={
+                            processingId ===
+                            item.id
+                          }
+                        >
+                          {processingId ===
+                          item.id
+                            ? "Menghapus..."
+                            : "Hapus"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
         .page {
           width: 100%;
-          min-height: 100vh;
-          box-sizing: border-box;
-          background: #f5f0e8;
-          color: #3f2f24;
-
-          /*
-           * Header Admin berada di bagian atas.
-           * Konten halaman diberi jarak agar tidak masuk
-           * ke area header saat halaman pertama dibuka
-           * maupun ketika di-scroll.
-           */
-          padding-top: 92px;
-          padding-left: 28px;
-          padding-right: 28px;
-          padding-bottom: 50px;
-        }
-
-        .pageInner {
-          width: 100%;
-          max-width: 1500px;
-          margin: 0 auto;
+          max-width: 100%;
           box-sizing: border-box;
         }
 
@@ -439,19 +391,11 @@ export default function TokoPage() {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 24px;
+          gap: 20px;
           margin-bottom: 24px;
         }
 
-        .eyebrow {
-          margin-bottom: 6px;
-          color: #9a806a;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-        }
-
-        h1 {
+        .topbar h1 {
           margin: 0 0 7px;
           color: #3f2f24;
           font-size: 30px;
@@ -462,6 +406,7 @@ export default function TokoPage() {
           margin: 0;
           color: #76685d;
           font-size: 15px;
+          line-height: 1.5;
         }
 
         .topActions {
@@ -473,20 +418,18 @@ export default function TokoPage() {
         }
 
         .contactButton,
-        .hoursButton,
         .addButton {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           min-height: 44px;
           padding: 0 18px;
-          border-radius: 9px;
+          border-radius: 8px;
           text-decoration: none;
-          font-family: inherit;
           font-size: 14px;
           font-weight: 700;
-          white-space: nowrap;
           box-sizing: border-box;
+          white-space: nowrap;
           transition:
             background 0.15s ease,
             border-color 0.15s ease,
@@ -502,17 +445,7 @@ export default function TokoPage() {
         .contactButton:hover {
           background: #f3eadf;
           border-color: #bba995;
-        }
-
-        .hoursButton {
-          background: #ffffff;
-          color: #4b3326;
-          border: 1px solid #cfc1b1;
-        }
-
-        .hoursButton:hover {
-          background: #f3eadf;
-          border-color: #bba995;
+          transform: translateY(-1px);
         }
 
         .addButton {
@@ -524,14 +457,13 @@ export default function TokoPage() {
         .addButton:hover {
           background: #39251b;
           border-color: #39251b;
+          transform: translateY(-1px);
         }
 
         .summary {
           display: grid;
-          grid-template-columns: repeat(
-            3,
-            minmax(0, 1fr)
-          );
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
           gap: 18px;
           margin-bottom: 22px;
         }
@@ -539,7 +471,7 @@ export default function TokoPage() {
         .summaryCard {
           background: #ffffff;
           border: 1px solid #dfd2c3;
-          border-radius: 13px;
+          border-radius: 12px;
           padding: 20px;
           box-sizing: border-box;
         }
@@ -548,12 +480,12 @@ export default function TokoPage() {
           display: block;
           margin-bottom: 8px;
           color: #76685d;
-          font-size: 15px;
+          font-size: 14px;
         }
 
         .summaryCard strong {
           display: block;
-          color: #2f241d;
+          color: #3f2f24;
           font-size: 28px;
           line-height: 1;
         }
@@ -568,37 +500,41 @@ export default function TokoPage() {
 
         .searchWrap {
           position: relative;
-          width: 100%;
-          max-width: 735px;
+          flex: 1;
+          max-width: 600px;
         }
 
         .searchWrap input {
           width: 100%;
-          height: 56px;
+          height: 46px;
           box-sizing: border-box;
-          padding: 0 45px 0 17px;
+          padding: 0 42px 0 14px;
           border: 1px solid #cfc1b1;
-          border-radius: 10px;
+          border-radius: 8px;
           background: #ffffff;
           color: #3f2f24;
           font-family: inherit;
-          font-size: 16px;
+          font-size: 14px;
           outline: none;
         }
 
         .searchWrap input:focus {
-          border-color: #8a5a3c;
+          border-color: #8a6045;
           box-shadow:
             0 0 0 3px
-            rgba(138, 90, 60, 0.08);
+            rgba(138, 96, 69, 0.1);
         }
 
         .clearSearch {
           position: absolute;
           top: 50%;
-          right: 10px;
+          right: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 30px;
           height: 30px;
+          padding: 0;
           border: none;
           background: transparent;
           color: #76685d;
@@ -611,24 +547,24 @@ export default function TokoPage() {
         .filters {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 7px;
         }
 
         .filter {
-          min-height: 46px;
-          padding: 0 17px;
+          min-height: 42px;
+          padding: 0 15px;
           border: 1px solid #cfc1b1;
-          border-radius: 9px;
+          border-radius: 8px;
           background: #ffffff;
           color: #4b3326;
           font-family: inherit;
-          font-size: 14px;
-          font-weight: 700;
+          font-size: 13px;
+          font-weight: 600;
           cursor: pointer;
         }
 
         .filter:hover {
-          background: #f5eee6;
+          background: #f5ede4;
         }
 
         .filter.active {
@@ -644,15 +580,16 @@ export default function TokoPage() {
           border-radius: 9px;
           background: #fff0f0;
           color: #9b2929;
+          font-size: 14px;
           font-weight: 600;
         }
 
         .card {
           width: 100%;
+          overflow: hidden;
           background: #ffffff;
           border: 1px solid #dfd2c3;
-          border-radius: 14px;
-          overflow: hidden;
+          border-radius: 12px;
           box-sizing: border-box;
         }
 
@@ -669,7 +606,7 @@ export default function TokoPage() {
 
         th,
         td {
-          padding: 16px 14px;
+          padding: 15px 14px;
           border-bottom: 1px solid #eee5dc;
           text-align: left;
           vertical-align: middle;
@@ -678,33 +615,34 @@ export default function TokoPage() {
         th {
           background: #faf6f0;
           color: #5f5045;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 800;
-          text-transform: uppercase;
           letter-spacing: 0.03em;
+          text-transform: uppercase;
+          white-space: nowrap;
         }
 
         td {
-          color: #3f2f24;
-          font-size: 15px;
+          color: #4d4037;
+          font-size: 14px;
+        }
+
+        tbody tr:hover {
+          background: #fdfbf8;
         }
 
         tbody tr:last-child td {
           border-bottom: none;
         }
 
-        tbody tr:hover {
-          background: #fdfaf7;
-        }
-
         td strong {
-          color: #2f241d;
-          font-weight: 800;
+          color: #3f2f24;
         }
 
         .linkButton {
           color: #755337;
           text-decoration: none;
+          font-size: 13px;
           font-weight: 700;
           white-space: nowrap;
         }
@@ -715,16 +653,18 @@ export default function TokoPage() {
 
         .muted {
           color: #9a8e83;
+          font-size: 13px;
         }
 
         .status {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          padding: 6px 11px;
+          min-height: 28px;
+          padding: 0 10px;
           border-radius: 999px;
-          font-size: 13px;
-          font-weight: 800;
+          font-size: 12px;
+          font-weight: 700;
           white-space: nowrap;
         }
 
@@ -749,22 +689,21 @@ export default function TokoPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 38px;
+          min-height: 34px;
           padding: 0 12px;
-          border-radius: 8px;
+          border-radius: 7px;
+          box-sizing: border-box;
           font-family: inherit;
           font-size: 13px;
-          font-weight: 800;
+          font-weight: 700;
           text-decoration: none;
           white-space: nowrap;
-          box-sizing: border-box;
           cursor: pointer;
         }
 
         .editButton {
           background: #f3eadf;
           color: #4b3326;
-          border: 1px solid transparent;
         }
 
         .editButton:hover {
@@ -772,13 +711,13 @@ export default function TokoPage() {
         }
 
         .deleteButton {
+          border: none;
           background: #f7dddd;
           color: #9b2929;
-          border: 1px solid transparent;
         }
 
         .deleteButton:hover {
-          background: #f1cece;
+          background: #f0caca;
         }
 
         .deleteButton:disabled {
@@ -787,14 +726,14 @@ export default function TokoPage() {
         }
 
         .empty {
-          padding: 50px 30px;
-          text-align: center;
+          padding: 45px 20px;
           color: #76685d;
+          text-align: center;
+          font-size: 14px;
         }
 
-        @media (max-width: 1100px) {
+        @media (max-width: 1000px) {
           .topbar {
-            align-items: flex-start;
             flex-direction: column;
           }
 
@@ -811,20 +750,9 @@ export default function TokoPage() {
           .searchWrap {
             max-width: none;
           }
-
-          .filters {
-            justify-content: flex-start;
-            flex-wrap: wrap;
-          }
         }
 
-        @media (max-width: 800px) {
-          .page {
-            padding-top: 88px;
-            padding-left: 18px;
-            padding-right: 18px;
-          }
-
+        @media (max-width: 700px) {
           .summary {
             grid-template-columns: 1fr;
           }
@@ -835,37 +763,37 @@ export default function TokoPage() {
           }
 
           .contactButton,
-          .hoursButton,
           .addButton {
             width: 100%;
           }
 
           .filters {
-            width: 100%;
-          }
-
-          .filter {
-            flex: 1;
+            flex-wrap: wrap;
           }
         }
 
-        @media (max-width: 600px) {
-          .page {
-            padding-left: 14px;
-            padding-right: 14px;
+        @media (max-width: 500px) {
+          .topbar h1 {
+            font-size: 26px;
           }
 
-          h1 {
-            font-size: 26px;
+          .summaryCard {
+            padding: 16px;
+          }
+
+          .summaryCard strong {
+            font-size: 25px;
           }
 
           .filters {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns:
+              repeat(3, minmax(0, 1fr));
           }
 
           .filter {
             width: 100%;
+            padding: 0 8px;
           }
         }
       `}</style>
