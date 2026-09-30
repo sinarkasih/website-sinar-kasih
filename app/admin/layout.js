@@ -78,7 +78,7 @@ export default function AdminLayout({ children }) {
           z-index: 100;
 
           width: 100%;
-          min-height: 66px;
+          min-height: 48px;
 
           box-sizing: border-box;
 
@@ -94,7 +94,7 @@ export default function AdminLayout({ children }) {
           align-items: center;
 
           width: 100%;
-          min-height: 66px;
+          min-height: 48px;
 
           box-sizing: border-box;
 
