@@ -1322,7 +1322,9 @@ export default function AdminLokerPage() {
                             form.cover_url ||
                             undefined
                           }
+                          autoPlay
                           muted
+                          loop
                           controls
                           playsInline
                           preload="auto"
@@ -2175,7 +2177,7 @@ export default function AdminLokerPage() {
           width: 100%;
           height: 100%;
           object-fit: contain;
-          background: #191919;
+          background: #f0e8df;
         }
 
         .coverPreview {
