@@ -114,19 +114,19 @@ export default function AdminLayout({ children }) {
           grid-template-columns: 240px minmax(0, 1fr);
 
           width: 100%;
-          min-height: calc(100vh - 142px);
+          min-height: calc(100vh - 124px);
 
           box-sizing: border-box;
         }
 
         .side {
           position: sticky;
-          top: 66px;
+          top: 48px;
 
           align-self: start;
 
           width: 240px;
-          min-height: calc(100vh - 142px);
+          min-height: calc(100vh - 124px);
 
           box-sizing: border-box;
 
