@@ -231,7 +231,9 @@ export default function TentangPage() {
       <main className="aboutPage">
         <section className="hero">
           <div className="heroInner">
-            <div className="heroLabel">TENTANG SINAR KASIH</div>
+            <div className="heroLabel">
+              TENTANG SINAR KASIH
+            </div>
 
             <h1>
               Mengenal Lebih Dekat
@@ -249,7 +251,9 @@ export default function TentangPage() {
 
         <section className="informationSection">
           <div className="sectionHeader">
-            <span className="sectionEyebrow">SINAR KASIH</span>
+            <span className="sectionEyebrow">
+              SINAR KASIH
+            </span>
 
             <h2>Informasi Tentang Kami</h2>
 
@@ -317,7 +321,9 @@ export default function TentangPage() {
               SINAR KASIH
             </span>
 
-            <h2>Solusi Kebutuhan Listrik & Penerangan</h2>
+            <h2>
+              Solusi Kebutuhan Listrik & Penerangan
+            </h2>
 
             <p>
               Temukan berbagai produk dan informasi yang Anda butuhkan
@@ -325,7 +331,10 @@ export default function TentangPage() {
             </p>
 
             <div className="closingActions">
-              <Link href="/" className="primaryButton">
+              <Link
+                href="/kategori"
+                className="primaryButton"
+              >
                 Lihat Produk
               </Link>
 
