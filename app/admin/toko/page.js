@@ -38,7 +38,9 @@ export default function TokoPage() {
 
     if (fetchError) {
       console.error(fetchError);
-      setError(`Gagal mengambil data cabang: ${fetchError.message}`);
+      setError(
+        `Gagal mengambil data cabang: ${fetchError.message}`
+      );
       setLoading(false);
       return;
     }
@@ -86,7 +88,9 @@ export default function TokoPage() {
     }
 
     setCabang((current) =>
-      current.filter((cabangItem) => cabangItem.id !== item.id)
+      current.filter(
+        (cabangItem) => cabangItem.id !== item.id
+      )
     );
 
     setProcessingId(null);
@@ -114,281 +118,253 @@ export default function TokoPage() {
   });
 
   return (
-    <main className="page">
-      {/* HEADER */}
-      <div className="topbar">
-        <div>
-          <h1>Toko & Kontak</h1>
+    <main className="tokoAdminPage">
+      <div className="page">
 
-          <p>
-            Kelola cabang toko dan informasi kontak utama Sinar Kasih.
-          </p>
-        </div>
+        <div className="topbar">
+          <div>
+            <h1>Toko &amp; Kontak</h1>
 
-        <div className="topActions">
-          {/* INFORMASI TOKO & KONTAK */}
-          <Link
-            href="/admin/toko/kontak"
-            className="contactButton"
-          >
-            Informasi Toko & Kontak
-          </Link>
+            <p>
+              Kelola cabang toko dan informasi kontak utama
+              Sinar Kasih.
+            </p>
+          </div>
 
-          {/* JAM OPERASIONAL - TOMBOL KOTAK */}
-          <Link
-            href="/admin/toko/jam-operasional"
-            className="hoursButton"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "44px",
-              padding: "0 18px",
-              borderRadius: "8px",
-              background: "#ffffff",
-              border: "1px solid #cfc1b1",
-              color: "#4b3326",
-              textDecoration: "none",
-              fontFamily: "inherit",
-              fontSize: "14px",
-              fontWeight: "700",
-              boxSizing: "border-box",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              transition: "0.15s ease",
-            }}
-          >
-            🕐 Jam Operasional
-          </Link>
-
-          {/* TAMBAH CABANG */}
-          <Link
-            href="/admin/toko/cabang/tambah"
-            className="addButton"
-          >
-            + Tambah Cabang
-          </Link>
-        </div>
-      </div>
-
-      {/* RINGKASAN CABANG */}
-      <div className="summary">
-        <div className="summaryCard">
-          <span>Total Cabang</span>
-          <strong>{totalCabang}</strong>
-        </div>
-
-        <div className="summaryCard">
-          <span>Aktif</span>
-          <strong>{aktif}</strong>
-        </div>
-
-        <div className="summaryCard">
-          <span>Nonaktif</span>
-          <strong>{nonaktif}</strong>
-        </div>
-      </div>
-
-      {/* SEARCH DAN FILTER */}
-      <div className="toolbar">
-        <div className="searchWrap">
-          <input
-            type="search"
-            placeholder="Cari nama, alamat, atau telepon..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          {search && (
-            <button
-              type="button"
-              className="clearSearch"
-              onClick={() => setSearch("")}
-              aria-label="Hapus pencarian"
+          <div className="topActions">
+            <Link
+              href="/admin/toko/kontak"
+              className="contactButton"
             >
-              ×
-            </button>
-          )}
-        </div>
+              Informasi Toko &amp; Kontak
+            </Link>
 
-        <div className="filters">
-          <button
-            type="button"
-            className={
-              filter === "semua"
-                ? "filter active"
-                : "filter"
-            }
-            onClick={() => setFilter("semua")}
-          >
-            Semua
-          </button>
+            <Link
+              href="/admin/toko/jam-operasional"
+              className="hoursButton"
+            >
+              🕐 Jam Operasional
+            </Link>
 
-          <button
-            type="button"
-            className={
-              filter === "aktif"
-                ? "filter active"
-                : "filter"
-            }
-            onClick={() => setFilter("aktif")}
-          >
-            Aktif
-          </button>
-
-          <button
-            type="button"
-            className={
-              filter === "nonaktif"
-                ? "filter active"
-                : "filter"
-            }
-            onClick={() => setFilter("nonaktif")}
-          >
-            Nonaktif
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="error">
-          {error}
-        </div>
-      )}
-
-      {/* DATA CABANG */}
-      <div className="card">
-        {loading ? (
-          <div className="empty">
-            Memuat data cabang...
+            <Link
+              href="/admin/toko/cabang/tambah"
+              className="addButton"
+            >
+              + Tambah Cabang
+            </Link>
           </div>
-        ) : filteredCabang.length === 0 ? (
-          <div className="empty">
-            {search || filter !== "semua"
-              ? "Tidak ada cabang yang sesuai dengan pencarian/filter."
-              : "Belum ada data cabang."}
+        </div>
+
+        <div className="summary">
+          <div className="summaryCard">
+            <span>Total Cabang</span>
+            <strong>{totalCabang}</strong>
           </div>
-        ) : (
-          <div className="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Urutan</th>
-                  <th>Nama Cabang</th>
-                  <th>Alamat</th>
-                  <th>Telepon</th>
-                  <th>Google Maps</th>
-                  <th>Google Review</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
 
-              <tbody>
-                {filteredCabang.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      {item.urutan ?? "-"}
-                    </td>
+          <div className="summaryCard">
+            <span>Aktif</span>
+            <strong>{aktif}</strong>
+          </div>
 
-                    <td>
-                      <strong>
-                        {item.nama || "-"}
-                      </strong>
-                    </td>
+          <div className="summaryCard">
+            <span>Nonaktif</span>
+            <strong>{nonaktif}</strong>
+          </div>
+        </div>
 
-                    <td>
-                      {item.alamat || "-"}
-                    </td>
+        <div className="toolbar">
+          <div className="searchWrap">
+            <input
+              type="search"
+              placeholder="Cari nama, alamat, atau telepon..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
 
-                    <td>
-                      {item.telepon || "-"}
-                    </td>
+            {search && (
+              <button
+                type="button"
+                className="clearSearch"
+                onClick={() => setSearch("")}
+                aria-label="Hapus pencarian"
+              >
+                ×
+              </button>
+            )}
+          </div>
 
-                    <td>
-                      {item.google_maps_url ? (
-                        <a
-                          href={item.google_maps_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="linkButton"
-                        >
-                          📍 Buka Lokasi
-                        </a>
-                      ) : (
-                        <span className="muted">
-                          Belum ada
-                        </span>
-                      )}
-                    </td>
+          <div className="filters">
+            {[
+              ["semua", "Semua"],
+              ["aktif", "Aktif"],
+              ["nonaktif", "Nonaktif"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={
+                  filter === value
+                    ? "filter active"
+                    : "filter"
+                }
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                    <td>
-                      {item.google_review_url ? (
-                        <a
-                          href={item.google_review_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="linkButton"
-                        >
-                          ⭐ Beri Ulasan
-                        </a>
-                      ) : (
-                        <span className="muted">
-                          Belum ada
-                        </span>
-                      )}
-                    </td>
-
-                    <td>
-                      <span
-                        className={
-                          item.aktif
-                            ? "status activeStatus"
-                            : "status inactiveStatus"
-                        }
-                      >
-                        {item.aktif
-                          ? "Aktif"
-                          : "Nonaktif"}
-                      </span>
-                    </td>
-
-                    <td>
-                      <div className="actions">
-                        <Link
-                          href={`/admin/toko/cabang/${item.id}/edit`}
-                          className="editButton"
-                        >
-                          Edit
-                        </Link>
-
-                        <button
-                          type="button"
-                          className="deleteButton"
-                          onClick={() =>
-                            hapusCabang(item)
-                          }
-                          disabled={
-                            processingId === item.id
-                          }
-                        >
-                          {processingId === item.id
-                            ? "Menghapus..."
-                            : "Hapus"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {error && (
+          <div className="error" role="alert">
+            {error}
           </div>
         )}
+
+        <div className="card">
+          {loading ? (
+            <div className="empty">
+              Memuat data cabang...
+            </div>
+          ) : filteredCabang.length === 0 ? (
+            <div className="empty">
+              {search || filter !== "semua"
+                ? "Tidak ada cabang yang sesuai dengan pencarian/filter."
+                : "Belum ada data cabang."}
+            </div>
+          ) : (
+            <div className="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Urutan</th>
+                    <th>Nama Cabang</th>
+                    <th>Alamat</th>
+                    <th>Telepon</th>
+                    <th>Google Maps</th>
+                    <th>Google Review</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredCabang.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.urutan ?? "-"}</td>
+
+                      <td>
+                        <strong>
+                          {item.nama || "-"}
+                        </strong>
+                      </td>
+
+                      <td>
+                        {item.alamat || "-"}
+                      </td>
+
+                      <td>
+                        {item.telepon || "-"}
+                      </td>
+
+                      <td>
+                        {item.google_maps_url ? (
+                          <a
+                            href={item.google_maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="linkButton"
+                          >
+                            📍 Buka Lokasi
+                          </a>
+                        ) : (
+                          <span className="muted">
+                            Belum ada
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        {item.google_review_url ? (
+                          <a
+                            href={item.google_review_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="linkButton"
+                          >
+                            ⭐ Beri Ulasan
+                          </a>
+                        ) : (
+                          <span className="muted">
+                            Belum ada
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        <span
+                          className={
+                            item.aktif
+                              ? "status activeStatus"
+                              : "status inactiveStatus"
+                          }
+                        >
+                          {item.aktif
+                            ? "Aktif"
+                            : "Nonaktif"}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className="actions">
+                          <Link
+                            href={`/admin/toko/cabang/${item.id}/edit`}
+                            className="editButton"
+                          >
+                            Edit
+                          </Link>
+
+                          <button
+                            type="button"
+                            className="deleteButton"
+                            onClick={() =>
+                              hapusCabang(item)
+                            }
+                            disabled={
+                              processingId === item.id
+                            }
+                          >
+                            {processingId === item.id
+                              ? "Menghapus..."
+                              : "Hapus"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
+        .tokoAdminPage {
+          width: 100%;
+          min-height: 100%;
+          padding-top: 82px;
+          box-sizing: border-box;
+          background: #f5f0e8;
+          color: #3f2f24;
+        }
+
         .page {
           width: 100%;
+          box-sizing: border-box;
+          padding: 0 28px 40px;
         }
 
         .topbar {
@@ -399,9 +375,11 @@ export default function TokoPage() {
           margin-bottom: 24px;
         }
 
-        h1 {
+        .topbar h1 {
           margin: 0 0 7px;
-          font-size: 28px;
+          color: #3f2f24;
+          font-size: 30px;
+          line-height: 1.2;
         }
 
         .topbar p {
@@ -411,8 +389,9 @@ export default function TokoPage() {
 
         .topActions {
           display: flex;
-          gap: 10px;
           align-items: center;
+          justify-content: flex-end;
+          gap: 10px;
           flex-wrap: wrap;
         }
 
@@ -424,55 +403,39 @@ export default function TokoPage() {
           justify-content: center;
           min-height: 44px;
           padding: 0 18px;
-          border-radius: 8px;
+          border-radius: 9px;
           text-decoration: none;
-          font-weight: 700;
           font-size: 14px;
-          box-sizing: border-box;
+          font-weight: 700;
           white-space: nowrap;
-          cursor: pointer;
-          transition: 0.15s ease;
+          box-sizing: border-box;
         }
 
-        .contactButton {
-          background: #fff;
-          border: 1px solid #cfc1b1;
-          color: #4b3326;
-        }
-
-        .contactButton:hover {
-          background: #f3eadf;
-          border-color: #bba995;
-        }
-
+        .contactButton,
         .hoursButton {
           background: #fff;
-          border: 1px solid #cfc1b1;
           color: #4b3326;
+          border: 1px solid #cfc1b1;
         }
 
+        .contactButton:hover,
         .hoursButton:hover {
           background: #f3eadf;
-          border-color: #bba995;
         }
 
         .addButton {
           background: #4b3326;
-          border: 1px solid #4b3326;
           color: #fff;
+          border: 1px solid #4b3326;
         }
 
         .addButton:hover {
           background: #39251b;
-          border-color: #39251b;
         }
 
         .summary {
           display: grid;
-          grid-template-columns: repeat(
-            3,
-            minmax(0, 1fr)
-          );
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 18px;
           margin-bottom: 22px;
         }
@@ -488,10 +451,12 @@ export default function TokoPage() {
           display: block;
           color: #76685d;
           margin-bottom: 8px;
+          font-size: 14px;
         }
 
         .summaryCard strong {
           font-size: 28px;
+          color: #3f2f24;
         }
 
         .toolbar {
@@ -511,12 +476,12 @@ export default function TokoPage() {
         .searchWrap input {
           width: 100%;
           box-sizing: border-box;
-          padding: 12px 42px 12px 14px;
+          padding: 13px 42px 13px 14px;
           border: 1px solid #cfc1b1;
-          border-radius: 8px;
+          border-radius: 9px;
           background: #fff;
-          font-size: 15px;
           color: #3f2f24;
+          font-size: 15px;
         }
 
         .clearSearch {
@@ -530,13 +495,12 @@ export default function TokoPage() {
           background: transparent;
           color: #76685d;
           font-size: 23px;
-          line-height: 1;
           cursor: pointer;
         }
 
         .filters {
           display: flex;
-          gap: 7px;
+          gap: 8px;
         }
 
         .filter {
@@ -546,7 +510,7 @@ export default function TokoPage() {
           color: #4b3326;
           border-radius: 8px;
           cursor: pointer;
-          font-weight: 600;
+          font-weight: 700;
         }
 
         .filter.active {
@@ -558,10 +522,10 @@ export default function TokoPage() {
         .error {
           margin-bottom: 18px;
           padding: 14px 16px;
+          border-radius: 9px;
           background: #fff0f0;
           border: 1px solid #e4bcbc;
           color: #9b2929;
-          border-radius: 9px;
           font-weight: 600;
         }
 
@@ -580,8 +544,8 @@ export default function TokoPage() {
 
         table {
           width: 100%;
-          border-collapse: collapse;
           min-width: 1050px;
+          border-collapse: collapse;
         }
 
         th,
@@ -640,8 +604,8 @@ export default function TokoPage() {
 
         .actions {
           display: flex;
-          gap: 7px;
           align-items: center;
+          gap: 7px;
         }
 
         .editButton,
@@ -672,15 +636,24 @@ export default function TokoPage() {
         }
 
         .empty {
-          padding: 40px;
+          padding: 45px;
           text-align: center;
           color: #76685d;
         }
 
         @media (max-width: 1000px) {
+          .tokoAdminPage {
+            padding-top: 78px;
+          }
+
           .topbar {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .topActions {
+            width: 100%;
+            justify-content: flex-start;
           }
 
           .toolbar {
@@ -694,17 +667,30 @@ export default function TokoPage() {
         }
 
         @media (max-width: 800px) {
+          .page {
+            padding: 0 16px 30px;
+          }
+
           .summary {
             grid-template-columns: 1fr;
           }
 
           .topActions {
-            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
           }
 
           .contactButton,
           .hoursButton,
           .addButton {
+            width: 100%;
+          }
+
+          .filters {
+            width: 100%;
+          }
+
+          .filter {
             flex: 1;
           }
         }
