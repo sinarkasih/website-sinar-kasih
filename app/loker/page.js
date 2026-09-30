@@ -97,6 +97,143 @@ function isVideoUrl(url) {
   return /\.(mp4|webm)(\?.*)?$/i.test(String(url));
 }
 
+/*
+ * Format tulisan sederhana untuk konten lowongan.
+ *
+ * Format yang didukung:
+ *
+ * *tebal*
+ * **tebal**
+ *
+ * _miring_
+ * __miring__
+ *
+ * ~coret~
+ * ~~coret~~
+ *
+ * `teks khusus`
+ *
+ * Baris baru tetap dipertahankan.
+ *
+ * Fungsi ini sengaja menggunakan React element,
+ * bukan dangerouslySetInnerHTML, sehingga isi dari
+ * database tetap diperlakukan sebagai teks biasa.
+ */
+function formatRichText(text) {
+  if (!text) return null;
+
+  const value = String(text);
+
+  const lines = value.split(/\r?\n/);
+
+  return lines.map((line, lineIndex) => (
+    <span key={`line-${lineIndex}`}>
+      {formatRichTextLine(line)}
+
+      {lineIndex < lines.length - 1 && <br />}
+    </span>
+  ));
+}
+
+function formatRichTextLine(text) {
+  if (!text) return null;
+
+  const pattern =
+    /(\*\*[^*\n]+\*\*|\*[^*\n]+\*|__[^_\n]+__|_[^_\n]+_|~~[^~\n]+~~|~[^~\n]+~|`[^`\n]+`)/g;
+
+  const parts = String(text).split(pattern);
+
+  return parts.map((part, index) => {
+    if (!part) return null;
+
+    if (
+      part.startsWith("**") &&
+      part.endsWith("**") &&
+      part.length > 4
+    ) {
+      return (
+        <strong key={index}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    if (
+      part.startsWith("*") &&
+      part.endsWith("*") &&
+      part.length > 2
+    ) {
+      return (
+        <strong key={index}>
+          {part.slice(1, -1)}
+        </strong>
+      );
+    }
+
+    if (
+      part.startsWith("__") &&
+      part.endsWith("__") &&
+      part.length > 4
+    ) {
+      return (
+        <em key={index}>
+          {part.slice(2, -2)}
+        </em>
+      );
+    }
+
+    if (
+      part.startsWith("_") &&
+      part.endsWith("_") &&
+      part.length > 2
+    ) {
+      return (
+        <em key={index}>
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+
+    if (
+      part.startsWith("~~") &&
+      part.endsWith("~~") &&
+      part.length > 4
+    ) {
+      return (
+        <del key={index}>
+          {part.slice(2, -2)}
+        </del>
+      );
+    }
+
+    if (
+      part.startsWith("~") &&
+      part.endsWith("~") &&
+      part.length > 2
+    ) {
+      return (
+        <del key={index}>
+          {part.slice(1, -1)}
+        </del>
+      );
+    }
+
+    if (
+      part.startsWith("`") &&
+      part.endsWith("`") &&
+      part.length > 2
+    ) {
+      return (
+        <code key={index} className="inlineCode">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
+
 function JobBriefIcon() {
   return (
     <svg
@@ -410,7 +547,7 @@ export default async function LokerPage() {
                           <h3>Tentang Posisi</h3>
 
                           <div className="jobText">
-                            {job.deskripsi}
+                            {formatRichText(job.deskripsi)}
                           </div>
                         </div>
                       )}
@@ -420,7 +557,7 @@ export default async function LokerPage() {
                           <h3>Persyaratan</h3>
 
                           <div className="jobText">
-                            {job.persyaratan}
+                            {formatRichText(job.persyaratan)}
                           </div>
                         </div>
                       )}
@@ -505,7 +642,9 @@ export default async function LokerPage() {
                             <strong>Pengumuman</strong>
                           </div>
 
-                          <p>{job.pengumuman}</p>
+                          <p>
+                            {formatRichText(job.pengumuman)}
+                          </p>
                         </div>
                       )}
 
@@ -806,6 +945,28 @@ export default async function LokerPage() {
           line-height: 1.75;
         }
 
+        .jobText strong {
+          color: #4b2418;
+          font-weight: 800;
+        }
+
+        .jobText em {
+          font-style: italic;
+        }
+
+        .jobText del {
+          text-decoration-thickness: 1px;
+        }
+
+        .inlineCode {
+          padding: 2px 5px;
+          border-radius: 5px;
+          background: #f4eee9;
+          color: #6b4537;
+          font-family: monospace;
+          font-size: 0.92em;
+        }
+
         .processSection {
           padding-top: 25px;
           margin-top: 28px;
@@ -928,6 +1089,18 @@ export default async function LokerPage() {
           color: #765f4e;
           font-size: 13.5px;
           line-height: 1.7;
+        }
+
+        .announcementBox strong {
+          font-weight: 800;
+        }
+
+        .announcementBox em {
+          font-style: italic;
+        }
+
+        .announcementBox del {
+          text-decoration-thickness: 1px;
         }
 
         .jobAction {
