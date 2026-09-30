@@ -10,7 +10,7 @@ function WhatsAppIcon() {
       fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
+      <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5.0.17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
     </svg>
   );
 }
@@ -43,6 +43,25 @@ function PhoneIcon() {
   );
 }
 
+function ClockIcon() {
+  return (
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
 function normalizeWhatsApp(value) {
   if (!value) return "";
 
@@ -57,6 +76,178 @@ function normalizeWhatsApp(value) {
   }
 
   return number;
+}
+
+function formatJam(value) {
+  if (!value) return "";
+
+  const text = String(value);
+
+  if (text.length >= 5) {
+    return text.substring(0, 5);
+  }
+
+  return text;
+}
+
+function formatJamOperasional(item) {
+  if (!item || !item.buka) {
+    return "Tutup";
+  }
+
+  const buka = formatJam(item.jam_buka);
+  const tutup = formatJam(item.jam_tutup);
+
+  if (!buka || !tutup) {
+    return "Buka";
+  }
+
+  return `${buka}–${tutup} WIT`;
+}
+
+function getHariLabel(hari) {
+  const labels = {
+    0: "Minggu",
+    1: "Senin",
+    2: "Selasa",
+    3: "Rabu",
+    4: "Kamis",
+    5: "Jumat",
+    6: "Sabtu",
+  };
+
+  return labels[Number(hari)] || "";
+}
+
+function getHariSingkat(hari) {
+  const labels = {
+    0: "Minggu",
+    1: "Senin",
+    2: "Selasa",
+    3: "Rabu",
+    4: "Kamis",
+    5: "Jumat",
+    6: "Sabtu",
+  };
+
+  return labels[Number(hari)] || "";
+}
+
+function formatTanggalIndonesia(value) {
+  if (!value) return "";
+
+  const parts = String(value).split("-");
+
+  if (parts.length !== 3) {
+    return value;
+  }
+
+  const [tahun, bulan, hari] = parts;
+
+  return `${hari}/${bulan}/${tahun}`;
+}
+
+function getTodayWIT() {
+  const formatter = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Jayapura",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
+  );
+
+  return formatter.format(new Date());
+}
+
+function isDateInPeriod(
+  today,
+  tanggalMulai,
+  tanggalSelesai
+) {
+  if (!today || !tanggalMulai || !tanggalSelesai) {
+    return false;
+  }
+
+  return (
+    today >= tanggalMulai &&
+    today <= tanggalSelesai
+  );
+}
+
+function findSpecialPeriod(
+  periods,
+  today
+) {
+  if (!Array.isArray(periods)) {
+    return null;
+  }
+
+  return (
+    periods.find(
+      (period) =>
+        period.aktif !== false &&
+        isDateInPeriod(
+          today,
+          period.tanggal_mulai,
+          period.tanggal_selesai
+        )
+    ) || null
+  );
+}
+
+function getNormalScheduleByDay(
+  schedules,
+  hari
+) {
+  return (
+    schedules.find(
+      (item) =>
+        Number(item.hari) === Number(hari)
+    ) || {
+      hari,
+      buka: false,
+      jam_buka: null,
+      jam_tutup: null,
+    }
+  );
+}
+
+function getSpecialScheduleByDay(
+  details,
+  hari
+) {
+  return (
+    details.find(
+      (item) =>
+        Number(item.hari) === Number(hari)
+    ) || null
+  );
+}
+
+function isDifferentSchedule(
+  normal,
+  special
+) {
+  if (!special) {
+    return false;
+  }
+
+  if (normal.buka !== special.buka) {
+    return true;
+  }
+
+  if (!normal.buka && !special.buka) {
+    return false;
+  }
+
+  return (
+    formatJam(normal.jam_buka) !==
+      formatJam(special.jam_buka) ||
+    formatJam(normal.jam_tutup) !==
+      formatJam(special.jam_tutup)
+  );
 }
 
 export default async function Page() {
@@ -77,13 +268,108 @@ export default async function Page() {
 
     if (error) {
       console.error(error);
-      errorMessage = "Data toko belum dapat dimuat.";
+      errorMessage =
+        "Data toko belum dapat dimuat.";
     } else {
       cabang = data || [];
     }
   } else {
-    errorMessage = "Koneksi database belum tersedia.";
+    errorMessage =
+      "Koneksi database belum tersedia.";
   }
+
+  const cabangIds = cabang.map((item) =>
+    Number(item.id)
+  );
+
+  let jamNormal = [];
+  let periodeKhusus = [];
+  let detailPeriodeKhusus = [];
+
+  if (
+    supabase &&
+    cabangIds.length > 0
+  ) {
+    const [
+      normalResult,
+      periodResult,
+    ] = await Promise.all([
+      supabase
+        .from("jam_operasional_toko")
+        .select(
+          "id, cabang_id, hari, buka, jam_buka, jam_tutup"
+        )
+        .in("cabang_id", cabangIds)
+        .order("hari", {
+          ascending: true,
+        }),
+
+      supabase
+        .from("periode_operasional_khusus")
+        .select(
+          "id, cabang_id, nama, tanggal_mulai, tanggal_selesai, aktif"
+        )
+        .in("cabang_id", cabangIds)
+        .eq("aktif", true)
+        .order("tanggal_mulai", {
+          ascending: true,
+        }),
+    ]);
+
+    if (normalResult.error) {
+      console.error(
+        "Gagal memuat jam normal:",
+        normalResult.error
+      );
+    } else {
+      jamNormal = normalResult.data || [];
+    }
+
+    if (periodResult.error) {
+      console.error(
+        "Gagal memuat periode khusus:",
+        periodResult.error
+      );
+    } else {
+      periodeKhusus =
+        periodResult.data || [];
+    }
+
+    const periodIds =
+      periodeKhusus.map((item) =>
+        Number(item.id)
+      );
+
+    if (periodIds.length > 0) {
+      const { data, error } =
+        await supabase
+          .from(
+            "periode_operasional_khusus_detail"
+          )
+          .select(
+            "id, periode_id, hari, buka, jam_buka, jam_tutup"
+          )
+          .in(
+            "periode_id",
+            periodIds
+          )
+          .order("hari", {
+            ascending: true,
+          });
+
+      if (error) {
+        console.error(
+          "Gagal memuat detail periode:",
+          error
+        );
+      } else {
+        detailPeriodeKhusus =
+          data || [];
+      }
+    }
+  }
+
+  const todayWIT = getTodayWIT();
 
   return (
     <>
@@ -92,8 +378,10 @@ export default async function Page() {
           <div className="tokoHeader">
             <div>
               <h1>Toko Kami</h1>
+
               <p>
-                Temukan lokasi Toko Listrik Sinar Kasih dan kunjungi
+                Temukan lokasi Toko Listrik
+                Sinar Kasih dan kunjungi
                 cabang terdekat.
               </p>
             </div>
@@ -110,13 +398,87 @@ export default async function Page() {
           ) : (
             <div className="tokoGrid">
               {cabang.map((item) => {
-                const whatsappNumber = normalizeWhatsApp(
-                  item.telepon
-                );
+                const whatsappNumber =
+                  normalizeWhatsApp(
+                    item.telepon
+                  );
 
-                const whatsappUrl = whatsappNumber
-                  ? `https://wa.me/${whatsappNumber}`
-                  : "";
+                const whatsappUrl =
+                  whatsappNumber
+                    ? `https://wa.me/${whatsappNumber}`
+                    : "";
+
+                const normalSchedule =
+                  jamNormal.filter(
+                    (schedule) =>
+                      Number(
+                        schedule.cabang_id
+                      ) === Number(item.id)
+                  );
+
+                const periods =
+                  periodeKhusus.filter(
+                    (period) =>
+                      Number(
+                        period.cabang_id
+                      ) === Number(item.id)
+                  );
+
+                const activeSpecialPeriod =
+                  findSpecialPeriod(
+                    periods,
+                    todayWIT
+                  );
+
+                const specialDetails =
+                  activeSpecialPeriod
+                    ? detailPeriodeKhusus.filter(
+                        (detail) =>
+                          Number(
+                            detail.periode_id
+                          ) ===
+                          Number(
+                            activeSpecialPeriod.id
+                          )
+                      )
+                    : [];
+
+                const specialChanges =
+                  activeSpecialPeriod
+                    ? HARI.filter((hari) => {
+                        const normal =
+                          getNormalScheduleByDay(
+                            normalSchedule,
+                            hari.value
+                          );
+
+                        const special =
+                          getSpecialScheduleByDay(
+                            specialDetails,
+                            hari.value
+                          );
+
+                        return (
+                          special &&
+                          isDifferentSchedule(
+                            normal,
+                            special
+                          )
+                        );
+                      }).map((hari) => {
+                        const special =
+                          getSpecialScheduleByDay(
+                            specialDetails,
+                            hari.value
+                          );
+
+                        return {
+                          hari: hari.value,
+                          label: hari.label,
+                          ...special,
+                        };
+                      })
+                    : [];
 
                 return (
                   <article
@@ -132,9 +494,14 @@ export default async function Page() {
                       ) : (
                         <div className="noPhoto">
                           <span>🏪</span>
-                          <strong>Sinar Kasih</strong>
+
+                          <strong>
+                            Sinar Kasih
+                          </strong>
+
                           <small>
-                            Foto toko belum tersedia
+                            Foto toko belum
+                            tersedia
                           </small>
                         </div>
                       )}
@@ -147,7 +514,9 @@ export default async function Page() {
                             TOKO / CABANG
                           </span>
 
-                          <h2>{item.nama}</h2>
+                          <h2>
+                            {item.nama}
+                          </h2>
                         </div>
 
                         <span className="activeBadge">
@@ -161,8 +530,13 @@ export default async function Page() {
                         </span>
 
                         <div>
-                          <strong>Alamat</strong>
-                          <p>{item.alamat}</p>
+                          <strong>
+                            Alamat
+                          </strong>
+
+                          <p>
+                            {item.alamat}
+                          </p>
                         </div>
                       </div>
 
@@ -173,16 +547,150 @@ export default async function Page() {
                           </span>
 
                           <div>
-                            <strong>Telepon / WhatsApp</strong>
-                            <p>{item.telepon}</p>
+                            <strong>
+                              Telepon / WhatsApp
+                            </strong>
+
+                            <p>
+                              {item.telepon}
+                            </p>
                           </div>
                         </div>
                       )}
 
+                      <div className="hoursBox">
+                        <div className="hoursHeader">
+                          <span className="hoursIcon">
+                            <ClockIcon />
+                          </span>
+
+                          <div>
+                            <strong>
+                              Jam Operasional
+                            </strong>
+
+                            <small>
+                              Waktu Indonesia
+                              Timur (WIT)
+                            </small>
+                          </div>
+                        </div>
+
+                        <div className="hoursList">
+                          {HARI.map((hari) => {
+                            const schedule =
+                              getNormalScheduleByDay(
+                                normalSchedule,
+                                hari.value
+                              );
+
+                            return (
+                              <div
+                                key={hari.value}
+                                className="hoursRow"
+                              >
+                                <span>
+                                  {
+                                    hari.label
+                                  }
+                                </span>
+
+                                <strong
+                                  className={
+                                    schedule.buka
+                                      ? ""
+                                      : "closedText"
+                                  }
+                                >
+                                  {formatJamOperasional(
+                                    schedule
+                                  )}
+                                </strong>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {activeSpecialPeriod &&
+                        specialChanges.length >
+                          0 && (
+                          <div className="specialHoursBox">
+                            <div className="specialHoursHeader">
+                              <span className="specialIcon">
+                                ★
+                              </span>
+
+                              <div>
+                                <strong>
+                                  Jam Operasional
+                                  Khusus
+                                </strong>
+
+                                <small>
+                                  {
+                                    activeSpecialPeriod.nama
+                                  }
+                                </small>
+                              </div>
+                            </div>
+
+                            <div className="specialPeriodDate">
+                              Berlaku{" "}
+                              {formatTanggalIndonesia(
+                                activeSpecialPeriod.tanggal_mulai
+                              )}{" "}
+                              –{" "}
+                              {formatTanggalIndonesia(
+                                activeSpecialPeriod.tanggal_selesai
+                              )}
+                            </div>
+
+                            <div className="specialHoursList">
+                              {specialChanges.map(
+                                (special) => (
+                                  <div
+                                    key={
+                                      special.hari
+                                    }
+                                    className="hoursRow specialRow"
+                                  >
+                                    <span>
+                                      {
+                                        special.label
+                                      }
+                                    </span>
+
+                                    <strong
+                                      className={
+                                        special.buka
+                                          ? ""
+                                          : "closedText"
+                                      }
+                                    >
+                                      {formatJamOperasional(
+                                        special
+                                      )}
+                                    </strong>
+                                  </div>
+                                )
+                              )}
+                            </div>
+
+                            <p className="specialNote">
+                              Jam di atas berlaku
+                              khusus selama
+                              periode tersebut.
+                            </p>
+                          </div>
+                        )}
+
                       <div className="tokoActions">
                         {item.google_maps_url && (
                           <a
-                            href={item.google_maps_url}
+                            href={
+                              item.google_maps_url
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mapsButton"
@@ -194,7 +702,9 @@ export default async function Page() {
 
                         {item.google_review_url && (
                           <a
-                            href={item.google_review_url}
+                            href={
+                              item.google_review_url
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="reviewButton"
@@ -212,7 +722,8 @@ export default async function Page() {
                               </strong>
 
                               <small>
-                                Bantu kami dengan ulasan Anda
+                                Bantu kami dengan
+                                ulasan Anda
                               </small>
                             </span>
                           </a>
@@ -242,7 +753,7 @@ export default async function Page() {
               href="/lainnya"
               className="backButton"
             >
-              ← Kembali ke Informasi & Layanan
+              ← Kembali ke Lainnya
             </Link>
           </div>
         </div>
@@ -267,7 +778,10 @@ export default async function Page() {
 
         .tokoGrid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+          );
           gap: 24px;
         }
 
@@ -276,7 +790,9 @@ export default async function Page() {
           background: #ffffff;
           border: 1px solid #e1d7cc;
           border-radius: 18px;
-          box-shadow: 0 8px 25px rgba(75, 51, 38, 0.07);
+          box-shadow:
+            0 8px 25px
+            rgba(75, 51, 38, 0.07);
         }
 
         .tokoPhoto {
@@ -385,6 +901,142 @@ export default async function Page() {
           color: #3f2f24;
           line-height: 1.5;
           font-size: 14px;
+        }
+
+        .hoursBox {
+          margin-top: 20px;
+          padding: 17px;
+          border: 1px solid #e5d9cc;
+          border-radius: 13px;
+          background: #fcfaf8;
+        }
+
+        .hoursHeader {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding-bottom: 13px;
+          border-bottom: 1px solid #eee5dc;
+        }
+
+        .hoursIcon {
+          width: 36px;
+          height: 36px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          background: #f0e4d7;
+          color: #755337;
+        }
+
+        .hoursHeader strong {
+          display: block;
+          color: #4a382c;
+          font-size: 14px;
+        }
+
+        .hoursHeader small {
+          display: block;
+          margin-top: 2px;
+          color: #8a7767;
+          font-size: 11px;
+        }
+
+        .hoursList,
+        .specialHoursList {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          margin-top: 9px;
+        }
+
+        .hoursRow {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          padding: 7px 0;
+          color: #5c4d42;
+          font-size: 13px;
+        }
+
+        .hoursRow strong {
+          color: #3f2f24;
+          text-align: right;
+          font-size: 13px;
+        }
+
+        .hoursRow .closedText {
+          color: #9a7069;
+        }
+
+        .specialHoursBox {
+          margin-top: 14px;
+          padding: 17px;
+          border: 1px solid #ead8b8;
+          border-radius: 13px;
+          background: #fffaf0;
+        }
+
+        .specialHoursHeader {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #f0dfc2;
+        }
+
+        .specialIcon {
+          width: 36px;
+          height: 36px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          background: #f4e4c6;
+          color: #9a6c28;
+          font-size: 16px;
+        }
+
+        .specialHoursHeader strong {
+          display: block;
+          color: #60482d;
+          font-size: 14px;
+        }
+
+        .specialHoursHeader small {
+          display: block;
+          margin-top: 2px;
+          color: #987d5c;
+          font-size: 11px;
+        }
+
+        .specialPeriodDate {
+          margin-top: 11px;
+          padding: 8px 10px;
+          border-radius: 8px;
+          background: #f8edd9;
+          color: #745735;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .specialRow {
+          color: #60482d;
+        }
+
+        .specialRow strong {
+          color: #60482d;
+        }
+
+        .specialNote {
+          margin: 10px 0 0;
+          color: #92795c;
+          font-size: 11px;
+          line-height: 1.5;
         }
 
         .tokoActions {
@@ -512,6 +1164,14 @@ export default async function Page() {
 
           .tokoTitleRow {
             flex-direction: column;
+          }
+
+          .hoursRow {
+            font-size: 12px;
+          }
+
+          .hoursRow strong {
+            font-size: 12px;
           }
         }
       `}</style>
