@@ -88,9 +88,7 @@ function getStatusLabel(status) {
     (option) => option.value === status
   );
 
-  return item
-    ? item.label
-    : "Belum Dipublikasikan";
+  return item ? item.label : "Belum Dipublikasikan";
 }
 
 function getTahapLabel(tahap) {
@@ -104,9 +102,7 @@ function getTahapLabel(tahap) {
 function formatTanggal(tanggal) {
   if (!tanggal) return "-";
 
-  const date = new Date(
-    `${tanggal}T00:00:00`
-  );
+  const date = new Date(`${tanggal}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
     return tanggal;
@@ -139,10 +135,7 @@ function displayToIsoDate(value) {
     };
   }
 
-  const cleaned = String(value).replace(
-    /[^\d]/g,
-    ""
-  );
+  const cleaned = String(value).replace(/[^\d]/g, "");
 
   if (cleaned.length !== 8) {
     return {
@@ -213,16 +206,10 @@ function formatDateInput(value) {
   }
 
   if (digits.length <= 4) {
-    return `${digits.slice(
-      0,
-      2
-    )}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   }
 
-  return `${digits.slice(
-    0,
-    2
-  )}/${digits.slice(
+  return `${digits.slice(0, 2)}/${digits.slice(
     2,
     4
   )}/${digits.slice(4, 8)}`;
@@ -250,17 +237,6 @@ function getMediaTypeFromFile(file) {
   return null;
 }
 
-function createSafeFileName(position) {
-  return (
-    (position || "lowongan")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 50) ||
-    "lowongan"
-  );
-}
-
 export default function AdminLokerPage() {
   const [lowongan, setLowongan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -273,6 +249,7 @@ export default function AdminLokerPage() {
 
   const [showForm, setShowForm] =
     useState(false);
+
   const [editingId, setEditingId] =
     useState(null);
 
@@ -285,13 +262,16 @@ export default function AdminLokerPage() {
 
   const [mediaFile, setMediaFile] =
     useState(null);
+
   const [mediaPreview, setMediaPreview] =
     useState("");
+
   const [mediaType, setMediaType] =
     useState("");
 
   const [coverFile, setCoverFile] =
     useState(null);
+
   const [coverPreview, setCoverPreview] =
     useState("");
 
@@ -305,8 +285,13 @@ export default function AdminLokerPage() {
     loadLowongan();
   }, []);
 
-  async function loadLowongan() {
-    setLoading(true);
+  async function loadLowongan(
+    showLoading = true
+  ) {
+    if (showLoading) {
+      setLoading(true);
+    }
+
     setError("");
 
     const supabase = getSupabase();
@@ -319,18 +304,20 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const { data, error: fetchError } =
-      await supabase
-        .from("lowongan_kerja")
-        .select(
-          "id, posisi, gambar_url, cover_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
-        )
-        .order("urutan", {
-          ascending: true,
-        })
-        .order("id", {
-          ascending: false,
-        });
+    const {
+      data,
+      error: fetchError,
+    } = await supabase
+      .from("lowongan_kerja")
+      .select(
+        "id, posisi, gambar_url, cover_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
+      )
+      .order("urutan", {
+        ascending: true,
+      })
+      .order("id", {
+        ascending: false,
+      });
 
     if (fetchError) {
       console.error(fetchError);
@@ -413,7 +400,9 @@ export default function AdminLokerPage() {
     setMediaFile(null);
     setMediaPreview("");
     setMediaType("");
+  }
 
+  function resetCover() {
     setCoverFile(null);
     setCoverPreview("");
   }
@@ -422,6 +411,7 @@ export default function AdminLokerPage() {
     setForm(initialForm);
     setEditingId(null);
     resetMedia();
+    resetCover();
   }
 
   function openAddForm() {
@@ -448,7 +438,8 @@ export default function AdminLokerPage() {
         item.deskripsi || "",
       persyaratan:
         item.persyaratan || "",
-      lokasi: item.lokasi || "",
+      lokasi:
+        item.lokasi || "",
       google_form_url:
         item.google_form_url || "",
       status:
@@ -466,13 +457,16 @@ export default function AdminLokerPage() {
         ),
       pengumuman:
         item.pengumuman || "",
-      aktif: Boolean(item.aktif),
-      urutan: item.urutan ?? 0,
+      aktif:
+        Boolean(item.aktif),
+      urutan:
+        item.urutan ?? 0,
     });
 
     setEditingId(item.id);
 
     setMediaFile(null);
+
     setMediaPreview(
       item.gambar_url || ""
     );
@@ -486,6 +480,7 @@ export default function AdminLokerPage() {
     );
 
     setCoverFile(null);
+
     setCoverPreview(
       item.cover_url || ""
     );
@@ -573,7 +568,7 @@ export default function AdminLokerPage() {
       )
     ) {
       setError(
-        "Format cover harus JPG, PNG, atau WEBP."
+        "Cover hanya boleh menggunakan JPG, PNG, atau WEBP."
       );
 
       event.target.value = "";
@@ -581,11 +576,11 @@ export default function AdminLokerPage() {
     }
 
     const maxSize =
-      20 * 1024 * 1024;
+      10 * 1024 * 1024;
 
     if (file.size > maxSize) {
       setError(
-        "Ukuran cover maksimal 20 MB."
+        "Ukuran cover maksimal 10 MB."
       );
 
       event.target.value = "";
@@ -600,30 +595,9 @@ export default function AdminLokerPage() {
     setCoverPreview(previewUrl);
   }
 
-  function removeMedia() {
-    setMediaFile(null);
-    setMediaPreview("");
-    setMediaType("");
-
-    setForm((current) => ({
-      ...current,
-      gambar_url: "",
-    }));
-  }
-
-  function removeCover() {
-    setCoverFile(null);
-    setCoverPreview("");
-
-    setForm((current) => ({
-      ...current,
-      cover_url: "",
-    }));
-  }
-
   async function uploadFile(
     file,
-    type
+    folder
   ) {
     if (!file) return "";
 
@@ -631,23 +605,32 @@ export default function AdminLokerPage() {
       file.name
         .split(".")
         .pop()
-        ?.toLowerCase() || "jpg";
+        ?.toLowerCase() ||
+      "jpg";
 
     const safePosition =
-      createSafeFileName(
-        form.posisi
-      );
-
-    const prefix =
-      type === "cover"
-        ? "cover"
-        : "media";
+      (
+        form.posisi ||
+        "lowongan"
+      )
+        .toLowerCase()
+        .replace(
+          /[^a-z0-9]+/g,
+          "-"
+        )
+        .replace(
+          /^-+|-+$/g,
+          ""
+        )
+        .slice(0, 50);
 
     const fileName =
-      `${prefix}-${Date.now()}-${safePosition}.${extension}`;
+      `${Date.now()}-${safePosition}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${extension}`;
 
     const filePath =
-      `lowongan/${fileName}`;
+      `${folder}/${fileName}`;
 
     const supabase =
       getSupabase();
@@ -668,13 +651,14 @@ export default function AdminLokerPage() {
         {
           cacheControl: "3600",
           upsert: false,
-          contentType: file.type,
+          contentType:
+            file.type,
         }
       );
 
     if (uploadError) {
       throw new Error(
-        `Gagal upload ${type === "cover" ? "cover" : "media"}: ${uploadError.message}`
+        `Gagal upload file: ${uploadError.message}`
       );
     }
 
@@ -685,9 +669,13 @@ export default function AdminLokerPage() {
           filePath
         );
 
-    return (
-      data?.publicUrl || ""
-    );
+    if (!data?.publicUrl) {
+      throw new Error(
+        "URL file berhasil diupload tetapi URL publik tidak ditemukan."
+      );
+    }
+
+    return data.publicUrl;
   }
 
   async function uploadMedia() {
@@ -697,7 +685,7 @@ export default function AdminLokerPage() {
 
     return uploadFile(
       mediaFile,
-      "media"
+      "lowongan"
     );
   }
 
@@ -775,10 +763,12 @@ export default function AdminLokerPage() {
 
     try {
       let gambarUrl =
-        form.gambar_url || null;
+        form.gambar_url ||
+        null;
 
       let coverUrl =
-        form.cover_url || null;
+        form.cover_url ||
+        null;
 
       if (mediaFile) {
         gambarUrl =
@@ -839,58 +829,71 @@ export default function AdminLokerPage() {
           Number(form.urutan) || 0,
       };
 
-      let result;
-
       if (editingId) {
-        result =
-          await supabase
-            .from(
-              "lowongan_kerja"
-            )
-            .update(payload)
-            .eq(
-              "id",
-              editingId
-            )
-            .select("id")
-            .single();
+        const {
+          data: updatedRows,
+          error: updateError,
+        } = await supabase
+          .from("lowongan_kerja")
+          .update(payload)
+          .eq("id", editingId)
+          .select("id")
+          .single();
+
+        if (updateError) {
+          console.error(
+            updateError
+          );
+
+          throw new Error(
+            `Gagal memperbarui lowongan: ${updateError.message}`
+          );
+        }
+
+        if (!updatedRows) {
+          throw new Error(
+            "Data lowongan tidak berhasil diperbarui."
+          );
+        }
+
+        setSuccess(
+          "Lowongan berhasil diperbarui."
+        );
       } else {
-        result =
-          await supabase
-            .from(
-              "lowongan_kerja"
-            )
-            .insert(payload)
-            .select("id")
-            .single();
-      }
+        const {
+          data: insertedRow,
+          error: insertError,
+        } = await supabase
+          .from("lowongan_kerja")
+          .insert(payload)
+          .select("id")
+          .single();
 
-      if (result.error) {
-        console.error(
-          result.error
+        if (insertError) {
+          console.error(
+            insertError
+          );
+
+          throw new Error(
+            `Gagal menambahkan lowongan: ${insertError.message}`
+          );
+        }
+
+        if (!insertedRow) {
+          throw new Error(
+            "Lowongan gagal ditambahkan."
+          );
+        }
+
+        setSuccess(
+          "Lowongan berhasil ditambahkan."
         );
-
-        throw new Error(
-          `Gagal menyimpan lowongan: ${result.error.message}`
-        );
       }
-
-      if (!result.data?.id) {
-        throw new Error(
-          "Data tidak memberikan konfirmasi ID setelah disimpan."
-        );
-      }
-
-      setSuccess(
-        editingId
-          ? "Lowongan berhasil diperbarui."
-          : "Lowongan berhasil ditambahkan."
-      );
 
       resetForm();
       setShowForm(false);
 
-      await loadLowongan();
+      await loadLowongan(false);
 
       window.scrollTo({
         top: 0,
@@ -992,7 +995,10 @@ export default function AdminLokerPage() {
       .update({
         aktif: !item.aktif,
       })
-      .eq("id", item.id);
+      .eq(
+        "id",
+        item.id
+      );
 
     if (updateError) {
       console.error(
@@ -1049,18 +1055,14 @@ export default function AdminLokerPage() {
 
       const matchesFilter =
         filter === "semua" ||
-        (filter ===
-          "aktif" &&
+        (filter === "aktif" &&
           item.aktif) ||
-        (filter ===
-          "nonaktif" &&
+        (filter === "nonaktif" &&
           !item.aktif) ||
-        (filter ===
-          "dibuka" &&
+        (filter === "dibuka" &&
           item.status ===
             "dibuka") ||
-        (filter ===
-          "proses" &&
+        (filter === "proses" &&
           item.status ===
             "proses_seleksi");
 
@@ -1094,6 +1096,7 @@ export default function AdminLokerPage() {
   return (
     <main className="lokerAdminPage">
       <div className="page">
+
         <div className="topbar">
           <div>
             <div className="eyebrow">
@@ -1105,10 +1108,9 @@ export default function AdminLokerPage() {
             </h1>
 
             <p>
-              Kelola informasi
-              lowongan kerja yang
-              ditampilkan pada
-              halaman publik.
+              Kelola informasi lowongan kerja
+              yang ditampilkan pada halaman
+              publik.
             </p>
           </div>
 
@@ -1124,9 +1126,7 @@ export default function AdminLokerPage() {
             <button
               type="button"
               className="addButton"
-              onClick={
-                openAddForm
-              }
+              onClick={openAddForm}
             >
               + Tambah Lowongan
             </button>
@@ -1134,13 +1134,19 @@ export default function AdminLokerPage() {
         </div>
 
         {success && (
-          <div className="success">
+          <div
+            className="success"
+            role="status"
+          >
             ✓ {success}
           </div>
         )}
 
         {error && (
-          <div className="error">
+          <div
+            className="error"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -1150,7 +1156,6 @@ export default function AdminLokerPage() {
             <span>
               Total Lowongan
             </span>
-
             <strong>
               {totalLowongan}
             </strong>
@@ -1158,7 +1163,6 @@ export default function AdminLokerPage() {
 
           <div className="summaryCard">
             <span>Aktif</span>
-
             <strong>
               {aktif}
             </strong>
@@ -1168,17 +1172,13 @@ export default function AdminLokerPage() {
             <span>
               Pendaftaran Dibuka
             </span>
-
             <strong>
               {dibuka}
             </strong>
           </div>
 
           <div className="summaryCard">
-            <span>
-              Nonaktif
-            </span>
-
+            <span>Nonaktif</span>
             <strong>
               {nonaktif}
             </strong>
@@ -1202,10 +1202,9 @@ export default function AdminLokerPage() {
                 </h2>
 
                 <p>
-                  Isi informasi
-                  lowongan yang akan
-                  ditampilkan kepada
-                  calon pelamar.
+                  Isi informasi lowongan
+                  yang akan ditampilkan
+                  kepada calon pelamar.
                 </p>
               </div>
 
@@ -1222,11 +1221,10 @@ export default function AdminLokerPage() {
             </div>
 
             <form
-              onSubmit={
-                handleSubmit
-              }
+              onSubmit={handleSubmit}
             >
               <div className="formGrid">
+
                 <div className="field full">
                   <label htmlFor="posisi">
                     Posisi Lowongan *
@@ -1382,7 +1380,6 @@ export default function AdminLokerPage() {
                         )
                       }
                       aria-label="Pilih tanggal buka"
-                      title="Pilih tanggal"
                     >
                       📅
                     </button>
@@ -1396,12 +1393,9 @@ export default function AdminLokerPage() {
                       value={
                         displayToIsoDate(
                           form.tanggal_buka
-                        ).value ||
-                        ""
+                        ).value || ""
                       }
-                      onChange={(
-                        event
-                      ) =>
+                      onChange={(event) =>
                         handleNativeDateChange(
                           event,
                           "tanggal_buka"
@@ -1449,7 +1443,6 @@ export default function AdminLokerPage() {
                         )
                       }
                       aria-label="Pilih tanggal tutup"
-                      title="Pilih tanggal"
                     >
                       📅
                     </button>
@@ -1463,12 +1456,9 @@ export default function AdminLokerPage() {
                       value={
                         displayToIsoDate(
                           form.tanggal_tutup
-                        ).value ||
-                        ""
+                        ).value || ""
                       }
-                      onChange={(
-                        event
-                      ) =>
+                      onChange={(event) =>
                         handleNativeDateChange(
                           event,
                           "tanggal_tutup"
@@ -1486,7 +1476,6 @@ export default function AdminLokerPage() {
                   </small>
                 </div>
 
-                {/* MEDIA UTAMA */}
                 <div className="field full">
                   <label>
                     Foto / Video Lowongan
@@ -1500,10 +1489,6 @@ export default function AdminLokerPage() {
                         <video
                           src={
                             mediaPreview
-                          }
-                          poster={
-                            coverPreview ||
-                            undefined
                           }
                           muted
                           controls
@@ -1526,8 +1511,7 @@ export default function AdminLokerPage() {
                           </span>
 
                           <small>
-                            Belum ada
-                            media
+                            Belum ada media
                           </small>
                         </div>
                       )}
@@ -1535,13 +1519,12 @@ export default function AdminLokerPage() {
 
                     <div className="mediaUploadInfo">
                       <strong>
-                        Foto / Video Lowongan
+                        Upload foto atau
+                        video
                       </strong>
 
                       <p>
-                        Media utama yang
-                        ditampilkan pada
-                        lowongan.
+                        Bisa menggunakan:
                       </p>
 
                       <ul>
@@ -1570,78 +1553,59 @@ export default function AdminLokerPage() {
                         </div>
                       )}
 
-                      <div className="mediaButtons">
-                        <label className="chooseMediaButton">
-                          📁 Pilih Foto /
-                          Video
+                      <label className="chooseMediaButton">
+                        📁 Pilih Foto /
+                        Video
 
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
-                            onChange={
-                              handleMediaChange
-                            }
-                          />
-                        </label>
-
-                        {mediaPreview && (
-                          <button
-                            type="button"
-                            className="removeButton"
-                            onClick={
-                              removeMedia
-                            }
-                          >
-                            🗑 Hapus Media
-                          </button>
-                        )}
-                      </div>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                          onChange={
+                            handleMediaChange
+                          }
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                {/* COVER */}
                 <div className="field full">
                   <label>
                     Cover / Thumbnail
                   </label>
 
-                  <div className="coverUploadBox">
-                    <div className="coverPreview">
+                  <div className="mediaUploadBox">
+                    <div className="mediaPreview">
                       {coverPreview ? (
                         <img
                           src={
                             coverPreview
                           }
                           alt="Preview cover lowongan"
-                          className="coverPreviewContent"
+                          className="mediaPreviewContent"
                         />
                       ) : (
-                        <div className="coverPlaceholder">
+                        <div className="mediaPlaceholder">
                           <span>
                             🖼️
                           </span>
 
                           <small>
-                            Belum ada
-                            cover
+                            Belum ada cover
                           </small>
                         </div>
                       )}
                     </div>
 
-                    <div className="coverUploadInfo">
+                    <div className="mediaUploadInfo">
                       <strong>
-                        Cover / Thumbnail
+                        Cover untuk thumbnail
                       </strong>
 
                       <p>
-                        Cover digunakan
-                        sebagai gambar
-                        awal untuk video
-                        agar tidak tampil
-                        hitam sebelum video
-                        dimainkan.
+                        Cover digunakan sebagai
+                        gambar tampilan awal
+                        video/lowongan.
                       </p>
 
                       <ul>
@@ -1649,18 +1613,14 @@ export default function AdminLokerPage() {
                           JPG, PNG, WEBP
                         </li>
                         <li>
-                          Maksimal 20 MB
-                        </li>
-                        <li>
-                          Disarankan rasio
-                          4:5
+                          Maksimal 10 MB
                         </li>
                       </ul>
 
                       {coverFile && (
                         <div className="selectedMedia">
                           <strong>
-                            Cover dipilih:
+                            File dipilih:
                           </strong>
 
                           <span>
@@ -1671,31 +1631,17 @@ export default function AdminLokerPage() {
                         </div>
                       )}
 
-                      <div className="mediaButtons">
-                        <label className="chooseCoverButton">
-                          🖼️ Pilih Cover
+                      <label className="chooseMediaButton">
+                        📁 Pilih Cover
 
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={
-                              handleCoverChange
-                            }
-                          />
-                        </label>
-
-                        {coverPreview && (
-                          <button
-                            type="button"
-                            className="removeButton"
-                            onClick={
-                              removeCover
-                            }
-                          >
-                            🗑 Hapus Cover
-                          </button>
-                        )}
-                      </div>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={
+                            handleCoverChange
+                          }
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -1708,7 +1654,7 @@ export default function AdminLokerPage() {
                   <textarea
                     id="deskripsi"
                     name="deskripsi"
-                    rows="6"
+                    rows="7"
                     value={
                       form.deskripsi
                     }
@@ -1727,7 +1673,7 @@ export default function AdminLokerPage() {
                   <textarea
                     id="persyaratan"
                     name="persyaratan"
-                    rows="7"
+                    rows="8"
                     value={
                       form.persyaratan
                     }
@@ -1735,15 +1681,14 @@ export default function AdminLokerPage() {
                       handleChange
                     }
                     placeholder={
-                      "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
+                      "Contoh:\nLaki-Laki\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
                     }
                   />
 
                   <small>
                     Gunakan baris baru
                     untuk setiap
-                    persyaratan agar
-                    lebih mudah dibaca.
+                    persyaratan.
                   </small>
                 </div>
 
@@ -1813,6 +1758,7 @@ export default function AdminLokerPage() {
                     </span>
                   </label>
                 </div>
+
               </div>
 
               <div className="formActions">
@@ -1823,9 +1769,7 @@ export default function AdminLokerPage() {
                     setShowForm(false);
                     resetForm();
                   }}
-                  disabled={
-                    saving
-                  }
+                  disabled={saving}
                 >
                   Batal
                 </button>
@@ -1833,9 +1777,7 @@ export default function AdminLokerPage() {
                 <button
                   type="submit"
                   className="saveButton"
-                  disabled={
-                    saving
-                  }
+                  disabled={saving}
                 >
                   {saving
                     ? "Menyimpan..."
@@ -1854,9 +1796,7 @@ export default function AdminLokerPage() {
               type="search"
               placeholder="Cari posisi atau lokasi..."
               value={search}
-              onChange={(
-                event
-              ) =>
+              onChange={(event) =>
                 setSearch(
                   event.target.value
                 )
@@ -1881,30 +1821,21 @@ export default function AdminLokerPage() {
             {[
               ["semua", "Semua"],
               ["aktif", "Aktif"],
+              ["nonaktif", "Nonaktif"],
               ["dibuka", "Dibuka"],
-              [
-                "proses",
-                "Proses Seleksi",
-              ],
-              [
-                "nonaktif",
-                "Nonaktif",
-              ],
+              ["proses", "Proses"],
             ].map(
               ([value, label]) => (
                 <button
                   key={value}
                   type="button"
                   className={
-                    filter ===
-                    value
+                    filter === value
                       ? "filter active"
                       : "filter"
                   }
                   onClick={() =>
-                    setFilter(
-                      value
-                    )
+                    setFilter(value)
                   }
                 >
                   {label}
@@ -1917,30 +1848,29 @@ export default function AdminLokerPage() {
         <div className="card">
           {loading ? (
             <div className="empty">
-              Memuat data
-              lowongan...
+              <div className="emptyIcon">
+                ⏳
+              </div>
+
+              <strong>
+                Memuat data...
+              </strong>
             </div>
           ) : filteredLowongan.length ===
             0 ? (
             <div className="empty">
               <div className="emptyIcon">
-                💼
+                📋
               </div>
 
               <strong>
-                {search ||
-                filter !==
-                  "semua"
-                  ? "Tidak ada lowongan yang sesuai."
-                  : "Belum ada data lowongan."}
+                Tidak ada lowongan
               </strong>
 
               <p>
-                {search ||
-                filter !==
-                  "semua"
-                  ? "Coba ubah pencarian atau filter."
-                  : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
+                Belum ada data yang
+                sesuai dengan
+                pencarian atau filter.
               </p>
             </div>
           ) : (
@@ -1949,26 +1879,25 @@ export default function AdminLokerPage() {
                 <thead>
                   <tr>
                     <th>
-                      Urutan
-                    </th>
-                    <th>
                       Posisi
                     </th>
-                    <th>
-                      Lokasi
-                    </th>
+
                     <th>
                       Status
                     </th>
+
                     <th>
                       Tahap
                     </th>
+
                     <th>
-                      Periode
+                      Tanggal
                     </th>
+
                     <th>
-                      Tampil
+                      Aktif
                     </th>
+
                     <th>
                       Aksi
                     </th>
@@ -1979,47 +1908,17 @@ export default function AdminLokerPage() {
                   {filteredLowongan.map(
                     (item) => (
                       <tr
-                        key={
-                          item.id
-                        }
+                        key={item.id}
                       >
                         <td>
-                          {
-                            item.urutan
-                          }
-                        </td>
-
-                        <td>
                           <div className="positionCell">
-                            {item.gambar_url &&
-                            isVideoUrl(
-                              item.gambar_url
-                            ) ? (
-                              <video
+
+                            {item.cover_url ||
+                            item.gambar_url ? (
+                              <img
                                 src={
-                                  item.gambar_url
-                                }
-                                poster={
                                   item.cover_url ||
-                                  undefined
-                                }
-                                muted
-                                playsInline
-                                preload="metadata"
-                                className="thumb"
-                              />
-                            ) : item.gambar_url ? (
-                              <img
-                                src={
                                   item.gambar_url
-                                }
-                                alt=""
-                                className="thumb"
-                              />
-                            ) : item.cover_url ? (
-                              <img
-                                src={
-                                  item.cover_url
                                 }
                                 alt=""
                                 className="thumb"
@@ -2038,24 +1937,11 @@ export default function AdminLokerPage() {
                               </strong>
 
                               <small>
-                                ID #
-                                {
-                                  item.id
-                                }
+                                {item.lokasi ||
+                                  "Lokasi belum diisi"}
                               </small>
-
-                              {item.cover_url && (
-                                <span className="coverBadge">
-                                  ✓ Cover
-                                </span>
-                              )}
                             </div>
                           </div>
-                        </td>
-
-                        <td>
-                          {item.lokasi ||
-                            "-"}
                         </td>
 
                         <td>
@@ -2077,13 +1963,14 @@ export default function AdminLokerPage() {
                         <td>
                           <div className="dateCell">
                             <span>
+                              Buka:{" "}
                               {formatTanggal(
                                 item.tanggal_buka
                               )}
                             </span>
 
                             <small>
-                              sampai{" "}
+                              Tutup:{" "}
                               {formatTanggal(
                                 item.tanggal_tutup
                               )}
@@ -2109,7 +1996,10 @@ export default function AdminLokerPage() {
                               item.id
                             }
                           >
-                            {item.aktif
+                            {processingId ===
+                            item.id
+                              ? "..."
+                              : item.aktif
                               ? "Aktif"
                               : "Nonaktif"}
                           </button>
@@ -2157,12 +2047,15 @@ export default function AdminLokerPage() {
             </div>
           )}
         </div>
+
       </div>
 
       <style>{`
         .lokerAdminPage {
           width: 100%;
           min-height: 100%;
+          padding-top: 82px;
+          box-sizing: border-box;
           color: #3f2f24;
         }
 
@@ -2170,6 +2063,8 @@ export default function AdminLokerPage() {
           width: 100%;
           max-width: none;
           margin: 0;
+          padding: 0 28px 40px;
+          box-sizing: border-box;
         }
 
         .topbar {
@@ -2437,8 +2332,7 @@ export default function AdminLokerPage() {
           bottom: 0;
         }
 
-        .mediaUploadBox,
-        .coverUploadBox {
+        .mediaUploadBox {
           display: grid;
           grid-template-columns:
             220px minmax(0, 1fr);
@@ -2449,13 +2343,7 @@ export default function AdminLokerPage() {
           background: #faf7f3;
         }
 
-        .coverUploadBox {
-          background: #fdf9f4;
-          border-color: #d8c3ad;
-        }
-
-        .mediaPreview,
-        .coverPreview {
+        .mediaPreview {
           width: 100%;
           height: 145px;
           overflow: hidden;
@@ -2464,20 +2352,14 @@ export default function AdminLokerPage() {
           border: 1px solid #dfd2c3;
         }
 
-        .coverPreview {
-          background: #f4ebe1;
-        }
-
-        .mediaPreviewContent,
-        .coverPreviewContent {
+        .mediaPreviewContent {
           display: block;
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
 
-        .mediaPlaceholder,
-        .coverPlaceholder {
+        .mediaPlaceholder {
           width: 100%;
           height: 100%;
           display: flex;
@@ -2488,40 +2370,33 @@ export default function AdminLokerPage() {
           color: #9a806a;
         }
 
-        .mediaPlaceholder span,
-        .coverPlaceholder span {
+        .mediaPlaceholder span {
           font-size: 32px;
         }
 
-        .mediaPlaceholder small,
-        .coverPlaceholder small {
+        .mediaPlaceholder small {
           font-size: 11px;
           color: #8a796e;
         }
 
-        .mediaUploadInfo,
-        .coverUploadInfo {
+        .mediaUploadInfo {
           min-width: 0;
         }
 
-        .mediaUploadInfo > strong,
-        .coverUploadInfo > strong {
+        .mediaUploadInfo > strong {
           display: block;
           margin-bottom: 5px;
           color: #4b3326;
           font-size: 15px;
         }
 
-        .mediaUploadInfo p,
-        .coverUploadInfo p {
+        .mediaUploadInfo p {
           margin: 0 0 4px;
           color: #76685d;
           font-size: 13px;
-          line-height: 1.5;
         }
 
-        .mediaUploadInfo ul,
-        .coverUploadInfo ul {
+        .mediaUploadInfo ul {
           margin: 4px 0 12px;
           padding-left: 18px;
           color: #76685d;
@@ -2545,62 +2420,26 @@ export default function AdminLokerPage() {
           word-break: break-all;
         }
 
-        .mediaButtons {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          align-items: center;
-        }
-
-        .chooseMediaButton,
-        .chooseCoverButton {
+        .chooseMediaButton {
           display: inline-flex !important;
           align-items: center;
           justify-content: center;
           min-height: 40px;
           padding: 0 14px;
           border-radius: 8px;
+          background: #4b3326;
           color: #fff !important;
           cursor: pointer;
           font-size: 13px !important;
           font-weight: 700 !important;
         }
 
-        .chooseMediaButton {
-          background: #4b3326;
-        }
-
-        .chooseCoverButton {
-          background: #755337;
-        }
-
         .chooseMediaButton:hover {
           background: #39251b;
         }
 
-        .chooseCoverButton:hover {
-          background: #5e412a;
-        }
-
-        .chooseMediaButton input,
-        .chooseCoverButton input {
+        .chooseMediaButton input {
           display: none;
-        }
-
-        .removeButton {
-          min-height: 40px;
-          padding: 0 13px;
-          border: 1px solid #e1c0bd;
-          border-radius: 8px;
-          background: #fff5f4;
-          color: #9b2929;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .removeButton:hover {
-          background: #fbe8e6;
         }
 
         .checkLabel {
@@ -2779,7 +2618,6 @@ export default function AdminLokerPage() {
         .positionCell small {
           color: #9a8b80;
           font-size: 11px;
-          display: block;
         }
 
         .thumb,
@@ -2798,17 +2636,6 @@ export default function AdminLokerPage() {
           background: #f3eadf;
           color: #755337;
           font-size: 22px;
-        }
-
-        .coverBadge {
-          display: inline-flex;
-          margin-top: 4px;
-          padding: 3px 6px;
-          border-radius: 999px;
-          background: #edf7ee;
-          color: #32713a;
-          font-size: 9px;
-          font-weight: 800;
         }
 
         .status {
@@ -2968,6 +2795,10 @@ export default function AdminLokerPage() {
         }
 
         @media (max-width: 800px) {
+          .page {
+            padding: 0 16px 30px;
+          }
+
           .formGrid {
             grid-template-columns: 1fr;
           }
@@ -2997,13 +2828,11 @@ export default function AdminLokerPage() {
             flex: 1;
           }
 
-          .mediaUploadBox,
-          .coverUploadBox {
+          .mediaUploadBox {
             grid-template-columns: 1fr;
           }
 
-          .mediaPreview,
-          .coverPreview {
+          .mediaPreview {
             max-width: 320px;
           }
         }
@@ -3034,17 +2863,6 @@ export default function AdminLokerPage() {
           .addButton {
             width: 100%;
             flex: none;
-          }
-
-          .mediaButtons {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .chooseMediaButton,
-          .chooseCoverButton,
-          .removeButton {
-            width: 100%;
           }
         }
       `}</style>
