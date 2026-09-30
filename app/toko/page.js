@@ -155,22 +155,49 @@ function isDateInPeriod(
   );
 }
 
-function findSpecialPeriod(periods, today) {
+function getRelevantSpecialPeriod(
+  periods,
+  today
+) {
   if (!Array.isArray(periods)) {
     return null;
   }
 
-  return (
-    periods.find(
-      (period) =>
-        period.aktif !== false &&
-        isDateInPeriod(
-          today,
-          period.tanggal_mulai,
-          period.tanggal_selesai
-        )
-    ) || null
+  const active = periods.find((period) =>
+    isDateInPeriod(
+      today,
+      period.tanggal_mulai,
+      period.tanggal_selesai
+    )
   );
+
+  if (active) {
+    return {
+      period: active,
+      isUpcoming: false,
+    };
+  }
+
+  const upcoming = periods
+    .filter(
+      (period) =>
+        period.tanggal_mulai &&
+        period.tanggal_mulai > today
+    )
+    .sort((a, b) =>
+      String(a.tanggal_mulai).localeCompare(
+        String(b.tanggal_mulai)
+      )
+    );
+
+  if (upcoming.length > 0) {
+    return {
+      period: upcoming[0],
+      isUpcoming: true,
+    };
+  }
+
+  return null;
 }
 
 function getNormalScheduleByDay(
@@ -404,27 +431,34 @@ export default async function Page() {
                       ) === Number(item.id)
                   );
 
-                const activeSpecialPeriod =
-                  findSpecialPeriod(
+                const relevantSpecial =
+                  getRelevantSpecialPeriod(
                     periods,
                     todayWIT
                   );
 
+                const specialPeriod =
+                  relevantSpecial?.period || null;
+
+                const isUpcoming =
+                  relevantSpecial?.isUpcoming ||
+                  false;
+
                 const specialDetails =
-                  activeSpecialPeriod
+                  specialPeriod
                     ? detailPeriodeKhusus.filter(
                         (detail) =>
                           Number(
                             detail.periode_id
                           ) ===
                           Number(
-                            activeSpecialPeriod.id
+                            specialPeriod.id
                           )
                       )
                     : [];
 
                 const specialChanges =
-                  activeSpecialPeriod
+                  specialPeriod
                     ? HARI.filter((hari) => {
                         const normal =
                           getNormalScheduleByDay(
@@ -592,10 +626,16 @@ export default async function Page() {
                         </div>
                       </div>
 
-                      {activeSpecialPeriod &&
+                      {specialPeriod &&
                         specialChanges.length >
                           0 && (
-                          <div className="specialHoursBox">
+                          <div
+                            className={`specialHoursBox ${
+                              isUpcoming
+                                ? "upcomingSpecial"
+                                : ""
+                            }`}
+                          >
                             <div className="specialHoursHeader">
                               <span className="specialIcon">
                                 ★
@@ -603,26 +643,29 @@ export default async function Page() {
 
                               <div>
                                 <strong>
-                                  Jam Operasional
-                                  Khusus
+                                  {isUpcoming
+                                    ? "Jam Operasional Khusus Mendatang"
+                                    : "Jam Operasional Khusus"}
                                 </strong>
 
                                 <small>
                                   {
-                                    activeSpecialPeriod.nama
+                                    specialPeriod.nama
                                   }
                                 </small>
                               </div>
                             </div>
 
                             <div className="specialPeriodDate">
-                              Berlaku{" "}
+                              {isUpcoming
+                                ? "Akan berlaku "
+                                : "Berlaku "}
                               {formatTanggalIndonesia(
-                                activeSpecialPeriod.tanggal_mulai
+                                specialPeriod.tanggal_mulai
                               )}{" "}
                               –{" "}
                               {formatTanggalIndonesia(
-                                activeSpecialPeriod.tanggal_selesai
+                                specialPeriod.tanggal_selesai
                               )}
                             </div>
 
@@ -658,9 +701,9 @@ export default async function Page() {
                             </div>
 
                             <p className="specialNote">
-                              Jam di atas berlaku
-                              khusus selama
-                              periode tersebut.
+                              {isUpcoming
+                                ? "Jam khusus ini akan berlaku selama periode yang tercantum di atas."
+                                : "Jam di atas berlaku khusus selama periode tersebut."}
                             </p>
                           </div>
                         )}
@@ -958,6 +1001,11 @@ export default async function Page() {
           border: 1px solid #ead8b8;
           border-radius: 13px;
           background: #fffaf0;
+        }
+
+        .specialHoursBox.upcomingSpecial {
+          border-color: #dcc79e;
+          background: #fffdf7;
         }
 
         .specialHoursHeader {
