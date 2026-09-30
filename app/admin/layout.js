@@ -4,7 +4,9 @@ export default function AdminLayout({ children }) {
   return (
     <div className="admin">
       <div className="adminhead">
-        SINAR KASIH — ADMIN PANEL
+        <div className="adminheadInner">
+          SINAR KASIH — ADMIN PANEL
+        </div>
       </div>
 
       <div className="adminlayout">
@@ -50,10 +52,240 @@ export default function AdminLayout({ children }) {
           </Link>
         </aside>
 
-        <section className="dash">
+        <main className="dash">
           {children}
-        </section>
+        </main>
       </div>
+
+      <style>{`
+        /*
+         * =========================================================
+         * ADMIN LAYOUT UTAMA
+         * =========================================================
+         *
+         * Header website utama berada di atas halaman Admin.
+         * Karena header tersebut menggunakan posisi tetap/sticky,
+         * Admin harus diberi ruang di bagian atas agar tidak
+         * tertutup oleh header website.
+         */
+
+        .admin {
+          min-height: 100vh;
+          box-sizing: border-box;
+          background: #f5f0e8;
+          color: #3f2f24;
+
+          /*
+           * Tinggi header website utama.
+           * Nilai ini mengikuti tinggi header yang terlihat
+           * pada halaman Admin saat ini.
+           */
+          padding-top: 76px;
+        }
+
+        /*
+         * Header Admin
+         */
+        .adminhead {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+
+          width: 100%;
+          min-height: 66px;
+
+          box-sizing: border-box;
+
+          background: #6f4c36;
+          color: #ffffff;
+
+          border-bottom: 1px solid
+            rgba(0, 0, 0, 0.08);
+        }
+
+        .adminheadInner {
+          display: flex;
+          align-items: center;
+
+          width: 100%;
+          min-height: 66px;
+
+          box-sizing: border-box;
+
+          padding: 0 24px;
+
+          font-size: 20px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        /*
+         * Area utama:
+         * sidebar + konten
+         */
+        .adminlayout {
+          display: grid;
+          grid-template-columns: 240px minmax(0, 1fr);
+
+          width: 100%;
+          min-height: calc(100vh - 142px);
+
+          box-sizing: border-box;
+        }
+
+        /*
+         * SIDEBAR
+         */
+        .side {
+          position: sticky;
+          top: 66px;
+
+          align-self: start;
+
+          width: 240px;
+          min-height: calc(100vh - 142px);
+
+          box-sizing: border-box;
+
+          background: #fffaf3;
+
+          border-right: 1px solid #dfd2c3;
+
+          padding: 20px 14px;
+
+          overflow-y: auto;
+        }
+
+        .side a {
+          display: block;
+
+          width: 100%;
+          box-sizing: border-box;
+
+          padding: 11px 14px;
+          margin-bottom: 5px;
+
+          border-radius: 8px;
+
+          color: #4b3326;
+          text-decoration: none;
+
+          font-size: 16px;
+          line-height: 1.35;
+          font-weight: 500;
+
+          transition:
+            background 0.15s ease,
+            color 0.15s ease;
+        }
+
+        .side a:hover {
+          background: #f1e7dc;
+          color: #3d291f;
+        }
+
+        /*
+         * Konten utama
+         */
+        .dash {
+          min-width: 0;
+          width: 100%;
+
+          box-sizing: border-box;
+
+          padding: 28px;
+        }
+
+        /*
+         * Pastikan halaman anak tidak keluar dari
+         * area konten Admin.
+         */
+        .dash > * {
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        /*
+         * =========================================================
+         * RESPONSIVE
+         * =========================================================
+         */
+
+        @media (max-width: 900px) {
+          .admin {
+            padding-top: 70px;
+          }
+
+          .adminlayout {
+            grid-template-columns: 210px minmax(0, 1fr);
+            min-height: calc(100vh - 136px);
+          }
+
+          .side {
+            width: 210px;
+            min-height: calc(100vh - 136px);
+          }
+
+          .dash {
+            padding: 22px;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .admin {
+            padding-top: 64px;
+          }
+
+          .adminhead {
+            min-height: 58px;
+          }
+
+          .adminheadInner {
+            min-height: 58px;
+            padding: 0 16px;
+            font-size: 17px;
+          }
+
+          .adminlayout {
+            display: block;
+            min-height: auto;
+          }
+
+          .side {
+            position: static;
+
+            width: 100%;
+            min-height: auto;
+
+            display: grid;
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
+
+            gap: 6px;
+
+            padding: 12px;
+
+            border-right: none;
+            border-bottom: 1px solid #dfd2c3;
+          }
+
+          .side a {
+            margin-bottom: 0;
+            font-size: 14px;
+          }
+
+          .dash {
+            width: 100%;
+            padding: 18px 14px 30px;
+          }
+        }
+
+        @media (max-width: 460px) {
+          .side {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </div>
   );
 }
