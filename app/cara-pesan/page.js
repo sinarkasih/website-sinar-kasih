@@ -18,18 +18,25 @@ export default function CaraPesanPage() {
       number: "01",
       title: "Mulai Berbelanja",
       summary:
-        "Buka katalog Sinar Kasih dan pilih kategori produk yang sesuai dengan kebutuhan Anda.",
+        "Pilih produk berdasarkan kategori atau merk/brand yang Anda cari.",
       content: (
         <div className="accordionContent">
           <p>
-            Untuk mulai berbelanja, Anda dapat membuka halaman{" "}
-            <strong>Kategori Produk</strong>.
+            Untuk mulai berbelanja, Anda dapat membuka{" "}
+            <strong>Kategori Produk</strong> dan memilih kategori
+            yang sesuai dengan kebutuhan Anda.
           </p>
 
           <p>
-            Di halaman tersebut tersedia berbagai kategori kebutuhan
-            listrik dan penerangan. Pilih kategori yang sesuai dengan
-            produk yang sedang Anda cari.
+            Selain berdasarkan kategori, pelanggan juga dapat memilih
+            produk berdasarkan <strong>merk atau brand</strong> yang
+            tersedia di katalog Sinar Kasih.
+          </p>
+
+          <p>
+            Cara ini memudahkan pelanggan yang sudah mengetahui merk
+            produk yang ingin dicari, tanpa harus melihat seluruh
+            kategori terlebih dahulu.
           </p>
 
           <p>
@@ -37,12 +44,43 @@ export default function CaraPesanPage() {
             mengetahui nama atau jenis produk yang ingin dicari.
           </p>
 
+          <div className="choiceGrid">
+            <div className="choiceCard">
+              <div className="choiceIcon">▦</div>
+
+              <div>
+                <strong>Berdasarkan Kategori</strong>
+
+                <p>
+                  Pilih jenis kebutuhan seperti lampu, stop kontak,
+                  saklar, kabel, fitting, dan berbagai perlengkapan
+                  listrik lainnya.
+                </p>
+              </div>
+            </div>
+
+            <div className="choiceCard">
+              <div className="choiceIcon">★</div>
+
+              <div>
+                <strong>Berdasarkan Merk / Brand</strong>
+
+                <p>
+                  Pilih produk berdasarkan merk atau brand yang ingin
+                  Anda cari dan lihat produk yang tersedia dari merk
+                  tersebut.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="infoBox">
             <strong>Tips:</strong>
+
             <span>
-              Jika belum mengetahui produk yang dibutuhkan, Anda dapat
-              melihat beberapa kategori terlebih dahulu untuk menemukan
-              produk yang sesuai.
+              Jika sudah mengetahui merk yang diinginkan, Anda dapat
+              langsung memilih berdasarkan merk/brand. Jika belum,
+              Anda dapat mulai dari kategori produk.
             </span>
           </div>
         </div>
@@ -54,12 +92,13 @@ export default function CaraPesanPage() {
       number: "02",
       title: "Pilih Produk",
       summary:
-        "Pilih produk yang ingin Anda lihat dari daftar kategori atau hasil pencarian.",
+        "Pilih produk yang ingin Anda lihat dari daftar kategori, merk/brand, atau hasil pencarian.",
       content: (
         <div className="accordionContent">
           <p>
-            Setelah memilih kategori, Anda akan melihat daftar produk
-            yang tersedia di dalam kategori tersebut.
+            Setelah memilih berdasarkan{" "}
+            <strong>kategori atau merk/brand</strong>, Anda akan
+            melihat daftar produk yang tersedia.
           </p>
 
           <p>
@@ -75,29 +114,35 @@ export default function CaraPesanPage() {
           <div className="stepList">
             <div className="miniStep">
               <span>1</span>
+
               <div>
-                <strong>Pilih kategori</strong>
+                <strong>Pilih kategori atau merk</strong>
+
                 <p>
-                  Contohnya Lampu LED, Lampu Hias, Fitting Lampu,
-                  Saklar & Stop Kontak, atau kategori lainnya.
+                  Tentukan apakah ingin mencari berdasarkan jenis
+                  produk atau merk/brand yang diinginkan.
                 </p>
               </div>
             </div>
 
             <div className="miniStep">
               <span>2</span>
+
               <div>
                 <strong>Pilih produk</strong>
+
                 <p>
-                  Tekan produk yang ingin Anda lihat.
+                  Pilih produk yang ingin Anda lihat.
                 </p>
               </div>
             </div>
 
             <div className="miniStep">
               <span>3</span>
+
               <div>
                 <strong>Buka detail</strong>
+
                 <p>
                   Periksa informasi produk sebelum memasukkannya ke
                   dalam troli.
@@ -129,8 +174,10 @@ export default function CaraPesanPage() {
           <div className="detailGrid">
             <div className="detailItem">
               <span className="detailIcon">📷</span>
+
               <div>
                 <strong>Gambar Produk</strong>
+
                 <p>
                   Lihat tampilan produk dan kemasan yang tersedia.
                 </p>
@@ -139,8 +186,10 @@ export default function CaraPesanPage() {
 
             <div className="detailItem">
               <span className="detailIcon">🏷️</span>
+
               <div>
                 <strong>Nama & Harga</strong>
+
                 <p>
                   Periksa nama produk dan harga yang ditampilkan.
                 </p>
@@ -149,8 +198,10 @@ export default function CaraPesanPage() {
 
             <div className="detailItem">
               <span className="detailIcon">📝</span>
+
               <div>
                 <strong>Deskripsi</strong>
+
                 <p>
                   Baca informasi mengenai fungsi dan penggunaan produk.
                 </p>
@@ -159,8 +210,10 @@ export default function CaraPesanPage() {
 
             <div className="detailItem">
               <span className="detailIcon">🎨</span>
+
               <div>
                 <strong>Variasi Produk</strong>
+
                 <p>
                   Jika tersedia, pilih variasi yang sesuai dengan
                   kebutuhan Anda.
@@ -171,6 +224,7 @@ export default function CaraPesanPage() {
 
           <div className="infoBox">
             <strong>Penting:</strong>
+
             <span>
               Pastikan produk dan variasi yang dipilih sudah sesuai
               sebelum menambahkannya ke Troli Belanja.
@@ -227,6 +281,7 @@ export default function CaraPesanPage() {
 
           <div className="infoBox">
             <strong>Tips:</strong>
+
             <span>
               Sebelum checkout, periksa kembali semua produk dan jumlah
               barang yang ada di Troli Belanja.
@@ -310,6 +365,7 @@ export default function CaraPesanPage() {
 
             <div>
               <strong>Pilih Cabang</strong>
+
               <p>
                 Pilih salah satu cabang yang tersedia pada halaman
                 Troli Belanja.
@@ -319,6 +375,7 @@ export default function CaraPesanPage() {
 
           <div className="infoBox">
             <strong>Perhatikan:</strong>
+
             <span>
               Pastikan cabang yang dipilih sudah sesuai sebelum
               melanjutkan pemesanan melalui WhatsApp.
@@ -425,6 +482,7 @@ export default function CaraPesanPage() {
 
           <div className="infoBox">
             <strong>Sebelum mengirim:</strong>
+
             <span>
               Periksa kembali detail pesanan yang tampil di WhatsApp
               sebelum mengirim pesan kepada Sinar Kasih.
@@ -581,8 +639,8 @@ export default function CaraPesanPage() {
             </h2>
 
             <p>
-              Jelajahi berbagai kategori produk listrik dan penerangan
-              yang tersedia di Sinar Kasih.
+              Jelajahi berbagai kategori dan merk produk listrik dan
+              penerangan yang tersedia di Sinar Kasih.
             </p>
 
             <div className="quickActions">
@@ -817,6 +875,51 @@ export default function CaraPesanPage() {
         .infoBox strong {
           flex: 0 0 auto;
           color: #805936;
+        }
+
+        .choiceGrid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+          margin-top: 22px;
+        }
+
+        .choiceCard {
+          display: flex;
+          align-items: flex-start;
+          gap: 13px;
+          padding: 17px;
+          border: 1px solid #ece2d8;
+          border-radius: 14px;
+          background: #fffaf5;
+        }
+
+        .choiceIcon {
+          flex: 0 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 11px;
+          background: #f0e3d4;
+          color: #805936;
+          font-size: 20px;
+          font-weight: 800;
+        }
+
+        .choiceCard strong {
+          display: block;
+          margin-bottom: 5px;
+          color: #503a2d;
+          font-size: 14px;
+        }
+
+        .choiceCard p {
+          margin: 0;
+          color: #786b62;
+          font-size: 13px;
+          line-height: 1.65;
         }
 
         .stepList {
@@ -1223,6 +1326,7 @@ export default function CaraPesanPage() {
             padding: 0 18px 22px 66px;
           }
 
+          .choiceGrid,
           .detailGrid {
             grid-template-columns: 1fr;
           }
