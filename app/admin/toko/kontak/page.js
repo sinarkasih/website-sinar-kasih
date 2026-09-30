@@ -1,52 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 
-function normalizeSocialUrl(value, platform) {
-  const text = (value || "").trim();
-
-  if (!text) return "";
-
-  if (/^https?:\/\//i.test(text)) {
-    return text;
-  }
-
-  const username = text
-    .replace(/^@/, "")
-    .replace(/^\/+/, "")
-    .trim();
-
-  if (!username) return "";
-
-  if (platform === "instagram") {
-    return `https://instagram.com/${username}`;
-  }
-
-  if (platform === "tiktok") {
-    return `https://www.tiktok.com/@${username}`;
-  }
-
-  return text;
-}
-
-export default function KontakTokoPage() {
+export default function InformasiTokoKontakPage() {
   const router = useRouter();
-
-  const [data, setData] = useState({
-    id: null,
-    whatsapp: "",
-    instagram: "",
-    tiktok: "",
-    email: "",
-  });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [form, setForm] = useState({
+    whatsapp: "",
+    email: "",
+    instagram: "",
+    tiktok: "",
+  });
 
   useEffect(() => {
     loadKontak();
@@ -55,7 +27,6 @@ export default function KontakTokoPage() {
   async function loadKontak() {
     setLoading(true);
     setError("");
-    setMessage("");
 
     const supabase = getSupabase();
 
@@ -65,63 +36,79 @@ export default function KontakTokoPage() {
       return;
     }
 
-    const { data: kontak, error: kontakError } = await supabase
+    const { data, error: loadError } = await supabase
       .from("kontak_toko")
-      .select("id, whatsapp, instagram, tiktok, email")
-      .order("id", { ascending: true })
+      .select("whatsapp, email, instagram, tiktok")
       .limit(1)
       .maybeSingle();
 
-    if (kontakError) {
-      console.error(kontakError);
-      setError(`Gagal mengambil data kontak: ${kontakError.message}`);
+    if (loadError) {
+      console.error(loadError);
+      setError(
+        "Gagal mengambil informasi kontak: " +
+          loadError.message
+      );
       setLoading(false);
       return;
     }
 
-    if (!kontak) {
-      setError("Data kontak toko belum tersedia di database.");
-      setLoading(false);
-      return;
-    }
-
-    setData({
-      id: kontak.id,
-      whatsapp: kontak.whatsapp || "",
-      instagram: normalizeSocialUrl(
-        kontak.instagram || "",
-        "instagram"
-      ),
-      tiktok: normalizeSocialUrl(
-        kontak.tiktok || "",
-        "tiktok"
-      ),
-      email: kontak.email || "",
+    setForm({
+      whatsapp: data?.whatsapp || "",
+      email: data?.email || "",
+      instagram: data?.instagram || "",
+      tiktok: data?.tiktok || "",
     });
 
     setLoading(false);
   }
 
-  function handleChange(e) {
-    const { name, value } = e.target;
+  function handleChange(event) {
+    const { name, value } = event.target;
 
-    setData((current) => ({
+    setForm((current) => ({
       ...current,
       [name]: value,
     }));
   }
 
-  async function handleSave(e) {
-    e.preventDefault();
+  function normalizeInstagram(value) {
+    const text = String(value || "").trim();
 
-    if (!data.id) {
-      setError("Data kontak toko tidak ditemukan.");
-      return;
+    if (!text) return "";
+
+    if (/^https?:\/\//i.test(text)) {
+      return text;
     }
+
+    if (text.startsWith("@")) {
+      return `https://www.instagram.com/${text.slice(1)}/`;
+    }
+
+    return `https://www.instagram.com/${text}/`;
+  }
+
+  function normalizeTikTok(value) {
+    const text = String(value || "").trim();
+
+    if (!text) return "";
+
+    if (/^https?:\/\//i.test(text)) {
+      return text;
+    }
+
+    if (text.startsWith("@")) {
+      return `https://www.tiktok.com/${text}`;
+    }
+
+    return `https://www.tiktok.com/@${text}`;
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
 
     setSaving(true);
     setError("");
-    setMessage("");
+    setSuccess("");
 
     const supabase = getSupabase();
 
@@ -131,623 +118,496 @@ export default function KontakTokoPage() {
       return;
     }
 
-    const instagramUrl = normalizeSocialUrl(
-      data.instagram,
-      "instagram"
-    );
+    const payload = {
+      whatsapp: form.whatsapp.trim() || null,
+      email: form.email.trim() || null,
+      instagram: normalizeInstagram(form.instagram),
+      tiktok: normalizeTikTok(form.tiktok),
+    };
 
-    const tiktokUrl = normalizeSocialUrl(
-      data.tiktok,
-      "tiktok"
-    );
+    const { data: existing, error: existingError } =
+      await supabase
+        .from("kontak_toko")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
 
-    const { error: updateError } = await supabase
-      .from("kontak_toko")
-      .update({
-        whatsapp: data.whatsapp.trim() || null,
-        instagram: instagramUrl || null,
-        tiktok: tiktokUrl || null,
-        email: data.email.trim() || null,
-      })
-      .eq("id", data.id);
-
-    if (updateError) {
-      console.error(updateError);
+    if (existingError) {
+      console.error(existingError);
       setError(
-        `Gagal menyimpan perubahan: ${updateError.message}`
+        "Gagal memeriksa data kontak: " +
+          existingError.message
       );
       setSaving(false);
       return;
     }
 
-    setData((current) => ({
-      ...current,
-      instagram: instagramUrl,
-      tiktok: tiktokUrl,
-    }));
+    let saveError = null;
 
-    setMessage("Informasi toko & kontak berhasil disimpan.");
-    setSaving(false);
+    if (existing?.id) {
+      const result = await supabase
+        .from("kontak_toko")
+        .update(payload)
+        .eq("id", existing.id);
 
-    // Otomatis kembali ke halaman Toko & Kontak
+      saveError = result.error;
+    } else {
+      const result = await supabase
+        .from("kontak_toko")
+        .insert(payload);
+
+      saveError = result.error;
+    }
+
+    if (saveError) {
+      console.error(saveError);
+      setError(
+        "Gagal menyimpan informasi kontak: " +
+          saveError.message
+      );
+      setSaving(false);
+      return;
+    }
+
+    setSuccess(
+      "Informasi Toko & Kontak berhasil disimpan."
+    );
+
     setTimeout(() => {
       router.push("/admin/toko");
     }, 700);
   }
 
-  const buttonBaseStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: "150px",
-    minHeight: "42px",
-    padding: "0 18px",
-    borderRadius: "8px",
-    boxSizing: "border-box",
-    fontSize: "15px",
-    fontWeight: 700,
-    textAlign: "center",
-    textDecoration: "none",
-    whiteSpace: "nowrap",
-    cursor: "pointer",
-  };
-
-  const backButtonStyle = {
-    ...buttonBaseStyle,
-    background: "#ffffff",
-    border: "1px solid #d7c8b8",
-    color: "#4b3326",
-  };
-
-  const cancelButtonStyle = {
-    ...buttonBaseStyle,
-    background: "#ffffff",
-    border: "1px solid #cfc1b1",
-    color: "#4b3326",
-  };
-
-  const socialLinkStyle = {
-    display: "inline-block",
-    marginTop: "8px",
-    color: "#765239",
-    fontSize: "13px",
-    fontWeight: 700,
-    textDecoration: "underline",
-    wordBreak: "break-all",
-  };
-
   if (loading) {
     return (
-      <div className="admin">
-        <div className="adminhead">
-          SINAR KASIH — ADMIN PANEL
+      <main style={styles.page}>
+        <div style={styles.loadingBox}>
+          Memuat informasi Toko & Kontak...
         </div>
-
-        <div className="adminlayout">
-          <aside className="side">
-            <Link href="/admin">Dashboard</Link>
-            <Link href="/admin/produk">Produk</Link>
-            <Link href="/admin/pesanan">Pesanan</Link>
-            <Link href="/admin/pesanan/trash">
-              Trash Pesanan
-            </Link>
-            <Link href="/admin/tampilan">
-              Tampilan Website
-            </Link>
-            <Link href="/admin/toko">
-              Toko & Kontak
-            </Link>
-            <Link href="/admin/pelanggan">
-              Pelanggan
-            </Link>
-            <Link href="/admin/statistik">
-              Statistik
-            </Link>
-            <Link href="/admin/pengaturan">
-              Pengaturan
-            </Link>
-          </aside>
-
-          <main className="dash">
-            <div className="page">
-              <div className="loading">
-                Memuat informasi toko...
-              </div>
-            </div>
-          </main>
-        </div>
-
-        <style jsx>{`
-          .admin {
-            min-height: 100vh;
-            background: #f5f0e8;
-            color: #3f2f24;
-          }
-
-          .adminhead {
-            padding: 18px 28px;
-            background: #4b3326;
-            color: #fff;
-            font-size: 20px;
-            font-weight: 700;
-          }
-
-          .adminlayout {
-            display: flex;
-            min-height: calc(100vh - 64px);
-          }
-
-          .side {
-            width: 240px;
-            flex-shrink: 0;
-            background: #fffaf3;
-            border-right: 1px solid #dfd2c3;
-            padding: 20px 14px;
-          }
-
-          .side a {
-            display: block;
-            padding: 12px 14px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            color: #4b3326;
-            text-decoration: none;
-            font-weight: 600;
-          }
-
-          .side a:hover {
-            background: #eadcca;
-          }
-
-          .dash {
-            flex: 1;
-            min-width: 0;
-            padding: 28px;
-          }
-
-          .page {
-            width: 100%;
-          }
-
-          .loading {
-            background: #fff;
-            border: 1px solid #dfd2c3;
-            border-radius: 12px;
-            padding: 30px;
-          }
-        `}</style>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="admin">
-      <div className="adminhead">
-        SINAR KASIH — ADMIN PANEL
-      </div>
+    <main style={styles.page}>
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <div>
+            <h1 style={styles.title}>
+              Informasi Toko & Kontak
+            </h1>
 
-      <div className="adminlayout">
-        <aside className="side">
-          <Link href="/admin">Dashboard</Link>
-          <Link href="/admin/produk">Produk</Link>
-          <Link href="/admin/pesanan">Pesanan</Link>
-          <Link href="/admin/pesanan/trash">
-            Trash Pesanan
-          </Link>
-          <Link href="/admin/tampilan">
-            Tampilan Website
-          </Link>
-          <Link href="/admin/toko">
-            Toko & Kontak
-          </Link>
-          <Link href="/admin/pelanggan">
-            Pelanggan
-          </Link>
-          <Link href="/admin/statistik">
-            Statistik
-          </Link>
-          <Link href="/admin/pengaturan">
-            Pengaturan
-          </Link>
-        </aside>
+            <p style={styles.subtitle}>
+              Kelola kontak utama yang digunakan oleh
+              website Sinar Kasih.
+            </p>
+          </div>
 
-        <main className="dash">
-          <div className="page">
+          <Link
+            href="/admin/toko"
+            style={styles.backButton}
+          >
+            ← Kembali ke Toko & Kontak
+          </Link>
+        </div>
 
-            <div className="topbar">
-              <div>
-                <h1>Informasi Toko & Kontak</h1>
+        {error && (
+          <div
+            style={styles.errorBox}
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
+          </div>
+        )}
 
-                <p>
-                  Kelola kontak utama yang digunakan oleh
-                  website Sinar Kasih.
-                </p>
+        {success && (
+          <div
+            style={styles.successBox}
+            role="status"
+            aria-live="polite"
+          >
+            ✓ {success}
+          </div>
+        )}
+
+        <section style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h2 style={styles.cardTitle}>
+              Kontak Utama Toko
+            </h2>
+
+            <p style={styles.cardDescription}>
+              Informasi berikut digunakan pelanggan untuk
+              menghubungi Toko Listrik Sinar Kasih.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div style={styles.grid}>
+              <div style={styles.field}>
+                <label
+                  htmlFor="whatsapp"
+                  style={styles.label}
+                >
+                  WhatsApp
+                </label>
+
+                <input
+                  id="whatsapp"
+                  name="whatsapp"
+                  type="text"
+                  value={form.whatsapp}
+                  onChange={handleChange}
+                  placeholder="Contoh: 081285750033"
+                  style={styles.input}
+                />
+
+                <small style={styles.help}>
+                  Nomor WhatsApp utama yang digunakan
+                  pelanggan saat checkout.
+                </small>
               </div>
 
-              <Link
-                href="/admin/toko"
-                style={backButtonStyle}
-              >
-                ← Kembali ke Toko & Kontak
-              </Link>
+              <div style={styles.field}>
+                <label
+                  htmlFor="email"
+                  style={styles.label}
+                >
+                  Email
+                </label>
+
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="Contoh: toko@email.com"
+                  style={styles.input}
+                />
+
+                <small style={styles.help}>
+                  Email resmi yang dapat digunakan
+                  pelanggan untuk menghubungi toko.
+                </small>
+              </div>
+
+              <div style={styles.field}>
+                <label
+                  htmlFor="instagram"
+                  style={styles.label}
+                >
+                  Instagram
+                </label>
+
+                <input
+                  id="instagram"
+                  name="instagram"
+                  type="text"
+                  value={form.instagram}
+                  onChange={handleChange}
+                  placeholder="https://instagram.com/sinarkasih"
+                  style={styles.input}
+                />
+
+                {form.instagram && (
+                  <a
+                    href={normalizeInstagram(
+                      form.instagram
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.socialLink}
+                  >
+                    🔗 Buka Instagram
+                  </a>
+                )}
+
+                <small style={styles.help}>
+                  Masukkan URL Instagram, misalnya:
+                  https://instagram.com/sinarkasih
+                </small>
+              </div>
+
+              <div style={styles.field}>
+                <label
+                  htmlFor="tiktok"
+                  style={styles.label}
+                >
+                  TikTok
+                </label>
+
+                <input
+                  id="tiktok"
+                  name="tiktok"
+                  type="text"
+                  value={form.tiktok}
+                  onChange={handleChange}
+                  placeholder="https://tiktok.com/@sinarkasih"
+                  style={styles.input}
+                />
+
+                {form.tiktok && (
+                  <a
+                    href={normalizeTikTok(form.tiktok)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.socialLink}
+                  >
+                    🔗 Buka TikTok
+                  </a>
+                )}
+
+                <small style={styles.help}>
+                  Masukkan URL TikTok, misalnya:
+                  https://tiktok.com/@sinarkasih
+                </small>
+              </div>
             </div>
 
-            {message && (
-              <div className="success">
-                {message}
-              </div>
-            )}
+            <div style={styles.divider} />
 
-            {error && (
-              <div className="error">
-                {error}
-              </div>
-            )}
+            <div style={styles.actionRow}>
+              <Link
+                href="/admin/toko"
+                style={styles.cancelButton}
+              >
+                Batal
+              </Link>
 
-            <form
-              onSubmit={handleSave}
-              className="card"
-            >
-              <div className="cardTitle">
-                Kontak Utama Toko
-              </div>
-
-              <div className="grid">
-
-                {/* WHATSAPP */}
-                <div className="field">
-                  <label htmlFor="whatsapp">
-                    WhatsApp
-                  </label>
-
-                  <input
-                    id="whatsapp"
-                    name="whatsapp"
-                    type="text"
-                    value={data.whatsapp}
-                    onChange={handleChange}
-                    placeholder="Contoh: 081285750033"
-                  />
-
-                  <small>
-                    Nomor WhatsApp utama yang digunakan
-                    pelanggan saat checkout.
-                  </small>
-                </div>
-
-                {/* EMAIL */}
-                <div className="field">
-                  <label htmlFor="email">
-                    Email
-                  </label>
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={data.email}
-                    onChange={handleChange}
-                    placeholder="Contoh: toko@email.com"
-                  />
-                </div>
-
-                {/* INSTAGRAM */}
-                <div className="field">
-                  <label htmlFor="instagram">
-                    Instagram
-                  </label>
-
-                  <input
-                    id="instagram"
-                    name="instagram"
-                    type="url"
-                    value={data.instagram}
-                    onChange={handleChange}
-                    placeholder="https://instagram.com/sinarkasih"
-                  />
-
-                  {data.instagram && (
-                    <a
-                      href={normalizeSocialUrl(
-                        data.instagram,
-                        "instagram"
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={socialLinkStyle}
-                    >
-                      🔗 Buka Instagram
-                    </a>
-                  )}
-
-                  <small>
-                    Masukkan URL Instagram, misalnya:
-                    https://instagram.com/sinarkasih
-                  </small>
-                </div>
-
-                {/* TIKTOK */}
-                <div className="field">
-                  <label htmlFor="tiktok">
-                    TikTok
-                  </label>
-
-                  <input
-                    id="tiktok"
-                    name="tiktok"
-                    type="url"
-                    value={data.tiktok}
-                    onChange={handleChange}
-                    placeholder="https://tiktok.com/@sinarkasih"
-                  />
-
-                  {data.tiktok && (
-                    <a
-                      href={normalizeSocialUrl(
-                        data.tiktok,
-                        "tiktok"
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={socialLinkStyle}
-                    >
-                      🔗 Buka TikTok
-                    </a>
-                  )}
-
-                  <small>
-                    Masukkan URL TikTok, misalnya:
-                    https://tiktok.com/@sinarkasih
-                  </small>
-                </div>
-
-              </div>
-
-              <div className="actions">
-
-                {/* BATAL SEKARANG BENAR-BENAR TOMBOL */}
-                <Link
-                  href="/admin/toko"
-                  style={cancelButtonStyle}
-                >
-                  Batal
-                </Link>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Menyimpan..."
-                    : "Simpan Perubahan"}
-                </button>
-
-              </div>
-            </form>
-          </div>
-        </main>
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  ...styles.saveButton,
+                  ...(saving
+                    ? styles.saveButtonDisabled
+                    : {}),
+                }}
+              >
+                {saving
+                  ? "Menyimpan..."
+                  : "Simpan Informasi Kontak"}
+              </button>
+            </div>
+          </form>
+        </section>
       </div>
-
-      <style jsx>{`
-        .admin {
-          min-height: 100vh;
-          background: #f5f0e8;
-          color: #3f2f24;
-        }
-
-        .adminhead {
-          padding: 18px 28px;
-          background: #4b3326;
-          color: #fff;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .adminlayout {
-          display: flex;
-          min-height: calc(100vh - 64px);
-        }
-
-        .side {
-          width: 240px;
-          flex-shrink: 0;
-          background: #fffaf3;
-          border-right: 1px solid #dfd2c3;
-          padding: 20px 14px;
-        }
-
-        .side a {
-          display: block;
-          padding: 12px 14px;
-          margin-bottom: 5px;
-          border-radius: 8px;
-          color: #4b3326;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .side a:hover {
-          background: #eadcca;
-        }
-
-        .dash {
-          flex: 1;
-          min-width: 0;
-          padding: 28px;
-        }
-
-        .page {
-          width: 100%;
-        }
-
-        .topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        h1 {
-          margin: 0 0 7px;
-          font-size: 28px;
-        }
-
-        .topbar p {
-          margin: 0;
-          color: #76685d;
-        }
-
-        .success {
-          margin-bottom: 18px;
-          padding: 14px 16px;
-          background: #e9f6eb;
-          border: 1px solid #b9dfbe;
-          color: #256b30;
-          border-radius: 9px;
-          font-weight: 600;
-        }
-
-        .error {
-          margin-bottom: 18px;
-          padding: 14px 16px;
-          background: #fff0f0;
-          border: 1px solid #e4bcbc;
-          color: #9b2929;
-          border-radius: 9px;
-          font-weight: 600;
-        }
-
-        .card {
-          width: 100%;
-          background: #fff;
-          border: 1px solid #dfd2c3;
-          border-radius: 12px;
-          padding: 28px;
-          box-sizing: border-box;
-        }
-
-        .cardTitle {
-          font-size: 20px;
-          font-weight: 700;
-          margin-bottom: 24px;
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(
-            2,
-            minmax(0, 1fr)
-          );
-          gap: 22px 24px;
-        }
-
-        .field {
-          display: flex;
-          flex-direction: column;
-        }
-
-        label {
-          font-weight: 700;
-          margin-bottom: 8px;
-        }
-
-        input {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 13px 14px;
-          border: 1px solid #cfc1b1;
-          border-radius: 8px;
-          background: #fff;
-          color: #3f2f24;
-          font-size: 15px;
-          outline: none;
-        }
-
-        input:focus {
-          border-color: #9b7656;
-          box-shadow:
-            0 0 0 3px
-            rgba(155, 118, 86, 0.12);
-        }
-
-        small {
-          margin-top: 7px;
-          color: #81756c;
-          line-height: 1.4;
-        }
-
-        .actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 30px;
-          padding-top: 22px;
-          border-top: 1px solid #eee5dc;
-        }
-
-        button {
-          min-width: 150px;
-          min-height: 42px;
-          padding: 0 18px;
-          border-radius: 8px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          text-align: center;
-          box-sizing: border-box;
-          border: none;
-          background: #4b3326;
-          color: #fff;
-        }
-
-        button:hover:not(:disabled) {
-          background: #39251b;
-        }
-
-        button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 800px) {
-          .adminlayout {
-            display: block;
-          }
-
-          .side {
-            width: auto;
-            border-right: none;
-            border-bottom: 1px solid #dfd2c3;
-          }
-
-          .dash {
-            padding: 20px;
-          }
-
-          .topbar {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .topbar > a {
-            width: 100%;
-          }
-
-          .grid {
-            grid-template-columns: 1fr;
-          }
-
-          .actions {
-            flex-direction: column;
-          }
-
-          .actions a,
-          .actions button {
-            width: 100%;
-          }
-        }
-      `}</style>
-    </div>
+    </main>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#f6efe6",
+    padding: "28px",
+    boxSizing: "border-box",
+  },
+
+  container: {
+    width: "100%",
+    maxWidth: "1180px",
+    margin: "0 auto",
+  },
+
+  header: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: "24px",
+    marginBottom: "24px",
+  },
+
+  title: {
+    margin: 0,
+    color: "#2f241f",
+    fontSize: "32px",
+    lineHeight: 1.2,
+    fontWeight: 700,
+  },
+
+  subtitle: {
+    margin: "8px 0 0",
+    color: "#78665c",
+    fontSize: "16px",
+    lineHeight: 1.5,
+  },
+
+  backButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "48px",
+    padding: "0 20px",
+    border: "1px solid #d9c9bc",
+    borderRadius: "10px",
+    background: "#ffffff",
+    color: "#3d2a21",
+    textDecoration: "none",
+    fontSize: "16px",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    boxSizing: "border-box",
+  },
+
+  loadingBox: {
+    maxWidth: "700px",
+    margin: "60px auto",
+    padding: "30px",
+    borderRadius: "14px",
+    background: "#ffffff",
+    border: "1px solid #e4d8ce",
+    color: "#6d5a50",
+    textAlign: "center",
+    fontSize: "16px",
+  },
+
+  errorBox: {
+    marginBottom: "18px",
+    padding: "14px 16px",
+    borderRadius: "10px",
+    border: "1px solid #e8b7b7",
+    background: "#fff1f1",
+    color: "#a33b3b",
+    fontSize: "15px",
+    lineHeight: 1.5,
+  },
+
+  successBox: {
+    marginBottom: "18px",
+    padding: "14px 16px",
+    borderRadius: "10px",
+    border: "1px solid #b8d9c2",
+    background: "#effaf2",
+    color: "#28633a",
+    fontSize: "15px",
+    lineHeight: 1.5,
+  },
+
+  card: {
+    background: "#ffffff",
+    border: "1px solid #dfd2c7",
+    borderRadius: "16px",
+    overflow: "hidden",
+    boxShadow: "0 5px 18px rgba(76, 50, 35, 0.05)",
+  },
+
+  cardHeader: {
+    padding: "30px 34px 22px",
+  },
+
+  cardTitle: {
+    margin: 0,
+    color: "#2e241f",
+    fontSize: "25px",
+    lineHeight: 1.3,
+    fontWeight: 700,
+  },
+
+  cardDescription: {
+    margin: "7px 0 0",
+    color: "#806e64",
+    fontSize: "15px",
+    lineHeight: 1.5,
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(2, minmax(0, 1fr))",
+    gap: "24px 28px",
+    padding: "4px 34px 30px",
+  },
+
+  field: {
+    minWidth: 0,
+  },
+
+  label: {
+    display: "block",
+    marginBottom: "9px",
+    color: "#30251f",
+    fontSize: "16px",
+    lineHeight: 1.3,
+    fontWeight: 700,
+  },
+
+  input: {
+    width: "100%",
+    height: "56px",
+    padding: "0 16px",
+    boxSizing: "border-box",
+    border: "1px solid #d9c9bc",
+    borderRadius: "10px",
+    background: "#ffffff",
+    color: "#2e241f",
+    fontSize: "16px",
+    outline: "none",
+  },
+
+  help: {
+    display: "block",
+    marginTop: "8px",
+    color: "#85736a",
+    fontSize: "14px",
+    lineHeight: 1.5,
+  },
+
+  socialLink: {
+    display: "inline-block",
+    marginTop: "9px",
+    color: "#704c38",
+    fontSize: "14px",
+    fontWeight: 600,
+    textDecoration: "none",
+  },
+
+  divider: {
+    height: "1px",
+    margin: "0 34px",
+    background: "#eadfd6",
+  },
+
+  actionRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: "12px",
+    padding: "22px 34px 28px",
+  },
+
+  cancelButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "46px",
+    padding: "0 20px",
+    border: "1px solid #d9c9bc",
+    borderRadius: "9px",
+    background: "#ffffff",
+    color: "#4e3b31",
+    textDecoration: "none",
+    fontSize: "15px",
+    fontWeight: 600,
+    boxSizing: "border-box",
+  },
+
+  saveButton: {
+    minHeight: "46px",
+    padding: "0 22px",
+    border: "1px solid #6f4c36",
+    borderRadius: "9px",
+    background: "#6f4c36",
+    color: "#ffffff",
+    fontSize: "15px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+
+  saveButtonDisabled: {
+    opacity: 0.65,
+    cursor: "not-allowed",
+  },
+};
