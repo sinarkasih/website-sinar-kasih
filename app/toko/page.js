@@ -650,15 +650,14 @@ export default async function Page() {
                         </span>
                       </div>
 
-                      <div className="infoItem">
-                        <span className="infoIcon">
+                      {/* ALAMAT */}
+                      <div className="contactBox">
+                        <div className="contactIcon">
                           <LocationIcon />
-                        </span>
+                        </div>
 
-                        <div>
-                          <strong>
-                            Alamat
-                          </strong>
+                        <div className="contactContent">
+                          <strong>Alamat</strong>
 
                           <p>
                             {item.alamat}
@@ -666,13 +665,14 @@ export default async function Page() {
                         </div>
                       </div>
 
+                      {/* TELEPON / WHATSAPP */}
                       {item.telepon && (
-                        <div className="infoItem">
-                          <span className="infoIcon">
+                        <div className="contactBox">
+                          <div className="contactIcon">
                             <PhoneIcon />
-                          </span>
+                          </div>
 
-                          <div>
+                          <div className="contactContent">
                             <strong>
                               Telepon / WhatsApp
                             </strong>
@@ -684,6 +684,7 @@ export default async function Page() {
                         </div>
                       )}
 
+                      {/* JAM OPERASIONAL */}
                       <HoursAccordion
                         title="Jam Operasional"
                         subtitle="Waktu Indonesia Timur (WIT)"
@@ -727,6 +728,7 @@ export default async function Page() {
                         </div>
                       </HoursAccordion>
 
+                      {/* JAM KHUSUS */}
                       {specialPeriod &&
                         specialChanges.length >
                           0 && (
@@ -803,6 +805,7 @@ export default async function Page() {
                           </HoursAccordion>
                         )}
 
+                      {/* TOMBOL */}
                       <div className="tokoActions">
                         {item.google_maps_url && (
                           <a
@@ -960,7 +963,7 @@ export default async function Page() {
           justify-content: space-between;
           align-items: flex-start;
           gap: 14px;
-          margin-bottom: 22px;
+          margin-bottom: 20px;
         }
 
         .branchLabel {
@@ -988,14 +991,25 @@ export default async function Page() {
           font-weight: 700;
         }
 
-        .infoItem {
+        /*
+          KARTU INFORMASI
+          Alamat dan Telepon dibuat
+          memiliki gaya yang sama dengan
+          bagian operasional.
+        */
+
+        .contactBox {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 16px;
+          gap: 13px;
+          margin-bottom: 12px;
+          padding: 13px 14px;
+          border: 1px solid #e5d9cc;
+          border-radius: 13px;
+          background: #fcfaf8;
         }
 
-        .infoIcon {
+        .contactIcon {
           width: 36px;
           height: 36px;
           flex-shrink: 0;
@@ -1003,31 +1017,36 @@ export default async function Page() {
           align-items: center;
           justify-content: center;
           border-radius: 10px;
-          background: #f5ede4;
+          background: #f0e4d7;
           color: #755337;
         }
 
-        .infoItem strong {
+        .contactContent {
+          min-width: 0;
+          padding-top: 1px;
+        }
+
+        .contactContent strong {
           display: block;
-          margin-bottom: 3px;
-          color: #5f5045;
+          margin-bottom: 4px;
+          color: #4a382c;
           font-size: 13px;
         }
 
-        .infoItem p {
+        .contactContent p {
           margin: 0;
           color: #3f2f24;
-          line-height: 1.5;
           font-size: 14px;
+          line-height: 1.5;
+          word-break: break-word;
         }
 
         /*
-          JAM OPERASIONAL
-          Dibuat tanpa padding kiri agar
-          ikon sejajar dengan Alamat dan Telepon.
+          ACCORDION JAM OPERASIONAL
         */
+
         .hoursAccordion {
-          margin-top: 20px;
+          margin-top: 12px;
           overflow: hidden;
           border: 1px solid #e5d9cc;
           border-radius: 13px;
@@ -1039,7 +1058,7 @@ export default async function Page() {
           align-items: center;
           justify-content: space-between;
           gap: 15px;
-          padding: 15px 0;
+          padding: 15px 14px;
           cursor: pointer;
           list-style: none;
         }
@@ -1099,7 +1118,6 @@ export default async function Page() {
         .hoursAccordionChevron {
           flex-shrink: 0;
           color: #765b45;
-          padding-right: 1px;
           font-size: 22px;
           line-height: 1;
           transition: transform 0.2s ease;
@@ -1111,7 +1129,7 @@ export default async function Page() {
         }
 
         .hoursAccordionContent {
-          padding: 0 0 16px;
+          padding: 0 14px 16px;
           border-top: 1px solid #eee5dc;
         }
 
@@ -1142,6 +1160,10 @@ export default async function Page() {
         .hoursRow .closedText {
           color: #9a7069;
         }
+
+        /*
+          JAM KHUSUS
+        */
 
         .specialAccordion {
           border-color: #ead8b8;
@@ -1196,6 +1218,10 @@ export default async function Page() {
           font-size: 11px;
           line-height: 1.5;
         }
+
+        /*
+          TOMBOL
+        */
 
         .tokoActions {
           display: flex;
@@ -1324,12 +1350,16 @@ export default async function Page() {
             flex-direction: column;
           }
 
+          .contactBox {
+            padding: 12px;
+          }
+
           .hoursAccordionButton {
-            padding: 14px 0;
+            padding: 14px 12px;
           }
 
           .hoursAccordionContent {
-            padding: 0 0 14px;
+            padding: 0 12px 14px;
           }
 
           .hoursAccordionSummary {
