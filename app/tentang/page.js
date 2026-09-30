@@ -1,419 +1,355 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function TentangPage() {
-  return (
-    <main className="tentangPage">
-      <section className="hero">
-        <div className="heroInner">
-          <div className="heroBadge">
-            TENTANG SINAR KASIH
-          </div>
+  const [openSection, setOpenSection] = useState(null);
 
-          <h1>
-            Mengenal Lebih Dekat
-            <br />
-            <span>Sinar Kasih</span>
-          </h1>
+  function toggleSection(section) {
+    setOpenSection((current) =>
+      current === section ? null : section
+    );
+  }
+
+  const sections = [
+    {
+      id: "tentang",
+      number: "01",
+      title: "Tentang Kami",
+      summary:
+        "Mengenal Sinar Kasih dan tujuan hadirnya website sebagai katalog serta pusat informasi.",
+      content: (
+        <div className="accordionContent">
+          <p>
+            <strong>Sinar Kasih</strong> merupakan toko yang menyediakan
+            berbagai kebutuhan listrik, penerangan, serta perlengkapan
+            pendukung untuk kebutuhan rumah maupun usaha.
+          </p>
 
           <p>
-            Toko Listrik Sinar Kasih hadir untuk menyediakan
-            berbagai kebutuhan listrik, penerangan, dan
-            perlengkapan pendukung bagi masyarakat Ambon.
+            Website Sinar Kasih hadir sebagai katalog dan pusat informasi
+            untuk membantu pelanggan mengenal lebih dekat produk serta
+            layanan yang tersedia.
+          </p>
+
+          <p>
+            Kami juga ingin memperkenalkan Sinar Kasih kepada lebih banyak
+            masyarakat di Ambon, sehingga pelanggan dapat memperoleh
+            informasi mengenai produk, toko, layanan, dan berbagai
+            informasi lainnya dengan lebih mudah.
           </p>
         </div>
-      </section>
-
-      <section className="content">
-        {/* =====================================================
-            TENTANG KAMI
-        ====================================================== */}
-
-        <div className="introCard">
-          <div className="sectionLabel">
-            TENTANG KAMI
-          </div>
-
-          <h2>Toko Listrik Sinar Kasih</h2>
-
+      ),
+    },
+    {
+      id: "kualitas",
+      number: "02",
+      title: "Kualitas yang Tetap Kami Jaga",
+      summary:
+        "Kualitas produk merupakan bagian penting dari kepercayaan pelanggan Sinar Kasih.",
+      content: (
+        <div className="accordionContent">
           <p>
-            Sinar Kasih adalah toko yang menyediakan berbagai
-            kebutuhan listrik dan penerangan untuk masyarakat
-            Ambon.
+            Bagi Sinar Kasih, <strong>kualitas produk merupakan bagian
+            penting dari kepercayaan pelanggan.</strong>
           </p>
 
           <p>
-            Melalui toko fisik dan katalog online, Sinar Kasih
-            berupaya memberikan informasi yang lebih lengkap
-            mengenai produk dan layanan yang tersedia, sehingga
-            masyarakat dapat mengenal Sinar Kasih dengan lebih
-            baik.
+            Kami memahami bahwa kondisi saat ini membuat harga menjadi
+            salah satu pertimbangan penting dalam memenuhi kebutuhan
+            pelanggan. Namun, kami tetap berusaha menjaga kualitas produk
+            yang kami sediakan.
           </p>
 
           <p>
-            Website ini hadir sebagai bagian dari upaya kami
-            untuk memperkenalkan Sinar Kasih secara lebih luas
-            sekaligus memberikan kemudahan bagi pelanggan dalam
-            memperoleh informasi mengenai berbagai produk yang
-            kami sediakan.
+            Kami percaya bahwa kebutuhan listrik bukan hanya tentang
+            mendapatkan harga yang murah, tetapi juga tentang mendapatkan
+            produk yang memiliki kualitas dan nilai yang baik bagi
+            pelanggan.
           </p>
         </div>
-
-        {/* =====================================================
-            NILAI UTAMA SINAR KASIH
-        ====================================================== */}
-
-        <section className="qualitySection">
-          <div className="qualityText">
-            <div className="sectionLabel">
-              NILAI UTAMA SINAR KASIH
-            </div>
-
-            <h2>Kualitas yang Tetap Kami Jaga</h2>
-
-            <p>
-              Bagi Sinar Kasih, kualitas produk merupakan bagian
-              penting dari kepercayaan pelanggan.
-            </p>
-
-            <p>
-              Di tengah kondisi saat ini, ketika harga menjadi
-              salah satu pertimbangan dalam memilih produk,
-              Sinar Kasih tetap berusaha mempertahankan kualitas
-              produk yang kami hadirkan.
-            </p>
-
-            <p>
-              Kami percaya bahwa kebutuhan listrik bukan hanya
-              tentang mendapatkan harga yang murah, tetapi juga
-              tentang mendapatkan produk yang memiliki kualitas
-              dan nilai yang baik bagi pelanggan.
-            </p>
-          </div>
-
-          <div className="qualityHighlight">
-            <div className="qualityIcon">
-              ✓
-            </div>
-
-            <strong>
-              Kualitas adalah bagian dari kepercayaan
-            </strong>
-
-            <p>
-              Karena itu, kami terus berusaha menjaga kualitas
-              produk yang kami tawarkan kepada pelanggan.
-            </p>
-          </div>
-        </section>
-
-        {/* =====================================================
-            APA YANG KAMI SEDIAKAN
-        ====================================================== */}
-
-        <div className="sectionHeading">
-          <div className="sectionLabel">
-            PRODUK & KEBUTUHAN
-          </div>
-
-          <h2>Apa yang Kami Sediakan</h2>
-
-          <p>
-            Berbagai kebutuhan listrik dan penerangan tersedia
-            untuk mendukung kebutuhan rumah, toko, kantor,
-            maupun usaha.
-          </p>
-        </div>
-
+      ),
+    },
+    {
+      id: "produk",
+      number: "03",
+      title: "Apa yang Kami Sediakan",
+      summary:
+        "Beragam kebutuhan listrik dan penerangan untuk rumah, usaha, maupun kebutuhan lainnya.",
+      content: (
         <div className="productGrid">
-          <div className="productCard">
-            <div className="icon">💡</div>
-
-            <h3>Lampu & Penerangan</h3>
-
-            <p>
-              Berbagai jenis lampu untuk kebutuhan rumah,
-              toko, kantor, dan ruang lainnya.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">💡</span>
+            <div>
+              <strong>Lampu & Penerangan</strong>
+              <p>Berbagai kebutuhan lampu dan produk penerangan.</p>
+            </div>
           </div>
 
-          <div className="productCard">
-            <div className="icon">🔌</div>
-
-            <h3>Stop Kontak & Saklar</h3>
-
-            <p>
-              Perlengkapan untuk kebutuhan listrik dan
-              instalasi sehari-hari.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">🔌</span>
+            <div>
+              <strong>Stop Kontak & Saklar</strong>
+              <p>Perlengkapan untuk kebutuhan kelistrikan sehari-hari.</p>
+            </div>
           </div>
 
-          <div className="productCard">
-            <div className="icon">🔧</div>
-
-            <h3>Perlengkapan Listrik</h3>
-
-            <p>
-              Berbagai perlengkapan dan komponen pendukung
-              kebutuhan listrik.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">⚡</span>
+            <div>
+              <strong>Perlengkapan Listrik</strong>
+              <p>Berbagai perlengkapan pendukung kebutuhan listrik.</p>
+            </div>
           </div>
 
-          <div className="productCard">
-            <div className="icon">⚡</div>
-
-            <h3>Kabel & Instalasi</h3>
-
-            <p>
-              Produk yang mendukung kebutuhan instalasi dan
-              kelistrikan.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">🔧</span>
+            <div>
+              <strong>Kabel & Instalasi</strong>
+              <p>Kebutuhan kabel dan perlengkapan instalasi listrik.</p>
+            </div>
           </div>
 
-          <div className="productCard">
-            <div className="icon">🏠</div>
-
-            <h3>Kebutuhan Rumah</h3>
-
-            <p>
-              Produk listrik dan penerangan untuk berbagai
-              kebutuhan rumah tangga.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">🏠</span>
+            <div>
+              <strong>Kebutuhan Rumah</strong>
+              <p>Produk pendukung kebutuhan listrik dan penerangan rumah.</p>
+            </div>
           </div>
 
-          <div className="productCard">
-            <div className="icon">🏪</div>
-
-            <h3>Kebutuhan Usaha</h3>
-
-            <p>
-              Perlengkapan listrik dan penerangan untuk toko,
-              kantor, dan berbagai usaha.
-            </p>
+          <div className="productItem">
+            <span className="productIcon">🏪</span>
+            <div>
+              <strong>Kebutuhan Usaha</strong>
+              <p>Berbagai kebutuhan listrik dan penerangan untuk usaha.</p>
+            </div>
           </div>
         </div>
-
-        {/* =====================================================
-            KOMITMEN TERHADAP KUALITAS
-        ====================================================== */}
-
-        <section className="commitment">
-          <div className="commitmentText">
-            <div className="sectionLabel">
-              KOMITMEN SINAR KASIH
-            </div>
-
-            <h2>Komitmen Kami terhadap Kualitas</h2>
-
-            <p>
-              Kami berusaha menghadirkan produk yang tidak hanya
-              sesuai dengan kebutuhan pelanggan, tetapi juga
-              mempertimbangkan kualitas dan kegunaannya.
-            </p>
-
-            <p>
-              Bagi kami, kualitas produk dan pelayanan merupakan
-              bagian penting dalam membangun kepercayaan dan
-              hubungan yang baik dengan pelanggan.
-            </p>
-          </div>
-
-          <div className="commitmentPoints">
-            <div className="point">
-              <span>✓</span>
-
-              <div>
-                <strong>
-                  Menjaga Kualitas Produk
-                </strong>
-
-                <p>
-                  Kami berusaha mempertahankan kualitas produk
-                  yang kami tawarkan kepada pelanggan.
-                </p>
-              </div>
-            </div>
-
-            <div className="point">
-              <span>✓</span>
-
-              <div>
-                <strong>
-                  Memperhatikan Kebutuhan Pelanggan
-                </strong>
-
-                <p>
-                  Produk yang tersedia disesuaikan dengan
-                  berbagai kebutuhan listrik dan penerangan.
-                </p>
-              </div>
-            </div>
-
-            <div className="point">
-              <span>✓</span>
-
-              <div>
-                <strong>
-                  Memberikan Informasi yang Jelas
-                </strong>
-
-                <p>
-                  Kami berusaha memberikan informasi produk
-                  agar pelanggan dapat menentukan pilihannya.
-                </p>
-              </div>
-            </div>
-
-            <div className="point">
-              <span>✓</span>
-
-              <div>
-                <strong>
-                  Menjaga Kepercayaan Pelanggan
-                </strong>
-
-                <p>
-                  Kualitas produk dan pelayanan merupakan
-                  bagian dari kepercayaan yang terus kami jaga.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            KENAPA SINAR KASIH
-        ====================================================== */}
-
-        <section className="whySection">
-          <div className="sectionHeading centered">
-            <div className="sectionLabel">
-              KENAPA SINAR KASIH
-            </div>
-
-            <h2>
-              Kualitas, Pilihan, dan Kepercayaan
-            </h2>
-
-            <p>
-              Kami percaya bahwa hubungan yang baik dengan
-              pelanggan dibangun melalui produk yang berkualitas,
-              pilihan yang sesuai, dan kepercayaan yang terus
-              dijaga.
-            </p>
-          </div>
-
-          <div className="whyGrid">
-            <div className="whyCard">
-              <span className="whyNumber">
-                01
-              </span>
-
-              <h3>Mengutamakan Kualitas</h3>
-
-              <p>
-                Kami berusaha mempertahankan kualitas produk
-                yang kami tawarkan kepada pelanggan.
-              </p>
-            </div>
-
-            <div className="whyCard">
-              <span className="whyNumber">
-                02
-              </span>
-
-              <h3>Pilihan Produk yang Beragam</h3>
-
-              <p>
-                Berbagai kebutuhan listrik dan penerangan
-                tersedia untuk kebutuhan rumah maupun usaha.
-              </p>
-            </div>
-
-            <div className="whyCard">
-              <span className="whyNumber">
-                03
-              </span>
-
-              <h3>Menjaga Kepercayaan Pelanggan</h3>
-
-              <p>
-                Kami percaya kualitas produk dan pelayanan
-                merupakan bagian dari kepercayaan yang harus
-                terus dijaga.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            PENUTUP
-        ====================================================== */}
-
-        <section className="closing">
-          <div className="closingBadge">
-            SINAR KASIH
-          </div>
-
-          <h2>
-            Solusi Kebutuhan Listrik
-            <br />
-            & Penerangan
-          </h2>
-
+      ),
+    },
+    {
+      id: "komitmen",
+      number: "04",
+      title: "Komitmen Kami terhadap Kualitas",
+      summary:
+        "Menjaga kualitas produk, memahami kebutuhan pelanggan, dan membangun kepercayaan.",
+      content: (
+        <div className="accordionContent">
           <p>
-            Terima kasih telah mengenal Sinar Kasih.
-            Kami akan terus berusaha menyediakan produk
-            listrik dan penerangan dengan memperhatikan
-            kebutuhan dan kualitas bagi pelanggan.
+            Sinar Kasih berkomitmen untuk terus memperhatikan kualitas
+            produk yang disediakan agar dapat memberikan nilai yang baik
+            bagi pelanggan.
           </p>
 
-          <div className="closingActions">
-            <Link
-              href="/kategori"
-              className="primaryButton"
-            >
-              Lihat Produk
-            </Link>
+          <p>
+            Kami juga berusaha memahami kebutuhan pelanggan dan memberikan
+            informasi produk yang jelas sehingga pelanggan dapat menentukan
+            pilihan sesuai kebutuhan.
+          </p>
 
-            <Link
-              href="/lainnya"
-              className="secondaryButton"
-            >
-              Informasi & Layanan
-            </Link>
+          <p>
+            Bagi kami, kepercayaan pelanggan merupakan hal yang penting
+            untuk dijaga dalam jangka panjang.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "kenapa",
+      number: "05",
+      title: "Kenapa Sinar Kasih",
+      summary:
+        "Tiga hal yang menjadi bagian dari nilai Sinar Kasih dalam melayani pelanggan.",
+      content: (
+        <div className="whyGrid">
+          <div className="whyCard">
+            <div className="whyNumber">01</div>
+            <div>
+              <h3>Mengutamakan Kualitas</h3>
+              <p>
+                Kami berusaha menjaga kualitas produk sebagai bagian dari
+                kepercayaan pelanggan.
+              </p>
+            </div>
+          </div>
+
+          <div className="whyCard">
+            <div className="whyNumber">02</div>
+            <div>
+              <h3>Pilihan Produk yang Beragam</h3>
+              <p>
+                Menyediakan berbagai kebutuhan listrik dan penerangan untuk
+                kebutuhan yang berbeda.
+              </p>
+            </div>
+          </div>
+
+          <div className="whyCard">
+            <div className="whyNumber">03</div>
+            <div>
+              <h3>Menjaga Kepercayaan Pelanggan</h3>
+              <p>
+                Memberikan informasi produk yang jelas dan berusaha
+                memberikan pelayanan yang baik kepada pelanggan.
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <main className="aboutPage">
+        <section className="hero">
+          <div className="heroInner">
+            <div className="heroLabel">TENTANG SINAR KASIH</div>
+
+            <h1>
+              Mengenal Lebih Dekat
+              <br />
+              Sinar Kasih
+            </h1>
+
+            <p>
+              Mengenal lebih dekat Sinar Kasih, nilai yang kami jaga,
+              serta berbagai kebutuhan listrik dan penerangan yang kami
+              sediakan.
+            </p>
           </div>
         </section>
-      </section>
+
+        <section className="informationSection">
+          <div className="sectionHeader">
+            <span className="sectionEyebrow">SINAR KASIH</span>
+
+            <h2>Informasi Tentang Kami</h2>
+
+            <p>
+              Buka bagian yang ingin Anda ketahui lebih lanjut.
+            </p>
+          </div>
+
+          <div className="accordionList">
+            {sections.map((section) => {
+              const isOpen = openSection === section.id;
+
+              return (
+                <div
+                  className={`accordionItem ${
+                    isOpen ? "isOpen" : ""
+                  }`}
+                  key={section.id}
+                >
+                  <button
+                    type="button"
+                    className="accordionButton"
+                    onClick={() => toggleSection(section.id)}
+                    aria-expanded={isOpen}
+                    aria-controls={`content-${section.id}`}
+                  >
+                    <div className="accordionTitleArea">
+                      <span className="accordionNumber">
+                        {section.number}
+                      </span>
+
+                      <div>
+                        <h3>{section.title}</h3>
+
+                        {!isOpen && (
+                          <p className="accordionSummary">
+                            {section.summary}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <span className="accordionIcon">
+                      {isOpen ? "⌃" : "⌄"}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div
+                      id={`content-${section.id}`}
+                      className="accordionPanel"
+                    >
+                      {section.content}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="closingSection">
+          <div className="closingCard">
+            <span className="closingEyebrow">
+              SINAR KASIH
+            </span>
+
+            <h2>Solusi Kebutuhan Listrik & Penerangan</h2>
+
+            <p>
+              Temukan berbagai produk dan informasi yang Anda butuhkan
+              melalui website Sinar Kasih.
+            </p>
+
+            <div className="closingActions">
+              <Link href="/produk" className="primaryButton">
+                Lihat Produk
+              </Link>
+
+              <Link href="/lainnya" className="secondaryButton">
+                Informasi & Layanan
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <style>{`
-        .tentangPage {
+        .aboutPage {
           min-height: 100vh;
-          background: #f7f2eb;
-          color: #3f2f24;
+          background: #f8f6f2;
+          color: #30251f;
         }
 
         .hero {
-          background: #f7f2eb;
-          border-bottom: 1px solid #e3d8cc;
+          padding: 78px 20px 70px;
+          background:
+            radial-gradient(
+              circle at top right,
+              rgba(173, 126, 77, 0.12),
+              transparent 34%
+            ),
+            linear-gradient(
+              180deg,
+              #fffdf9 0%,
+              #f8f6f2 100%
+            );
         }
 
         .heroInner {
-          width: min(1120px, calc(100% - 40px));
+          width: 100%;
+          max-width: 900px;
           margin: 0 auto;
-          padding: 90px 0 82px;
           text-align: center;
         }
 
-        .heroBadge,
-        .sectionLabel {
-          color: #92765f;
+        .heroLabel,
+        .sectionEyebrow,
+        .closingEyebrow {
+          display: inline-block;
+          margin-bottom: 18px;
           font-size: 12px;
           font-weight: 800;
-          letter-spacing: 0.14em;
-        }
-
-        .heroBadge {
-          margin-bottom: 18px;
+          letter-spacing: 2px;
+          color: #9a6b3f;
         }
 
         .hero h1 {
@@ -421,343 +357,277 @@ export default function TentangPage() {
           margin: 0 auto;
           padding: 0;
           text-align: center;
-          color: #3f2f24;
-          font-size: clamp(38px, 5vw, 62px);
+          font-size: clamp(40px, 6vw, 68px);
           line-height: 1.08;
-          letter-spacing: -0.03em;
-        }
-
-        .hero h1 span {
-          color: #765138;
+          letter-spacing: -2px;
+          color: #5c3f2c;
         }
 
         .hero p {
-          width: min(720px, 100%);
-          margin: 24px auto 0;
-          color: #76685d;
+          max-width: 690px;
+          margin: 26px auto 0;
           font-size: 17px;
           line-height: 1.8;
-          text-align: center;
+          color: #6f6259;
         }
 
-        .content {
-          width: min(1120px, calc(100% - 40px));
+        .informationSection {
+          width: min(980px, calc(100% - 40px));
           margin: 0 auto;
-          padding: 70px 0 90px;
+          padding: 20px 0 80px;
         }
 
-        .introCard {
-          padding: 42px;
-          background: #fff;
-          border: 1px solid #e1d5c8;
-          border-radius: 18px;
-          box-shadow:
-            0 10px 30px rgba(70, 48, 35, 0.05);
+        .sectionHeader {
+          text-align: center;
+          margin-bottom: 32px;
         }
 
-        .introCard h2,
-        .sectionHeading h2,
-        .commitment h2,
-        .closing h2,
-        .qualityText h2 {
-          margin: 10px 0 16px;
-          color: #3f2f24;
-          font-size: 32px;
-          line-height: 1.2;
-        }
-
-        .introCard p,
-        .sectionHeading p,
-        .commitmentText p,
-        .closing p,
-        .qualityText p {
-          color: #76685d;
-          font-size: 15px;
-          line-height: 1.8;
-        }
-
-        .introCard p:last-child,
-        .qualityText p:last-child {
-          margin-bottom: 0;
-        }
-
-        /*
-         * =====================================================
-         * NILAI UTAMA / KUALITAS
-         * =====================================================
-         */
-
-        .qualitySection {
-          display: grid;
-          grid-template-columns:
-            minmax(0, 1.35fr)
-            minmax(280px, 0.65fr);
-          gap: 42px;
-          align-items: center;
-          margin-top: 82px;
-          padding: 48px;
-          background: #eee3d7;
-          border-radius: 20px;
-        }
-
-        .qualityText h2 {
-          font-size: 30px;
-        }
-
-        .qualityHighlight {
-          padding: 28px;
-          background: #fff;
-          border: 1px solid #e1d5c8;
-          border-radius: 15px;
-          box-shadow:
-            0 8px 25px rgba(70, 48, 35, 0.05);
-        }
-
-        .qualityIcon {
-          width: 46px;
-          height: 46px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 18px;
-          border-radius: 50%;
-          background: #765138;
-          color: #fff;
-          font-size: 20px;
-          font-weight: 800;
-        }
-
-        .qualityHighlight strong {
-          display: block;
-          margin-bottom: 8px;
-          color: #4b3326;
-          font-size: 17px;
-          line-height: 1.4;
-        }
-
-        .qualityHighlight p {
+        .sectionHeader h2 {
           margin: 0;
-          color: #7c6e63;
-          font-size: 13px;
+          font-size: clamp(28px, 4vw, 40px);
+          line-height: 1.2;
+          color: #4f3829;
+        }
+
+        .sectionHeader p {
+          margin: 12px auto 0;
+          color: #786b62;
           line-height: 1.7;
         }
 
-        .sectionHeading {
-          margin: 82px 0 28px;
+        .accordionList {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
-        .sectionHeading p {
-          max-width: 700px;
-          margin: 0;
+        .accordionItem {
+          overflow: hidden;
+          border: 1px solid #e8ded3;
+          border-radius: 18px;
+          background: rgba(255, 253, 249, 0.96);
+          box-shadow: 0 8px 28px rgba(73, 49, 32, 0.055);
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .accordionItem.isOpen {
+          border-color: #d7b997;
+          box-shadow: 0 12px 34px rgba(73, 49, 32, 0.09);
+        }
+
+        .accordionButton {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 23px 24px;
+          border: 0;
+          background: transparent;
+          color: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .accordionButton:hover {
+          background: rgba(246, 238, 228, 0.5);
+        }
+
+        .accordionTitleArea {
+          min-width: 0;
+          display: flex;
+          align-items: flex-start;
+          gap: 17px;
+        }
+
+        .accordionNumber {
+          flex: 0 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: #f1e5d8;
+          color: #8b6039;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .accordionTitleArea h3 {
+          margin: 2px 0 0;
+          font-size: 19px;
+          line-height: 1.4;
+          color: #513b2d;
+        }
+
+        .accordionSummary {
+          margin: 6px 0 0;
+          max-width: 720px;
+          font-size: 14px;
+          line-height: 1.65;
+          color: #7a6c62;
+        }
+
+        .accordionIcon {
+          flex: 0 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: #f2e8dd;
+          color: #765137;
+          font-size: 20px;
+          font-weight: 700;
+          line-height: 1;
+        }
+
+        .accordionPanel {
+          padding: 0 24px 27px 83px;
+        }
+
+        .accordionContent {
+          max-width: 790px;
+          color: #655950;
+        }
+
+        .accordionContent p {
+          margin: 0 0 15px;
+          font-size: 15px;
+          line-height: 1.85;
+        }
+
+        .accordionContent p:last-child {
+          margin-bottom: 0;
         }
 
         .productGrid {
           display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 18px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
         }
 
-        .productCard {
-          padding: 26px;
-          background: #fff;
-          border: 1px solid #e1d5c8;
-          border-radius: 15px;
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .productCard:hover {
-          transform: translateY(-3px);
-          box-shadow:
-            0 10px 25px rgba(70, 48, 35, 0.08);
-        }
-
-        .icon {
-          width: 48px;
-          height: 48px;
+        .productItem {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 18px;
-          border-radius: 12px;
-          background: #f2e8dd;
-          font-size: 23px;
-        }
-
-        .productCard h3 {
-          margin: 0 0 8px;
-          color: #4b3326;
-          font-size: 17px;
-        }
-
-        .productCard p {
-          margin: 0;
-          color: #7c6e63;
-          font-size: 13px;
-          line-height: 1.7;
-        }
-
-        /*
-         * =====================================================
-         * KOMITMEN
-         * =====================================================
-         */
-
-        .commitment {
-          display: grid;
-          grid-template-columns:
-            minmax(0, 1fr)
-            minmax(0, 1fr);
-          gap: 50px;
-          align-items: center;
-          margin-top: 82px;
-          padding: 48px;
-          background: #eee3d7;
-          border-radius: 20px;
-        }
-
-        .commitment h2 {
-          font-size: 30px;
-        }
-
-        .commitmentPoints {
-          display: grid;
-          gap: 18px;
-        }
-
-        .point {
-          display: flex;
-          gap: 14px;
           align-items: flex-start;
+          gap: 14px;
+          padding: 17px;
+          border: 1px solid #ece2d8;
+          border-radius: 14px;
+          background: #fffaf5;
         }
 
-        .point > span {
-          width: 28px;
-          height: 28px;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          background: #765138;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 800;
+        .productIcon {
+          flex: 0 0 auto;
+          font-size: 24px;
+          line-height: 1.2;
         }
 
-        .point strong {
+        .productItem strong {
           display: block;
-          margin-bottom: 4px;
-          color: #4b3326;
+          margin-bottom: 5px;
+          color: #503a2d;
           font-size: 14px;
         }
 
-        .point p {
+        .productItem p {
           margin: 0;
-          color: #7c6e63;
+          color: #786b62;
           font-size: 13px;
           line-height: 1.6;
         }
 
-        /*
-         * =====================================================
-         * KENAPA SINAR KASIH
-         * =====================================================
-         */
-
-        .whySection {
-          margin-top: 90px;
-        }
-
-        .centered {
-          text-align: center;
-        }
-
-        .centered p {
-          margin-left: auto;
-          margin-right: auto;
-        }
-
         .whyGrid {
           display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 18px;
-          margin-top: 32px;
+          gap: 12px;
         }
 
         .whyCard {
-          position: relative;
-          padding: 30px;
-          background: #fff;
-          border: 1px solid #e1d5c8;
-          border-radius: 15px;
+          display: flex;
+          align-items: flex-start;
+          gap: 17px;
+          padding: 18px;
+          border-radius: 14px;
+          background: #fffaf5;
+          border: 1px solid #ece2d8;
         }
 
         .whyNumber {
-          display: block;
-          margin-bottom: 20px;
-          color: #b39a85;
-          font-size: 13px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
+          flex: 0 0 auto;
+          font-size: 14px;
+          font-weight: 900;
+          color: #a16d3d;
+          letter-spacing: 1px;
         }
 
         .whyCard h3 {
-          margin: 0 0 9px;
-          color: #4b3326;
-          font-size: 17px;
+          margin: 0 0 5px;
+          color: #503a2d;
+          font-size: 15px;
         }
 
         .whyCard p {
           margin: 0;
-          color: #7c6e63;
+          color: #786b62;
           font-size: 13px;
-          line-height: 1.7;
+          line-height: 1.65;
         }
 
-        /*
-         * =====================================================
-         * PENUTUP
-         * =====================================================
-         */
-
-        .closing {
-          margin-top: 90px;
-          padding: 58px 30px;
-          border-radius: 20px;
-          background: #5f402e;
-          color: #fff;
-          text-align: center;
-        }
-
-        .closingBadge {
-          margin-bottom: 14px;
-          color: #e9d6c4;
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 0.16em;
-        }
-
-        .closing h2 {
-          color: #fff;
-          font-size: 34px;
-        }
-
-        .closing p {
-          width: min(620px, 100%);
+        .closingSection {
+          width: min(980px, calc(100% - 40px));
           margin: 0 auto;
-          color: #eadfd6;
+          padding: 0 0 80px;
+        }
+
+        .closingCard {
+          padding: 48px 32px;
+          border-radius: 24px;
+          text-align: center;
+          background:
+            radial-gradient(
+              circle at top right,
+              rgba(255, 255, 255, 0.12),
+              transparent 35%
+            ),
+            linear-gradient(
+              135deg,
+              #6c4b35 0%,
+              #4d3628 100%
+            );
+          color: #fff;
+          box-shadow: 0 16px 45px rgba(58, 39, 27, 0.16);
+        }
+
+        .closingEyebrow {
+          margin-bottom: 12px;
+          color: #e9cda9;
+        }
+
+        .closingCard h2 {
+          max-width: 650px;
+          margin: 0 auto;
+          font-size: clamp(28px, 4vw, 42px);
+          line-height: 1.2;
+        }
+
+        .closingCard p {
+          max-width: 620px;
+          margin: 15px auto 0;
+          color: rgba(255, 255, 255, 0.78);
+          line-height: 1.75;
         }
 
         .closingActions {
           display: flex;
           justify-content: center;
-          gap: 10px;
-          margin-top: 28px;
           flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 27px;
         }
 
         .primaryButton,
@@ -765,96 +635,121 @@ export default function TentangPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 44px;
-          padding: 0 18px;
-          border-radius: 8px;
+          min-height: 46px;
+          padding: 0 22px;
+          border-radius: 12px;
           text-decoration: none;
           font-size: 14px;
-          font-weight: 700;
+          font-weight: 800;
+          transition:
+            transform 0.2s ease,
+            opacity 0.2s ease;
         }
 
         .primaryButton {
           background: #fff;
-          color: #4b3326;
+          color: #5c402c;
         }
 
         .secondaryButton {
-          border: 1px solid rgba(255, 255, 255, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.35);
           color: #fff;
-        }
-
-        .secondaryButton:hover {
           background: rgba(255, 255, 255, 0.08);
         }
 
-        /*
-         * =====================================================
-         * RESPONSIVE
-         * =====================================================
-         */
-
-        @media (max-width: 850px) {
-          .productGrid,
-          .whyGrid {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-          }
-
-          .commitment,
-          .qualitySection {
-            grid-template-columns: 1fr;
-            gap: 30px;
-          }
+        .primaryButton:hover,
+        .secondaryButton:hover {
+          transform: translateY(-2px);
+          opacity: 0.92;
         }
 
-        @media (max-width: 600px) {
-          .heroInner {
-            width: min(100% - 28px, 1120px);
-            padding: 60px 0;
+        @media (max-width: 700px) {
+          .hero {
+            padding: 58px 18px 52px;
           }
 
-          .content {
-            width: min(100% - 28px, 1120px);
-            padding: 45px 0 60px;
+          .hero h1 {
+            font-size: 40px;
+            letter-spacing: -1.5px;
           }
 
           .hero p {
             font-size: 15px;
           }
 
-          .introCard,
-          .commitment,
-          .qualitySection {
-            padding: 26px;
+          .informationSection,
+          .closingSection {
+            width: min(100% - 28px, 980px);
           }
 
-          .introCard h2,
-          .sectionHeading h2,
-          .commitment h2,
-          .qualityText h2 {
-            font-size: 26px;
+          .accordionButton {
+            padding: 18px;
           }
 
-          .productGrid,
-          .whyGrid {
+          .accordionTitleArea {
+            gap: 12px;
+          }
+
+          .accordionNumber {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 11px;
+          }
+
+          .accordionTitleArea h3 {
+            font-size: 16px;
+          }
+
+          .accordionSummary {
+            font-size: 13px;
+          }
+
+          .accordionPanel {
+            padding: 0 18px 22px 66px;
+          }
+
+          .productGrid {
             grid-template-columns: 1fr;
           }
 
-          .sectionHeading,
-          .whySection,
-          .closing {
-            margin-top: 60px;
+          .closingCard {
+            padding: 38px 20px;
+            border-radius: 20px;
           }
 
-          .closing {
-            padding: 45px 22px;
+          .closingActions {
+            flex-direction: column;
           }
 
-          .closing h2 {
-            font-size: 28px;
+          .primaryButton,
+          .secondaryButton {
+            width: 100%;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero h1 {
+            font-size: 36px;
+          }
+
+          .accordionTitleArea {
+            align-items: center;
+          }
+
+          .accordionSummary {
+            display: none;
+          }
+
+          .accordionPanel {
+            padding-left: 18px;
+          }
+
+          .accordionContent p {
+            font-size: 14px;
           }
         }
       `}</style>
-    </main>
+    </>
   );
 }
