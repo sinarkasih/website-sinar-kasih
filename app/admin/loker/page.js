@@ -163,10 +163,7 @@ function displayToIsoDate(value) {
     };
   }
 
-  if (
-    yearNumber < 1900 ||
-    yearNumber > 2100
-  ) {
+  if (yearNumber < 1900 || yearNumber > 2100) {
     return {
       value: null,
       valid: false,
@@ -218,9 +215,7 @@ function formatDateInput(value) {
 function isVideoUrl(url) {
   if (!url) return false;
 
-  return /\.(mp4|webm)(\?.*)?$/i.test(
-    String(url)
-  );
+  return /\.(mp4|webm)(\?.*)?$/i.test(String(url));
 }
 
 function getMediaTypeFromFile(file) {
@@ -241,73 +236,46 @@ export default function AdminLokerPage() {
   const [lowongan, setLowongan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [processingId, setProcessingId] =
-    useState(null);
+  const [processingId, setProcessingId] = useState(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [showForm, setShowForm] =
-    useState(false);
-
-  const [editingId, setEditingId] =
-    useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [search, setSearch] = useState("");
-  const [filter, setFilter] =
-    useState("semua");
+  const [filter, setFilter] = useState("semua");
 
-  const [form, setForm] =
-    useState(initialForm);
+  const [form, setForm] = useState(initialForm);
 
-  const [mediaFile, setMediaFile] =
-    useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState("");
+  const [mediaType, setMediaType] = useState("");
 
-  const [mediaPreview, setMediaPreview] =
-    useState("");
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState("");
 
-  const [mediaType, setMediaType] =
-    useState("");
-
-  const [coverFile, setCoverFile] =
-    useState(null);
-
-  const [coverPreview, setCoverPreview] =
-    useState("");
-
-  const tanggalBukaPickerRef =
-    useRef(null);
-
-  const tanggalTutupPickerRef =
-    useRef(null);
+  const tanggalBukaPickerRef = useRef(null);
+  const tanggalTutupPickerRef = useRef(null);
 
   useEffect(() => {
     loadLowongan();
   }, []);
 
-  async function loadLowongan(
-    showLoading = true
-  ) {
-    if (showLoading) {
-      setLoading(true);
-    }
-
+  async function loadLowongan() {
+    setLoading(true);
     setError("");
 
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError(
-        "Koneksi Supabase belum tersedia."
-      );
+      setError("Koneksi Supabase belum tersedia.");
       setLoading(false);
       return;
     }
 
-    const {
-      data,
-      error: fetchError,
-    } = await supabase
+    const { data, error: fetchError } = await supabase
       .from("lowongan_kerja")
       .select(
         "id, posisi, gambar_url, cover_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
@@ -367,13 +335,11 @@ export default function AdminLokerPage() {
     event,
     fieldName
   ) {
-    const isoValue =
-      event.target.value;
+    const isoValue = event.target.value;
 
     setForm((current) => ({
       ...current,
-      [fieldName]:
-        isoToDisplayDate(isoValue),
+      [fieldName]: isoToDisplayDate(isoValue),
     }));
   }
 
@@ -430,20 +396,14 @@ export default function AdminLokerPage() {
   function openEditForm(item) {
     setForm({
       posisi: item.posisi || "",
-      gambar_url:
-        item.gambar_url || "",
-      cover_url:
-        item.cover_url || "",
-      deskripsi:
-        item.deskripsi || "",
-      persyaratan:
-        item.persyaratan || "",
-      lokasi:
-        item.lokasi || "",
+      gambar_url: item.gambar_url || "",
+      cover_url: item.cover_url || "",
+      deskripsi: item.deskripsi || "",
+      persyaratan: item.persyaratan || "",
+      lokasi: item.lokasi || "",
       google_form_url:
         item.google_form_url || "",
-      status:
-        item.status || "draft",
+      status: item.status || "draft",
       tahap_seleksi:
         item.tahap_seleksi ||
         "pendaftaran",
@@ -457,19 +417,14 @@ export default function AdminLokerPage() {
         ),
       pengumuman:
         item.pengumuman || "",
-      aktif:
-        Boolean(item.aktif),
-      urutan:
-        item.urutan ?? 0,
+      aktif: Boolean(item.aktif),
+      urutan: item.urutan ?? 0,
     });
 
     setEditingId(item.id);
 
     setMediaFile(null);
-
-    setMediaPreview(
-      item.gambar_url || ""
-    );
+    setMediaPreview(item.gambar_url || "");
 
     setMediaType(
       isVideoUrl(item.gambar_url)
@@ -480,10 +435,7 @@ export default function AdminLokerPage() {
     );
 
     setCoverFile(null);
-
-    setCoverPreview(
-      item.cover_url || ""
-    );
+    setCoverPreview(item.cover_url || "");
 
     setSuccess("");
     setError("");
@@ -496,8 +448,7 @@ export default function AdminLokerPage() {
   }
 
   function handleMediaChange(event) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
@@ -511,11 +462,7 @@ export default function AdminLokerPage() {
       "video/webm",
     ];
 
-    if (
-      !allowedTypes.includes(
-        file.type
-      )
-    ) {
+    if (!allowedTypes.includes(file.type)) {
       setError(
         "Format media harus JPG, PNG, WEBP, MP4, atau WEBM."
       );
@@ -524,8 +471,7 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const maxSize =
-      20 * 1024 * 1024;
+    const maxSize = 20 * 1024 * 1024;
 
     if (file.size > maxSize) {
       setError(
@@ -536,21 +482,18 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const type =
-      getMediaTypeFromFile(file);
+    const type = getMediaTypeFromFile(file);
 
     setMediaFile(file);
     setMediaType(type);
 
-    const previewUrl =
-      URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
 
     setMediaPreview(previewUrl);
   }
 
   function handleCoverChange(event) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
@@ -562,21 +505,16 @@ export default function AdminLokerPage() {
       "image/webp",
     ];
 
-    if (
-      !allowedTypes.includes(
-        file.type
-      )
-    ) {
+    if (!allowedTypes.includes(file.type)) {
       setError(
-        "Cover hanya boleh menggunakan JPG, PNG, atau WEBP."
+        "Cover harus berupa JPG, PNG, atau WEBP."
       );
 
       event.target.value = "";
       return;
     }
 
-    const maxSize =
-      10 * 1024 * 1024;
+    const maxSize = 10 * 1024 * 1024;
 
     if (file.size > maxSize) {
       setError(
@@ -595,45 +533,32 @@ export default function AdminLokerPage() {
     setCoverPreview(previewUrl);
   }
 
-  async function uploadFile(
-    file,
-    folder
-  ) {
-    if (!file) return "";
+  async function uploadMedia() {
+    if (!mediaFile) {
+      return form.gambar_url || "";
+    }
 
     const extension =
-      file.name
+      mediaFile.name
         .split(".")
         .pop()
-        ?.toLowerCase() ||
-      "jpg";
+        ?.toLowerCase() || "jpg";
 
-    const safePosition =
-      (
-        form.posisi ||
-        "lowongan"
-      )
-        .toLowerCase()
-        .replace(
-          /[^a-z0-9]+/g,
-          "-"
-        )
-        .replace(
-          /^-+|-+$/g,
-          ""
-        )
-        .slice(0, 50);
+    const safePosition = (
+      form.posisi || "lowongan"
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 50);
 
     const fileName =
-      `${Date.now()}-${safePosition}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}.${extension}`;
+      `${Date.now()}-${safePosition}.${extension}`;
 
     const filePath =
-      `${folder}/${fileName}`;
+      `lowongan/${fileName}`;
 
-    const supabase =
-      getSupabase();
+    const supabase = getSupabase();
 
     if (!supabase) {
       throw new Error(
@@ -641,52 +566,31 @@ export default function AdminLokerPage() {
       );
     }
 
-    const {
-      error: uploadError,
-    } = await supabase.storage
-      .from("lowongan-images")
-      .upload(
-        filePath,
-        file,
-        {
-          cacheControl: "3600",
-          upsert: false,
-          contentType:
-            file.type,
-        }
-      );
+    const { error: uploadError } =
+      await supabase.storage
+        .from("lowongan-images")
+        .upload(
+          filePath,
+          mediaFile,
+          {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: mediaFile.type,
+          }
+        );
 
     if (uploadError) {
       throw new Error(
-        `Gagal upload file: ${uploadError.message}`
+        `Gagal upload media: ${uploadError.message}`
       );
     }
 
     const { data } =
       supabase.storage
         .from("lowongan-images")
-        .getPublicUrl(
-          filePath
-        );
+        .getPublicUrl(filePath);
 
-    if (!data?.publicUrl) {
-      throw new Error(
-        "URL file berhasil diupload tetapi URL publik tidak ditemukan."
-      );
-    }
-
-    return data.publicUrl;
-  }
-
-  async function uploadMedia() {
-    if (!mediaFile) {
-      return form.gambar_url || "";
-    }
-
-    return uploadFile(
-      mediaFile,
-      "lowongan"
-    );
+    return data?.publicUrl || "";
   }
 
   async function uploadCover() {
@@ -694,10 +598,59 @@ export default function AdminLokerPage() {
       return form.cover_url || "";
     }
 
-    return uploadFile(
-      coverFile,
-      "cover"
-    );
+    const extension =
+      coverFile.name
+        .split(".")
+        .pop()
+        ?.toLowerCase() || "jpg";
+
+    const safePosition = (
+      form.posisi || "lowongan"
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 50);
+
+    const fileName =
+      `cover-${Date.now()}-${safePosition}.${extension}`;
+
+    const filePath =
+      `lowongan/covers/${fileName}`;
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      throw new Error(
+        "Koneksi Supabase belum tersedia."
+      );
+    }
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("lowongan-images")
+        .upload(
+          filePath,
+          coverFile,
+          {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: coverFile.type,
+          }
+        );
+
+    if (uploadError) {
+      throw new Error(
+        `Gagal upload cover: ${uploadError.message}`
+      );
+    }
+
+    const { data } =
+      supabase.storage
+        .from("lowongan-images")
+        .getPublicUrl(filePath);
+
+    return data?.publicUrl || "";
   }
 
   async function handleSubmit(event) {
@@ -713,8 +666,7 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const supabase =
-      getSupabase();
+    const supabase = getSupabase();
 
     if (!supabase) {
       setError(
@@ -763,51 +715,39 @@ export default function AdminLokerPage() {
 
     try {
       let gambarUrl =
-        form.gambar_url ||
-        null;
+        form.gambar_url || null;
 
       let coverUrl =
-        form.cover_url ||
-        null;
+        form.cover_url || null;
 
       if (mediaFile) {
-        gambarUrl =
-          await uploadMedia();
+        gambarUrl = await uploadMedia();
       }
 
       if (coverFile) {
-        coverUrl =
-          await uploadCover();
+        coverUrl = await uploadCover();
       }
 
       const payload = {
-        posisi:
-          form.posisi.trim(),
+        posisi: form.posisi.trim(),
 
-        gambar_url:
-          gambarUrl,
+        gambar_url: gambarUrl,
 
-        cover_url:
-          coverUrl,
+        cover_url: coverUrl,
 
         deskripsi:
-          form.deskripsi.trim() ||
-          null,
+          form.deskripsi.trim() || null,
 
         persyaratan:
-          form.persyaratan.trim() ||
-          null,
+          form.persyaratan.trim() || null,
 
         lokasi:
-          form.lokasi.trim() ||
-          null,
+          form.lokasi.trim() || null,
 
         google_form_url:
-          form.google_form_url.trim() ||
-          null,
+          form.google_form_url.trim() || null,
 
-        status:
-          form.status,
+        status: form.status,
 
         tahap_seleksi:
           form.tahap_seleksi,
@@ -819,81 +759,49 @@ export default function AdminLokerPage() {
           tanggalTutup.value,
 
         pengumuman:
-          form.pengumuman.trim() ||
-          null,
+          form.pengumuman.trim() || null,
 
-        aktif:
-          Boolean(form.aktif),
+        aktif: Boolean(form.aktif),
 
         urutan:
           Number(form.urutan) || 0,
       };
 
+      let result;
+
       if (editingId) {
-        const {
-          data: updatedRows,
-          error: updateError,
-        } = await supabase
+        result = await supabase
           .from("lowongan_kerja")
           .update(payload)
           .eq("id", editingId)
           .select("id")
           .single();
-
-        if (updateError) {
-          console.error(
-            updateError
-          );
-
-          throw new Error(
-            `Gagal memperbarui lowongan: ${updateError.message}`
-          );
-        }
-
-        if (!updatedRows) {
-          throw new Error(
-            "Data lowongan tidak berhasil diperbarui."
-          );
-        }
-
-        setSuccess(
-          "Lowongan berhasil diperbarui."
-        );
       } else {
-        const {
-          data: insertedRow,
-          error: insertError,
-        } = await supabase
+        result = await supabase
           .from("lowongan_kerja")
           .insert(payload)
           .select("id")
           .single();
+      }
 
-        if (insertError) {
-          console.error(
-            insertError
-          );
+      if (result.error) {
+        console.error(result.error);
 
-          throw new Error(
-            `Gagal menambahkan lowongan: ${insertError.message}`
-          );
-        }
-
-        if (!insertedRow) {
-          throw new Error(
-            "Lowongan gagal ditambahkan."
-          );
-        }
-
-        setSuccess(
-          "Lowongan berhasil ditambahkan."
+        throw new Error(
+          `Gagal menyimpan lowongan: ${result.error.message}`
         );
       }
+
+      setSuccess(
+        editingId
+          ? "Lowongan berhasil diperbarui."
+          : "Lowongan berhasil ditambahkan."
+      );
 
       resetForm();
       setShowForm(false);
 
-      await loadLowongan(false);
+      await loadLowongan();
 
       window.scrollTo({
         top: 0,
@@ -912,10 +820,9 @@ export default function AdminLokerPage() {
   }
 
   async function hapusLowongan(item) {
-    const yakin =
-      window.confirm(
-        `Hapus lowongan "${item.posisi}"?\n\nData lowongan ini akan dihapus dari database.`
-      );
+    const yakin = window.confirm(
+      `Hapus lowongan "${item.posisi}"?\n\nData lowongan ini akan dihapus dari database.`
+    );
 
     if (!yakin) return;
 
@@ -923,8 +830,7 @@ export default function AdminLokerPage() {
     setError("");
     setSuccess("");
 
-    const supabase =
-      getSupabase();
+    const supabase = getSupabase();
 
     if (!supabase) {
       setError(
@@ -935,17 +841,14 @@ export default function AdminLokerPage() {
       return;
     }
 
-    const {
-      error: deleteError,
-    } = await supabase
-      .from("lowongan_kerja")
-      .delete()
-      .eq("id", item.id);
+    const { error: deleteError } =
+      await supabase
+        .from("lowongan_kerja")
+        .delete()
+        .eq("id", item.id);
 
     if (deleteError) {
-      console.error(
-        deleteError
-      );
+      console.error(deleteError);
 
       setError(
         `Gagal menghapus lowongan: ${deleteError.message}`
@@ -955,13 +858,11 @@ export default function AdminLokerPage() {
       return;
     }
 
-    setLowongan(
-      (current) =>
-        current.filter(
-          (currentItem) =>
-            currentItem.id !==
-            item.id
-        )
+    setLowongan((current) =>
+      current.filter(
+        (currentItem) =>
+          currentItem.id !== item.id
+      )
     );
 
     setProcessingId(null);
@@ -976,8 +877,7 @@ export default function AdminLokerPage() {
     setError("");
     setSuccess("");
 
-    const supabase =
-      getSupabase();
+    const supabase = getSupabase();
 
     if (!supabase) {
       setError(
@@ -995,15 +895,10 @@ export default function AdminLokerPage() {
       .update({
         aktif: !item.aktif,
       })
-      .eq(
-        "id",
-        item.id
-      );
+      .eq("id", item.id);
 
     if (updateError) {
-      console.error(
-        updateError
-      );
+      console.error(updateError);
 
       setError(
         `Gagal mengubah status: ${updateError.message}`
@@ -1013,19 +908,15 @@ export default function AdminLokerPage() {
       return;
     }
 
-    setLowongan(
-      (current) =>
-        current.map(
-          (currentItem) =>
-            currentItem.id ===
-            item.id
-              ? {
-                  ...currentItem,
-                  aktif:
-                    !currentItem.aktif,
-                }
-              : currentItem
-        )
+    setLowongan((current) =>
+      current.map((currentItem) =>
+        currentItem.id === item.id
+          ? {
+              ...currentItem,
+              aktif: !currentItem.aktif,
+            }
+          : currentItem
+      )
     );
 
     setProcessingId(null);
@@ -1039,10 +930,9 @@ export default function AdminLokerPage() {
 
   const filteredLowongan =
     lowongan.filter((item) => {
-      const keyword =
-        search
-          .trim()
-          .toLowerCase();
+      const keyword = search
+        .trim()
+        .toLowerCase();
 
       const matchesSearch =
         !keyword ||
@@ -1060,8 +950,7 @@ export default function AdminLokerPage() {
         (filter === "nonaktif" &&
           !item.aktif) ||
         (filter === "dibuka" &&
-          item.status ===
-            "dibuka") ||
+          item.status === "dibuka") ||
         (filter === "proses" &&
           item.status ===
             "proses_seleksi");
@@ -1075,18 +964,15 @@ export default function AdminLokerPage() {
   const totalLowongan =
     lowongan.length;
 
-  const aktif =
-    lowongan.filter(
-      (item) => item.aktif
-    ).length;
+  const aktif = lowongan.filter(
+    (item) => item.aktif
+  ).length;
 
-  const dibuka =
-    lowongan.filter(
-      (item) =>
-        item.status ===
-          "dibuka" &&
-        item.aktif
-    ).length;
+  const dibuka = lowongan.filter(
+    (item) =>
+      item.status === "dibuka" &&
+      item.aktif
+  ).length;
 
   const nonaktif =
     lowongan.filter(
@@ -1096,21 +982,17 @@ export default function AdminLokerPage() {
   return (
     <main className="lokerAdminPage">
       <div className="page">
-
         <div className="topbar">
           <div>
             <div className="eyebrow">
               ADMINISTRASI WEBSITE
             </div>
 
-            <h1>
-              Lowongan Kerja
-            </h1>
+            <h1>Lowongan Kerja</h1>
 
             <p>
               Kelola informasi lowongan kerja
-              yang ditampilkan pada halaman
-              publik.
+              yang ditampilkan pada halaman publik.
             </p>
           </div>
 
@@ -1134,54 +1016,36 @@ export default function AdminLokerPage() {
         </div>
 
         {success && (
-          <div
-            className="success"
-            role="status"
-          >
+          <div className="success">
             ✓ {success}
           </div>
         )}
 
         {error && (
-          <div
-            className="error"
-            role="alert"
-          >
+          <div className="error">
             {error}
           </div>
         )}
 
         <div className="summary">
           <div className="summaryCard">
-            <span>
-              Total Lowongan
-            </span>
-            <strong>
-              {totalLowongan}
-            </strong>
+            <span>Total Lowongan</span>
+            <strong>{totalLowongan}</strong>
           </div>
 
           <div className="summaryCard">
             <span>Aktif</span>
-            <strong>
-              {aktif}
-            </strong>
+            <strong>{aktif}</strong>
           </div>
 
           <div className="summaryCard">
-            <span>
-              Pendaftaran Dibuka
-            </span>
-            <strong>
-              {dibuka}
-            </strong>
+            <span>Pendaftaran Dibuka</span>
+            <strong>{dibuka}</strong>
           </div>
 
           <div className="summaryCard">
             <span>Nonaktif</span>
-            <strong>
-              {nonaktif}
-            </strong>
+            <strong>{nonaktif}</strong>
           </div>
         </div>
 
@@ -1202,9 +1066,8 @@ export default function AdminLokerPage() {
                 </h2>
 
                 <p>
-                  Isi informasi lowongan
-                  yang akan ditampilkan
-                  kepada calon pelamar.
+                  Isi informasi lowongan yang akan
+                  ditampilkan kepada calon pelamar.
                 </p>
               </div>
 
@@ -1220,11 +1083,8 @@ export default function AdminLokerPage() {
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-            >
+            <form onSubmit={handleSubmit}>
               <div className="formGrid">
-
                 <div className="field full">
                   <label htmlFor="posisi">
                     Posisi Lowongan *
@@ -1233,12 +1093,8 @@ export default function AdminLokerPage() {
                   <input
                     id="posisi"
                     name="posisi"
-                    value={
-                      form.posisi
-                    }
-                    onChange={
-                      handleChange
-                    }
+                    value={form.posisi}
+                    onChange={handleChange}
                     placeholder="Contoh: Staff Toko"
                     required
                   />
@@ -1252,12 +1108,8 @@ export default function AdminLokerPage() {
                   <input
                     id="lokasi"
                     name="lokasi"
-                    value={
-                      form.lokasi
-                    }
-                    onChange={
-                      handleChange
-                    }
+                    value={form.lokasi}
+                    onChange={handleChange}
                     placeholder="Contoh: Sinar Kasih Kota"
                   />
                 </div>
@@ -1272,12 +1124,8 @@ export default function AdminLokerPage() {
                     name="urutan"
                     type="number"
                     min="0"
-                    value={
-                      form.urutan
-                    }
-                    onChange={
-                      handleChange
-                    }
+                    value={form.urutan}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -1289,26 +1137,16 @@ export default function AdminLokerPage() {
                   <select
                     id="status"
                     name="status"
-                    value={
-                      form.status
-                    }
-                    onChange={
-                      handleChange
-                    }
+                    value={form.status}
+                    onChange={handleChange}
                   >
                     {statusOptions.map(
                       (option) => (
                         <option
-                          key={
-                            option.value
-                          }
-                          value={
-                            option.value
-                          }
+                          key={option.value}
+                          value={option.value}
                         >
-                          {
-                            option.label
-                          }
+                          {option.label}
                         </option>
                       )
                     )}
@@ -1326,24 +1164,16 @@ export default function AdminLokerPage() {
                     value={
                       form.tahap_seleksi
                     }
-                    onChange={
-                      handleChange
-                    }
+                    onChange={handleChange}
                   >
                     {tahapSeleksi.map(
                       (item) => (
                         <option
-                          key={
-                            item.key
-                          }
-                          value={
-                            item.key
-                          }
+                          key={item.key}
+                          value={item.key}
                         >
                           {item.nomor} —{" "}
-                          {
-                            item.judul
-                          }
+                          {item.judul}
                         </option>
                       )
                     )}
@@ -1380,6 +1210,7 @@ export default function AdminLokerPage() {
                         )
                       }
                       aria-label="Pilih tanggal buka"
+                      title="Pilih tanggal"
                     >
                       📅
                     </button>
@@ -1407,8 +1238,7 @@ export default function AdminLokerPage() {
                   </div>
 
                   <small>
-                    Pilih dari kalender
-                    atau ketik
+                    Pilih dari kalender atau ketik
                     DD/MM/YYYY.
                   </small>
                 </div>
@@ -1443,6 +1273,7 @@ export default function AdminLokerPage() {
                         )
                       }
                       aria-label="Pilih tanggal tutup"
+                      title="Pilih tanggal"
                     >
                       📅
                     </button>
@@ -1470,8 +1301,7 @@ export default function AdminLokerPage() {
                   </div>
 
                   <small>
-                    Pilih dari kalender
-                    atau ketik
+                    Pilih dari kalender atau ketik
                     DD/MM/YYYY.
                   </small>
                 </div>
@@ -1484,31 +1314,29 @@ export default function AdminLokerPage() {
                   <div className="mediaUploadBox">
                     <div className="mediaPreview">
                       {mediaPreview &&
-                      mediaType ===
-                        "video" ? (
+                      mediaType === "video" ? (
                         <video
-                          src={
-                            mediaPreview
+                          src={mediaPreview}
+                          poster={
+                            coverPreview ||
+                            form.cover_url ||
+                            undefined
                           }
                           muted
                           controls
                           playsInline
-                          preload="metadata"
+                          preload="auto"
                           className="mediaPreviewContent"
                         />
                       ) : mediaPreview ? (
                         <img
-                          src={
-                            mediaPreview
-                          }
+                          src={mediaPreview}
                           alt="Preview media lowongan"
                           className="mediaPreviewContent"
                         />
                       ) : (
                         <div className="mediaPlaceholder">
-                          <span>
-                            🖼️
-                          </span>
+                          <span>🖼️</span>
 
                           <small>
                             Belum ada media
@@ -1519,8 +1347,7 @@ export default function AdminLokerPage() {
 
                     <div className="mediaUploadInfo">
                       <strong>
-                        Upload foto atau
-                        video
+                        Upload foto atau video
                       </strong>
 
                       <p>
@@ -1546,16 +1373,13 @@ export default function AdminLokerPage() {
                           </strong>
 
                           <span>
-                            {
-                              mediaFile.name
-                            }
+                            {mediaFile.name}
                           </span>
                         </div>
                       )}
 
                       <label className="chooseMediaButton">
-                        📁 Pilih Foto /
-                        Video
+                        📁 Pilih Foto / Video
 
                         <input
                           type="file"
@@ -1571,68 +1395,64 @@ export default function AdminLokerPage() {
 
                 <div className="field full">
                   <label>
-                    Cover / Thumbnail
+                    Cover / Thumbnail Video
+                    <span className="optionalText">
+                      {" "}
+                      (Opsional)
+                    </span>
                   </label>
 
-                  <div className="mediaUploadBox">
-                    <div className="mediaPreview">
+                  <div className="coverUploadBox">
+                    <div className="coverPreview">
                       {coverPreview ? (
                         <img
-                          src={
-                            coverPreview
-                          }
+                          src={coverPreview}
                           alt="Preview cover lowongan"
-                          className="mediaPreviewContent"
+                          className="coverPreviewImage"
                         />
                       ) : (
-                        <div className="mediaPlaceholder">
-                          <span>
-                            🖼️
-                          </span>
+                        <div className="coverPlaceholder">
+                          <span>🖼️</span>
 
                           <small>
-                            Belum ada cover
+                            Cover belum diisi
                           </small>
                         </div>
                       )}
                     </div>
 
-                    <div className="mediaUploadInfo">
+                    <div className="coverInfo">
                       <strong>
-                        Cover untuk thumbnail
+                        Cover tidak wajib
                       </strong>
 
                       <p>
                         Cover digunakan sebagai
-                        gambar tampilan awal
-                        video/lowongan.
+                        gambar depan video di
+                        halaman admin.
                       </p>
 
-                      <ul>
-                        <li>
-                          JPG, PNG, WEBP
-                        </li>
-                        <li>
-                          Maksimal 10 MB
-                        </li>
-                      </ul>
+                      <p>
+                        Jika cover tidak diisi,
+                        lowongan tetap bisa
+                        menggunakan video seperti
+                        biasa.
+                      </p>
 
                       {coverFile && (
                         <div className="selectedMedia">
                           <strong>
-                            File dipilih:
+                            Cover dipilih:
                           </strong>
 
                           <span>
-                            {
-                              coverFile.name
-                            }
+                            {coverFile.name}
                           </span>
                         </div>
                       )}
 
                       <label className="chooseMediaButton">
-                        📁 Pilih Cover
+                        🖼️ Pilih Cover
 
                         <input
                           type="file"
@@ -1654,13 +1474,9 @@ export default function AdminLokerPage() {
                   <textarea
                     id="deskripsi"
                     name="deskripsi"
-                    rows="7"
-                    value={
-                      form.deskripsi
-                    }
-                    onChange={
-                      handleChange
-                    }
+                    rows="6"
+                    value={form.deskripsi}
+                    onChange={handleChange}
                     placeholder="Jelaskan posisi dan pekerjaan yang ditawarkan..."
                   />
                 </div>
@@ -1673,29 +1489,26 @@ export default function AdminLokerPage() {
                   <textarea
                     id="persyaratan"
                     name="persyaratan"
-                    rows="8"
+                    rows="7"
                     value={
                       form.persyaratan
                     }
-                    onChange={
-                      handleChange
-                    }
+                    onChange={handleChange}
                     placeholder={
-                      "Contoh:\nLaki-Laki\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
+                      "Contoh:\nUsia maksimal 30 tahun\nPendidikan minimal SMA/SMK\nMampu bekerja dalam tim"
                     }
                   />
 
                   <small>
-                    Gunakan baris baru
-                    untuk setiap
-                    persyaratan.
+                    Gunakan baris baru untuk setiap
+                    persyaratan agar lebih mudah
+                    dibaca.
                   </small>
                 </div>
 
                 <div className="field full">
                   <label htmlFor="google_form_url">
-                    Link Google Form
-                    Lamaran
+                    Link Google Form Lamaran
                   </label>
 
                   <input
@@ -1705,17 +1518,13 @@ export default function AdminLokerPage() {
                     value={
                       form.google_form_url
                     }
-                    onChange={
-                      handleChange
-                    }
+                    onChange={handleChange}
                     placeholder="https://forms.google.com/..."
                   />
 
                   <small>
-                    Tombol lamaran pada
-                    website akan
-                    menggunakan link
-                    ini.
+                    Tombol lamaran pada website akan
+                    menggunakan link ini.
                   </small>
                 </div>
 
@@ -1731,9 +1540,7 @@ export default function AdminLokerPage() {
                     value={
                       form.pengumuman
                     }
-                    onChange={
-                      handleChange
-                    }
+                    onChange={handleChange}
                     placeholder="Contoh: Pelamar yang lolos akan dihubungi melalui WhatsApp."
                   />
                 </div>
@@ -1743,22 +1550,16 @@ export default function AdminLokerPage() {
                     <input
                       type="checkbox"
                       name="aktif"
-                      checked={
-                        form.aktif
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      checked={form.aktif}
+                      onChange={handleChange}
                     />
 
                     <span>
-                      Tampilkan lowongan
-                      ini di website
-                      publik
+                      Tampilkan lowongan ini di
+                      website publik
                     </span>
                   </label>
                 </div>
-
               </div>
 
               <div className="formActions">
@@ -1821,9 +1622,9 @@ export default function AdminLokerPage() {
             {[
               ["semua", "Semua"],
               ["aktif", "Aktif"],
-              ["nonaktif", "Nonaktif"],
               ["dibuka", "Dibuka"],
               ["proses", "Proses"],
+              ["nonaktif", "Nonaktif"],
             ].map(
               ([value, label]) => (
                 <button
@@ -1848,29 +1649,27 @@ export default function AdminLokerPage() {
         <div className="card">
           {loading ? (
             <div className="empty">
-              <div className="emptyIcon">
-                ⏳
-              </div>
-
-              <strong>
-                Memuat data...
-              </strong>
+              Memuat data lowongan...
             </div>
           ) : filteredLowongan.length ===
             0 ? (
             <div className="empty">
               <div className="emptyIcon">
-                📋
+                💼
               </div>
 
               <strong>
-                Tidak ada lowongan
+                {search ||
+                filter !== "semua"
+                  ? "Tidak ada lowongan yang sesuai."
+                  : "Belum ada data lowongan."}
               </strong>
 
               <p>
-                Belum ada data yang
-                sesuai dengan
-                pencarian atau filter.
+                {search ||
+                filter !== "semua"
+                  ? "Coba ubah pencarian atau filter."
+                  : "Klik + Tambah Lowongan untuk membuat lowongan pertama."}
               </p>
             </div>
           ) : (
@@ -1878,152 +1677,130 @@ export default function AdminLokerPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>
-                      Posisi
-                    </th>
-
-                    <th>
-                      Status
-                    </th>
-
-                    <th>
-                      Tahap
-                    </th>
-
-                    <th>
-                      Tanggal
-                    </th>
-
-                    <th>
-                      Aktif
-                    </th>
-
-                    <th>
-                      Aksi
-                    </th>
+                    <th>Urutan</th>
+                    <th>Posisi</th>
+                    <th>Lokasi</th>
+                    <th>Status</th>
+                    <th>Tahap</th>
+                    <th>Periode</th>
+                    <th>Tampil</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {filteredLowongan.map(
-                    (item) => (
-                      <tr
-                        key={item.id}
-                      >
-                        <td>
-                          <div className="positionCell">
+                    (item) => {
+                      const video =
+                        isVideoUrl(
+                          item.gambar_url
+                        );
 
-                            {item.cover_url ||
-                            item.gambar_url ? (
-                              <img
-                                src={
-                                  item.cover_url ||
-                                  item.gambar_url
-                                }
-                                alt=""
-                                className="thumb"
-                              />
-                            ) : (
-                              <div className="thumbPlaceholder">
-                                💼
+                      return (
+                        <tr
+                          key={item.id}
+                        >
+                          <td>
+                            {item.urutan}
+                          </td>
+
+                          <td>
+                            <div className="positionCell">
+                              {video ? (
+                                item.cover_url ? (
+                                  <img
+                                    src={
+                                      item.cover_url
+                                    }
+                                    alt=""
+                                    className="thumb"
+                                  />
+                                ) : (
+                                  <div className="videoThumbPlaceholder">
+                                    <span>
+                                      ▶
+                                    </span>
+
+                                    <small>
+                                      VIDEO
+                                    </small>
+                                  </div>
+                                )
+                              ) : item.gambar_url ? (
+                                <img
+                                  src={
+                                    item.gambar_url
+                                  }
+                                  alt=""
+                                  className="thumb"
+                                />
+                              ) : (
+                                <div className="thumbPlaceholder">
+                                  💼
+                                </div>
+                              )}
+
+                              <div>
+                                <strong>
+                                  {item.posisi}
+                                </strong>
+
+                                <small>
+                                  ID #
+                                  {item.id}
+                                </small>
                               </div>
-                            )}
-
-                            <div>
-                              <strong>
-                                {
-                                  item.posisi
-                                }
-                              </strong>
-
-                              <small>
-                                {item.lokasi ||
-                                  "Lokasi belum diisi"}
-                              </small>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td>
-                          <span
-                            className={`status status-${item.status}`}
-                          >
-                            {getStatusLabel(
-                              item.status
-                            )}
-                          </span>
-                        </td>
+                          <td>
+                            {item.lokasi ||
+                              "-"}
+                          </td>
 
-                        <td>
-                          {getTahapLabel(
-                            item.tahap_seleksi
-                          )}
-                        </td>
-
-                        <td>
-                          <div className="dateCell">
-                            <span>
-                              Buka:{" "}
-                              {formatTanggal(
-                                item.tanggal_buka
+                          <td>
+                            <span
+                              className={`status status-${item.status}`}
+                            >
+                              {getStatusLabel(
+                                item.status
                               )}
                             </span>
+                          </td>
 
-                            <small>
-                              Tutup:{" "}
-                              {formatTanggal(
-                                item.tanggal_tutup
-                              )}
-                            </small>
-                          </div>
-                        </td>
+                          <td>
+                            {getTahapLabel(
+                              item.tahap_seleksi
+                            )}
+                          </td>
 
-                        <td>
-                          <button
-                            type="button"
-                            className={
-                              item.aktif
-                                ? "toggle active"
-                                : "toggle"
-                            }
-                            onClick={() =>
-                              toggleAktif(
-                                item
-                              )
-                            }
-                            disabled={
-                              processingId ===
-                              item.id
-                            }
-                          >
-                            {processingId ===
-                            item.id
-                              ? "..."
-                              : item.aktif
-                              ? "Aktif"
-                              : "Nonaktif"}
-                          </button>
-                        </td>
+                          <td>
+                            <div className="dateCell">
+                              <span>
+                                {formatTanggal(
+                                  item.tanggal_buka
+                                )}
+                              </span>
 
-                        <td>
-                          <div className="actions">
+                              <small>
+                                sampai{" "}
+                                {formatTanggal(
+                                  item.tanggal_tutup
+                                )}
+                              </small>
+                            </div>
+                          </td>
+
+                          <td>
                             <button
                               type="button"
-                              className="editButton"
-                              onClick={() =>
-                                openEditForm(
-                                  item
-                                )
+                              className={
+                                item.aktif
+                                  ? "toggle active"
+                                  : "toggle"
                               }
-                            >
-                              Edit
-                            </button>
-
-                            <button
-                              type="button"
-                              className="deleteButton"
                               onClick={() =>
-                                hapusLowongan(
+                                toggleAktif(
                                   item
                                 )
                               }
@@ -2032,39 +1809,70 @@ export default function AdminLokerPage() {
                                 item.id
                               }
                             >
-                              {processingId ===
-                              item.id
-                                ? "..."
-                                : "Hapus"}
+                              {item.aktif
+                                ? "Aktif"
+                                : "Nonaktif"}
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                          </td>
+
+                          <td>
+                            <div className="actions">
+                              <button
+                                type="button"
+                                className="editButton"
+                                onClick={() =>
+                                  openEditForm(
+                                    item
+                                  )
+                                }
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                className="deleteButton"
+                                onClick={() =>
+                                  hapusLowongan(
+                                    item
+                                  )
+                                }
+                                disabled={
+                                  processingId ===
+                                  item.id
+                                }
+                              >
+                                {processingId ===
+                                item.id
+                                  ? "..."
+                                  : "Hapus"}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
                   )}
                 </tbody>
               </table>
             </div>
           )}
         </div>
-
       </div>
 
       <style>{`
         .lokerAdminPage {
           width: 100%;
           min-height: 100%;
+          color: #3f2f24;
           padding-top: 82px;
           box-sizing: border-box;
-          color: #3f2f24;
         }
 
         .page {
           width: 100%;
           max-width: none;
           margin: 0;
-          padding: 0 28px 40px;
-          box-sizing: border-box;
         }
 
         .topbar {
@@ -2258,6 +2066,11 @@ export default function AdminLokerPage() {
           font-weight: 700;
         }
 
+        .optionalText {
+          color: #9a806a;
+          font-weight: 500;
+        }
+
         .field input,
         .field select,
         .field textarea {
@@ -2305,8 +2118,7 @@ export default function AdminLokerPage() {
           position: absolute;
           right: 7px;
           top: 50%;
-          transform:
-            translateY(-50%);
+          transform: translateY(-50%);
           width: 35px;
           height: 35px;
           border: none;
@@ -2332,7 +2144,8 @@ export default function AdminLokerPage() {
           bottom: 0;
         }
 
-        .mediaUploadBox {
+        .mediaUploadBox,
+        .coverUploadBox {
           display: grid;
           grid-template-columns:
             220px minmax(0, 1fr);
@@ -2341,6 +2154,11 @@ export default function AdminLokerPage() {
           border: 1px dashed #cfc1b1;
           border-radius: 12px;
           background: #faf7f3;
+        }
+
+        .coverUploadBox {
+          grid-template-columns:
+            180px minmax(0, 1fr);
         }
 
         .mediaPreview {
@@ -2356,10 +2174,28 @@ export default function AdminLokerPage() {
           display: block;
           width: 100%;
           height: 100%;
+          object-fit: contain;
+          background: #191919;
+        }
+
+        .coverPreview {
+          width: 100%;
+          height: 145px;
+          overflow: hidden;
+          border-radius: 10px;
+          background: #f0e8df;
+          border: 1px solid #dfd2c3;
+        }
+
+        .coverPreviewImage {
+          display: block;
+          width: 100%;
+          height: 100%;
           object-fit: cover;
         }
 
-        .mediaPlaceholder {
+        .mediaPlaceholder,
+        .coverPlaceholder {
           width: 100%;
           height: 100%;
           display: flex;
@@ -2370,30 +2206,36 @@ export default function AdminLokerPage() {
           color: #9a806a;
         }
 
-        .mediaPlaceholder span {
+        .mediaPlaceholder span,
+        .coverPlaceholder span {
           font-size: 32px;
         }
 
-        .mediaPlaceholder small {
+        .mediaPlaceholder small,
+        .coverPlaceholder small {
           font-size: 11px;
           color: #8a796e;
         }
 
-        .mediaUploadInfo {
+        .mediaUploadInfo,
+        .coverInfo {
           min-width: 0;
         }
 
-        .mediaUploadInfo > strong {
+        .mediaUploadInfo > strong,
+        .coverInfo > strong {
           display: block;
           margin-bottom: 5px;
           color: #4b3326;
           font-size: 15px;
         }
 
-        .mediaUploadInfo p {
-          margin: 0 0 4px;
+        .mediaUploadInfo p,
+        .coverInfo p {
+          margin: 0 0 6px;
           color: #76685d;
           font-size: 13px;
+          line-height: 1.5;
         }
 
         .mediaUploadInfo ul {
@@ -2527,8 +2369,7 @@ export default function AdminLokerPage() {
           position: absolute;
           right: 8px;
           top: 50%;
-          transform:
-            translateY(-50%);
+          transform: translateY(-50%);
           width: 28px;
           height: 28px;
           border: none;
@@ -2621,7 +2462,8 @@ export default function AdminLokerPage() {
         }
 
         .thumb,
-        .thumbPlaceholder {
+        .thumbPlaceholder,
+        .videoThumbPlaceholder {
           width: 48px;
           height: 48px;
           flex-shrink: 0;
@@ -2629,13 +2471,30 @@ export default function AdminLokerPage() {
           object-fit: cover;
         }
 
-        .thumbPlaceholder {
+        .thumbPlaceholder,
+        .videoThumbPlaceholder {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-direction: column;
           background: #f3eadf;
           color: #755337;
+        }
+
+        .thumbPlaceholder {
           font-size: 22px;
+        }
+
+        .videoThumbPlaceholder {
+          gap: 2px;
+          font-size: 16px;
+        }
+
+        .videoThumbPlaceholder small {
+          color: #755337;
+          font-size: 7px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
         }
 
         .status {
@@ -2795,10 +2654,6 @@ export default function AdminLokerPage() {
         }
 
         @media (max-width: 800px) {
-          .page {
-            padding: 0 16px 30px;
-          }
-
           .formGrid {
             grid-template-columns: 1fr;
           }
@@ -2828,16 +2683,22 @@ export default function AdminLokerPage() {
             flex: 1;
           }
 
-          .mediaUploadBox {
+          .mediaUploadBox,
+          .coverUploadBox {
             grid-template-columns: 1fr;
           }
 
-          .mediaPreview {
+          .mediaPreview,
+          .coverPreview {
             max-width: 320px;
           }
         }
 
         @media (max-width: 520px) {
+          .lokerAdminPage {
+            padding-top: 70px;
+          }
+
           h1 {
             font-size: 26px;
           }
