@@ -126,6 +126,7 @@ export default function TokoPage() {
         </div>
 
         <div className="topActions">
+          {/* INFORMASI TOKO & KONTAK */}
           <Link
             href="/admin/toko/kontak"
             className="contactButton"
@@ -133,13 +134,34 @@ export default function TokoPage() {
             Informasi Toko & Kontak
           </Link>
 
+          {/* JAM OPERASIONAL - TOMBOL KOTAK */}
           <Link
             href="/admin/toko/jam-operasional"
             className="hoursButton"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "44px",
+              padding: "0 18px",
+              borderRadius: "8px",
+              background: "#ffffff",
+              border: "1px solid #cfc1b1",
+              color: "#4b3326",
+              textDecoration: "none",
+              fontFamily: "inherit",
+              fontSize: "14px",
+              fontWeight: "700",
+              boxSizing: "border-box",
+              whiteSpace: "nowrap",
+              cursor: "pointer",
+              transition: "0.15s ease",
+            }}
           >
             🕐 Jam Operasional
           </Link>
 
+          {/* TAMBAH CABANG */}
           <Link
             href="/admin/toko/cabang/tambah"
             className="addButton"
@@ -228,7 +250,11 @@ export default function TokoPage() {
         </div>
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && (
+        <div className="error">
+          {error}
+        </div>
+      )}
 
       {/* DATA CABANG */}
       <div className="card">
@@ -261,10 +287,14 @@ export default function TokoPage() {
               <tbody>
                 {filteredCabang.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.urutan ?? "-"}</td>
+                    <td>
+                      {item.urutan ?? "-"}
+                    </td>
 
                     <td>
-                      <strong>{item.nama || "-"}</strong>
+                      <strong>
+                        {item.nama || "-"}
+                      </strong>
                     </td>
 
                     <td>
@@ -356,7 +386,6 @@ export default function TokoPage() {
         )}
       </div>
 
-      {/* CSS KHUSUS HALAMAN INI */}
       <style jsx>{`
         .page {
           width: 100%;
@@ -401,17 +430,27 @@ export default function TokoPage() {
           font-size: 14px;
           box-sizing: border-box;
           white-space: nowrap;
+          cursor: pointer;
           transition: 0.15s ease;
         }
 
-        .contactButton,
+        .contactButton {
+          background: #fff;
+          border: 1px solid #cfc1b1;
+          color: #4b3326;
+        }
+
+        .contactButton:hover {
+          background: #f3eadf;
+          border-color: #bba995;
+        }
+
         .hoursButton {
           background: #fff;
           border: 1px solid #cfc1b1;
           color: #4b3326;
         }
 
-        .contactButton:hover,
         .hoursButton:hover {
           background: #f3eadf;
           border-color: #bba995;
@@ -430,7 +469,10 @@ export default function TokoPage() {
 
         .summary {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(
+            3,
+            minmax(0, 1fr)
+          );
           gap: 18px;
           margin-bottom: 22px;
         }
