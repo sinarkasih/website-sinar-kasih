@@ -42,6 +42,7 @@ export default function TentangPage() {
         </div>
       ),
     },
+
     {
       id: "kualitas",
       number: "02",
@@ -51,8 +52,11 @@ export default function TentangPage() {
       content: (
         <div className="accordionContent">
           <p>
-            Bagi Sinar Kasih, <strong>kualitas produk merupakan bagian
-            penting dari kepercayaan pelanggan.</strong>
+            Bagi Sinar Kasih,{" "}
+            <strong>
+              kualitas produk merupakan bagian penting dari kepercayaan
+              pelanggan.
+            </strong>
           </p>
 
           <p>
@@ -71,6 +75,7 @@ export default function TentangPage() {
         </div>
       ),
     },
+
     {
       id: "produk",
       number: "03",
@@ -83,7 +88,9 @@ export default function TentangPage() {
             <span className="productIcon">💡</span>
             <div>
               <strong>Lampu & Penerangan</strong>
-              <p>Berbagai kebutuhan lampu dan produk penerangan.</p>
+              <p>
+                Berbagai kebutuhan lampu dan produk penerangan.
+              </p>
             </div>
           </div>
 
@@ -91,7 +98,9 @@ export default function TentangPage() {
             <span className="productIcon">🔌</span>
             <div>
               <strong>Stop Kontak & Saklar</strong>
-              <p>Perlengkapan untuk kebutuhan kelistrikan sehari-hari.</p>
+              <p>
+                Perlengkapan untuk kebutuhan kelistrikan sehari-hari.
+              </p>
             </div>
           </div>
 
@@ -99,7 +108,9 @@ export default function TentangPage() {
             <span className="productIcon">⚡</span>
             <div>
               <strong>Perlengkapan Listrik</strong>
-              <p>Berbagai perlengkapan pendukung kebutuhan listrik.</p>
+              <p>
+                Berbagai perlengkapan pendukung kebutuhan listrik.
+              </p>
             </div>
           </div>
 
@@ -107,7 +118,9 @@ export default function TentangPage() {
             <span className="productIcon">🔧</span>
             <div>
               <strong>Kabel & Instalasi</strong>
-              <p>Kebutuhan kabel dan perlengkapan instalasi listrik.</p>
+              <p>
+                Kebutuhan kabel dan perlengkapan instalasi listrik.
+              </p>
             </div>
           </div>
 
@@ -115,7 +128,9 @@ export default function TentangPage() {
             <span className="productIcon">🏠</span>
             <div>
               <strong>Kebutuhan Rumah</strong>
-              <p>Produk pendukung kebutuhan listrik dan penerangan rumah.</p>
+              <p>
+                Produk pendukung kebutuhan listrik dan penerangan rumah.
+              </p>
             </div>
           </div>
 
@@ -123,12 +138,15 @@ export default function TentangPage() {
             <span className="productIcon">🏪</span>
             <div>
               <strong>Kebutuhan Usaha</strong>
-              <p>Berbagai kebutuhan listrik dan penerangan untuk usaha.</p>
+              <p>
+                Berbagai kebutuhan listrik dan penerangan untuk usaha.
+              </p>
             </div>
           </div>
         </div>
       ),
     },
+
     {
       id: "komitmen",
       number: "04",
@@ -156,6 +174,7 @@ export default function TentangPage() {
         </div>
       ),
     },
+
     {
       id: "kenapa",
       number: "05",
@@ -166,8 +185,10 @@ export default function TentangPage() {
         <div className="whyGrid">
           <div className="whyCard">
             <div className="whyNumber">01</div>
+
             <div>
               <h3>Mengutamakan Kualitas</h3>
+
               <p>
                 Kami berusaha menjaga kualitas produk sebagai bagian dari
                 kepercayaan pelanggan.
@@ -177,8 +198,10 @@ export default function TentangPage() {
 
           <div className="whyCard">
             <div className="whyNumber">02</div>
+
             <div>
               <h3>Pilihan Produk yang Beragam</h3>
+
               <p>
                 Menyediakan berbagai kebutuhan listrik dan penerangan untuk
                 kebutuhan yang berbeda.
@@ -188,8 +211,10 @@ export default function TentangPage() {
 
           <div className="whyCard">
             <div className="whyNumber">03</div>
+
             <div>
               <h3>Menjaga Kepercayaan Pelanggan</h3>
+
               <p>
                 Memberikan informasi produk yang jelas dan berusaha
                 memberikan pelayanan yang baik kepada pelanggan.
@@ -300,11 +325,14 @@ export default function TentangPage() {
             </p>
 
             <div className="closingActions">
-              <Link href="/produk" className="primaryButton">
+              <Link href="/" className="primaryButton">
                 Lihat Produk
               </Link>
 
-              <Link href="/lainnya" className="secondaryButton">
+              <Link
+                href="/lainnya"
+                className="secondaryButton"
+              >
                 Informasi & Layanan
               </Link>
             </div>
