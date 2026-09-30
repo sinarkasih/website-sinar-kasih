@@ -13,13 +13,7 @@ const HARI = [
 
 function WhatsAppIcon() {
   return (
-    <svg
-      width="19"
-      height="19"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M20.52 3.48A11.83 11.83 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.59 5.93L.06 24l6.34-1.66a11.84 11.84 0 0 0 5.63 1.43h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.39-8.42ZM12.04 21.8h-.01a9.88 9.88 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.67-.23-.38a9.88 9.88 0 1 1 8.4 4.65Zm5.42-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.37.2 1.89.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" />
     </svg>
   );
@@ -27,13 +21,7 @@ function WhatsAppIcon() {
 
 function LocationIcon() {
   return (
-    <svg
-      width="19"
-      height="19"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 2a8 8 0 0 0-8 8c0 5.75 8 12 8 12s8-6.25 8-12a8 8 0 0 0-8-8Zm0 11.2A3.2 3.2 0 1 1 12 6.8a3.2 3.2 0 0 1 0 6.4Zm0-4.8a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z" />
     </svg>
   );
@@ -41,13 +29,7 @@ function LocationIcon() {
 
 function PhoneIcon() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M6.62 10.79a15.47 15.47 0 0 0 6.59 6.59l2.2-2.2c.28-.28.67-.37 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2Z" />
     </svg>
   );
@@ -92,25 +74,16 @@ function formatJam(value) {
   if (!value) return "";
 
   const text = String(value);
-
-  if (text.length >= 5) {
-    return text.substring(0, 5);
-  }
-
-  return text;
+  return text.length >= 5 ? text.substring(0, 5) : text;
 }
 
 function formatJamOperasional(item) {
-  if (!item || !item.buka) {
-    return "Tutup";
-  }
+  if (!item || !item.buka) return "Tutup";
 
   const buka = formatJam(item.jam_buka);
   const tutup = formatJam(item.jam_tutup);
 
-  if (!buka || !tutup) {
-    return "Buka";
-  }
+  if (!buka || !tutup) return "Buka";
 
   return `${buka}–${tutup} WIT`;
 }
@@ -120,9 +93,7 @@ function formatTanggalIndonesia(value) {
 
   const parts = String(value).split("-");
 
-  if (parts.length !== 3) {
-    return value;
-  }
+  if (parts.length !== 3) return value;
 
   const [tahun, bulan, hari] = parts;
 
@@ -140,28 +111,16 @@ function getTodayWIT() {
   return formatter.format(new Date());
 }
 
-function isDateInPeriod(
-  today,
-  tanggalMulai,
-  tanggalSelesai
-) {
+function isDateInPeriod(today, tanggalMulai, tanggalSelesai) {
   if (!today || !tanggalMulai || !tanggalSelesai) {
     return false;
   }
 
-  return (
-    today >= tanggalMulai &&
-    today <= tanggalSelesai
-  );
+  return today >= tanggalMulai && today <= tanggalSelesai;
 }
 
-function getRelevantSpecialPeriod(
-  periods,
-  today
-) {
-  if (!Array.isArray(periods)) {
-    return null;
-  }
+function getRelevantSpecialPeriod(periods, today) {
+  if (!Array.isArray(periods)) return null;
 
   const active = periods.find((period) =>
     isDateInPeriod(
@@ -200,14 +159,10 @@ function getRelevantSpecialPeriod(
   return null;
 }
 
-function getNormalScheduleByDay(
-  schedules,
-  hari
-) {
+function getNormalScheduleByDay(schedules, hari) {
   return (
     schedules.find(
-      (item) =>
-        Number(item.hari) === Number(hari)
+      (item) => Number(item.hari) === Number(hari)
     ) || {
       hari,
       buka: false,
@@ -217,25 +172,16 @@ function getNormalScheduleByDay(
   );
 }
 
-function getSpecialScheduleByDay(
-  details,
-  hari
-) {
+function getSpecialScheduleByDay(details, hari) {
   return (
     details.find(
-      (item) =>
-        Number(item.hari) === Number(hari)
+      (item) => Number(item.hari) === Number(hari)
     ) || null
   );
 }
 
-function isDifferentSchedule(
-  normal,
-  special
-) {
-  if (!special) {
-    return false;
-  }
+function isDifferentSchedule(normal, special) {
+  if (!special) return false;
 
   if (normal.buka !== special.buka) {
     return true;
@@ -250,6 +196,88 @@ function isDifferentSchedule(
       formatJam(special.jam_buka) ||
     formatJam(normal.jam_tutup) !==
       formatJam(special.jam_tutup)
+  );
+}
+
+function getScheduleSummary(schedules) {
+  const weekdaySchedules = HARI
+    .filter((day) => day.value >= 1)
+    .map((day) =>
+      getNormalScheduleByDay(schedules, day.value)
+    );
+
+  const first = weekdaySchedules[0];
+  const firstText = formatJamOperasional(first);
+
+  const allSame = weekdaySchedules.every(
+    (schedule) =>
+      formatJamOperasional(schedule) === firstText
+  );
+
+  const weekdayText = allSame
+    ? `Senin–Sabtu • ${firstText}`
+    : "Senin–Sabtu • Lihat jam lengkap";
+
+  const sunday = getNormalScheduleByDay(
+    schedules,
+    0
+  );
+
+  return `${weekdayText} • Minggu ${formatJamOperasional(sunday)}`;
+}
+
+function HoursAccordion({
+  title,
+  subtitle,
+  summary,
+  children,
+  variant = "normal",
+}) {
+  return (
+    <details
+      className={`hoursAccordion ${
+        variant === "special"
+          ? "specialAccordion"
+          : ""
+      }`}
+    >
+      <summary className="hoursAccordionButton">
+        <div className="hoursAccordionTitle">
+          <div className="hoursAccordionIcon">
+            {variant === "special" ? (
+              "★"
+            ) : (
+              <ClockIcon />
+            )}
+          </div>
+
+          <div className="hoursAccordionText">
+            <strong>{title}</strong>
+
+            {subtitle ? (
+              <small>{subtitle}</small>
+            ) : null}
+
+            {summary ? (
+              <span className="hoursAccordionSummary">
+                {summary}
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <span
+          className="hoursAccordionChevron"
+          aria-hidden="true"
+        >
+          ⌄
+        </span>
+      </summary>
+
+      <div className="hoursAccordionContent">
+        {children}
+      </div>
+    </details>
   );
 }
 
@@ -383,15 +411,13 @@ export default async function Page() {
       <section className="section">
         <div className="wrap">
           <div className="tokoHeader">
-            <div>
-              <h1>Toko Kami</h1>
+            <h1>Toko Kami</h1>
 
-              <p>
-                Temukan lokasi Toko Listrik
-                Sinar Kasih dan kunjungi
-                cabang terdekat.
-              </p>
-            </div>
+            <p>
+              Temukan lokasi Toko Listrik
+              Sinar Kasih dan kunjungi
+              cabang terdekat.
+            </p>
           </div>
 
           {errorMessage ? (
@@ -438,7 +464,8 @@ export default async function Page() {
                   );
 
                 const specialPeriod =
-                  relevantSpecial?.period || null;
+                  relevantSpecial?.period ||
+                  null;
 
                 const isUpcoming =
                   relevantSpecial?.isUpcoming ||
@@ -508,11 +535,9 @@ export default async function Page() {
                       ) : (
                         <div className="noPhoto">
                           <span>🏪</span>
-
                           <strong>
                             Sinar Kasih
                           </strong>
-
                           <small>
                             Foto toko belum
                             tersedia
@@ -528,9 +553,7 @@ export default async function Page() {
                             TOKO / CABANG
                           </span>
 
-                          <h2>
-                            {item.nama}
-                          </h2>
+                          <h2>{item.nama}</h2>
                         </div>
 
                         <span className="activeBadge">
@@ -544,13 +567,8 @@ export default async function Page() {
                         </span>
 
                         <div>
-                          <strong>
-                            Alamat
-                          </strong>
-
-                          <p>
-                            {item.alamat}
-                          </p>
+                          <strong>Alamat</strong>
+                          <p>{item.alamat}</p>
                         </div>
                       </div>
 
@@ -564,7 +582,6 @@ export default async function Page() {
                             <strong>
                               Telepon / WhatsApp
                             </strong>
-
                             <p>
                               {item.telepon}
                             </p>
@@ -572,24 +589,13 @@ export default async function Page() {
                         </div>
                       )}
 
-                      <div className="hoursBox">
-                        <div className="hoursHeader">
-                          <span className="hoursIcon">
-                            <ClockIcon />
-                          </span>
-
-                          <div>
-                            <strong>
-                              Jam Operasional
-                            </strong>
-
-                            <small>
-                              Waktu Indonesia
-                              Timur (WIT)
-                            </small>
-                          </div>
-                        </div>
-
+                      <HoursAccordion
+                        title="Jam Operasional"
+                        subtitle="Waktu Indonesia Timur (WIT)"
+                        summary={getScheduleSummary(
+                          normalSchedule
+                        )}
+                      >
                         <div className="hoursList">
                           {HARI.map((hari) => {
                             const schedule =
@@ -604,9 +610,7 @@ export default async function Page() {
                                 className="hoursRow"
                               >
                                 <span>
-                                  {
-                                    hari.label
-                                  }
+                                  {hari.label}
                                 </span>
 
                                 <strong
@@ -624,49 +628,40 @@ export default async function Page() {
                             );
                           })}
                         </div>
-                      </div>
+                      </HoursAccordion>
 
                       {specialPeriod &&
                         specialChanges.length >
                           0 && (
-                          <div
-                            className={`specialHoursBox ${
+                          <HoursAccordion
+                            title={
                               isUpcoming
-                                ? "upcomingSpecial"
-                                : ""
-                            }`}
+                                ? "Jam Operasional Khusus Mendatang"
+                                : "Jam Operasional Khusus"
+                            }
+                            subtitle={
+                              specialPeriod.nama
+                            }
+                            variant="special"
+                            summary={
+                              <>
+                                {isUpcoming
+                                  ? "Akan berlaku "
+                                  : "Berlaku "}
+                                {formatTanggalIndonesia(
+                                  specialPeriod.tanggal_mulai
+                                )}
+                                {" – "}
+                                {formatTanggalIndonesia(
+                                  specialPeriod.tanggal_selesai
+                                )}
+                              </>
+                            }
                           >
-                            <div className="specialHoursHeader">
-                              <span className="specialIcon">
-                                ★
-                              </span>
-
-                              <div>
-                                <strong>
-                                  {isUpcoming
-                                    ? "Jam Operasional Khusus Mendatang"
-                                    : "Jam Operasional Khusus"}
-                                </strong>
-
-                                <small>
-                                  {
-                                    specialPeriod.nama
-                                  }
-                                </small>
-                              </div>
-                            </div>
-
                             <div className="specialPeriodDate">
                               {isUpcoming
-                                ? "Akan berlaku "
-                                : "Berlaku "}
-                              {formatTanggalIndonesia(
-                                specialPeriod.tanggal_mulai
-                              )}{" "}
-                              –{" "}
-                              {formatTanggalIndonesia(
-                                specialPeriod.tanggal_selesai
-                              )}
+                                ? "Periode khusus mendatang"
+                                : "Periode khusus aktif"}
                             </div>
 
                             <div className="specialHoursList">
@@ -705,7 +700,7 @@ export default async function Page() {
                                 ? "Jam khusus ini akan berlaku selama periode yang tercantum di atas."
                                 : "Jam di atas berlaku khusus selama periode tersebut."}
                             </p>
-                          </div>
+                          </HoursAccordion>
                         )}
 
                       <div className="tokoActions">
@@ -801,28 +796,23 @@ export default async function Page() {
 
         .tokoGrid {
           display: grid;
-          grid-template-columns: repeat(
-            2,
-            minmax(0, 1fr)
-          );
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 24px;
         }
 
         .tokoCard {
           overflow: hidden;
-          background: #ffffff;
+          background: #fff;
           border: 1px solid #e1d7cc;
           border-radius: 18px;
-          box-shadow:
-            0 8px 25px
-            rgba(75, 51, 38, 0.07);
+          box-shadow: 0 8px 25px rgba(75, 51, 38, 0.07);
         }
 
         .tokoPhoto {
           width: 100%;
           height: 260px;
-          background: #f3ece4;
           overflow: hidden;
+          background: #f3ece4;
         }
 
         .tokoPhoto img {
@@ -848,8 +838,8 @@ export default async function Page() {
         }
 
         .noPhoto strong {
-          font-size: 18px;
           color: #4b3326;
+          font-size: 18px;
         }
 
         .noPhoto small {
@@ -915,8 +905,8 @@ export default async function Page() {
         .infoItem strong {
           display: block;
           margin-bottom: 3px;
-          font-size: 13px;
           color: #5f5045;
+          font-size: 13px;
         }
 
         .infoItem p {
@@ -926,23 +916,40 @@ export default async function Page() {
           font-size: 14px;
         }
 
-        .hoursBox {
+        .hoursAccordion {
           margin-top: 20px;
-          padding: 17px;
+          overflow: hidden;
           border: 1px solid #e5d9cc;
           border-radius: 13px;
           background: #fcfaf8;
         }
 
-        .hoursHeader {
+        .hoursAccordionButton {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          padding: 15px 17px;
+          cursor: pointer;
+          list-style: none;
+        }
+
+        .hoursAccordionButton::-webkit-details-marker {
+          display: none;
+        }
+
+        .hoursAccordionButton::marker {
+          display: none;
+        }
+
+        .hoursAccordionTitle {
+          min-width: 0;
           display: flex;
           align-items: center;
           gap: 11px;
-          padding-bottom: 13px;
-          border-bottom: 1px solid #eee5dc;
         }
 
-        .hoursIcon {
+        .hoursAccordionIcon {
           width: 36px;
           height: 36px;
           flex-shrink: 0;
@@ -954,17 +961,47 @@ export default async function Page() {
           color: #755337;
         }
 
-        .hoursHeader strong {
+        .hoursAccordionText {
+          min-width: 0;
+        }
+
+        .hoursAccordionText strong {
           display: block;
           color: #4a382c;
           font-size: 14px;
         }
 
-        .hoursHeader small {
+        .hoursAccordionText small {
           display: block;
           margin-top: 2px;
           color: #8a7767;
           font-size: 11px;
+        }
+
+        .hoursAccordionSummary {
+          display: block;
+          margin-top: 5px;
+          color: #6f5c4e;
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
+        .hoursAccordionChevron {
+          flex-shrink: 0;
+          color: #765b45;
+          font-size: 22px;
+          line-height: 1;
+          transition: transform 0.2s ease;
+        }
+
+        .hoursAccordion[open]
+          .hoursAccordionChevron {
+          transform: rotate(180deg);
+        }
+
+        .hoursAccordionContent {
+          padding: 0 17px 16px;
+          border-top: 1px solid #eee5dc;
         }
 
         .hoursList,
@@ -995,55 +1032,31 @@ export default async function Page() {
           color: #9a7069;
         }
 
-        .specialHoursBox {
-          margin-top: 14px;
-          padding: 17px;
-          border: 1px solid #ead8b8;
-          border-radius: 13px;
+        .specialAccordion {
+          border-color: #ead8b8;
           background: #fffaf0;
         }
 
-        .specialHoursBox.upcomingSpecial {
-          border-color: #dcc79e;
-          background: #fffdf7;
-        }
-
-        .specialHoursHeader {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid #f0dfc2;
-        }
-
-        .specialIcon {
-          width: 36px;
-          height: 36px;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 10px;
+        .specialAccordion .hoursAccordionIcon {
           background: #f4e4c6;
           color: #9a6c28;
           font-size: 16px;
         }
 
-        .specialHoursHeader strong {
-          display: block;
+        .specialAccordion .hoursAccordionText strong {
           color: #60482d;
-          font-size: 14px;
         }
 
-        .specialHoursHeader small {
-          display: block;
-          margin-top: 2px;
+        .specialAccordion .hoursAccordionText small {
           color: #987d5c;
-          font-size: 11px;
+        }
+
+        .specialAccordion .hoursAccordionSummary {
+          color: #745735;
         }
 
         .specialPeriodDate {
-          margin-top: 11px;
+          margin-top: 12px;
           padding: 8px 10px;
           border-radius: 8px;
           background: #f8edd9;
@@ -1085,8 +1098,8 @@ export default async function Page() {
           gap: 10px;
           min-height: 48px;
           padding: 0 16px;
-          border-radius: 10px;
           box-sizing: border-box;
+          border-radius: 10px;
           text-decoration: none;
           font-size: 14px;
           font-weight: 700;
@@ -1135,7 +1148,7 @@ export default async function Page() {
 
         .whatsappButton {
           background: #3d8b4b;
-          color: #ffffff;
+          color: #fff;
           border: 1px solid #3d8b4b;
         }
 
@@ -1152,7 +1165,7 @@ export default async function Page() {
           padding: 0 18px;
           border: 1px solid #d4c5b5;
           border-radius: 9px;
-          background: #ffffff;
+          background: #fff;
           color: #5f432e;
           text-decoration: none;
           font-weight: 700;
@@ -1166,7 +1179,7 @@ export default async function Page() {
           padding: 30px;
           border: 1px solid #dfd2c3;
           border-radius: 14px;
-          background: #ffffff;
+          background: #fff;
           color: #76685d;
           text-align: center;
         }
@@ -1192,6 +1205,18 @@ export default async function Page() {
 
           .tokoTitleRow {
             flex-direction: column;
+          }
+
+          .hoursAccordionButton {
+            padding: 14px;
+          }
+
+          .hoursAccordionContent {
+            padding: 0 14px 14px;
+          }
+
+          .hoursAccordionSummary {
+            font-size: 11px;
           }
 
           .hoursRow {
