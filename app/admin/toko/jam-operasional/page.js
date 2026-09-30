@@ -60,7 +60,8 @@ export default function Page() {
 
   const [specialPeriods, setSpecialPeriods] = useState([]);
 
-  const [showSpecialForm, setShowSpecialForm] = useState(false);
+  const [showSpecialForm, setShowSpecialForm] =
+    useState(false);
 
   const [editingSpecialId, setEditingSpecialId] =
     useState(null);
@@ -77,7 +78,9 @@ export default function Page() {
 
   const selectedCabang = useMemo(() => {
     return cabang.find(
-      (item) => String(item.id) === String(selectedCabangId)
+      (item) =>
+        String(item.id) ===
+        String(selectedCabangId)
     );
   }, [cabang, selectedCabangId]);
 
@@ -103,11 +106,12 @@ export default function Page() {
       return;
     }
 
-    const { data, error: cabangError } = await supabase
-      .from("cabang_toko")
-      .select("id, nama, aktif, urutan")
-      .order("urutan", { ascending: true })
-      .order("id", { ascending: true });
+    const { data, error: cabangError } =
+      await supabase
+        .from("cabang_toko")
+        .select("id, nama, aktif, urutan")
+        .order("urutan", { ascending: true })
+        .order("id", { ascending: true });
 
     if (cabangError) {
       setError(
@@ -123,15 +127,22 @@ export default function Page() {
     setCabang(daftarCabang);
 
     if (daftarCabang.length > 0) {
-      setSelectedCabangId(String(daftarCabang[0].id));
+      setSelectedCabangId(
+        String(daftarCabang[0].id)
+      );
     }
 
     setLoading(false);
   }
 
-  async function loadCabangSchedule(cabangId) {
-    setError("");
-    setSuccess("");
+  async function loadCabangSchedule(
+    cabangId,
+    clearMessages = true
+  ) {
+    if (clearMessages) {
+      setError("");
+      setSuccess("");
+    }
 
     const supabase = getSupabase();
 
@@ -150,7 +161,9 @@ export default function Page() {
           "id, cabang_id, hari, buka, jam_buka, jam_tutup"
         )
         .eq("cabang_id", cabangId)
-        .order("hari", { ascending: true }),
+        .order("hari", {
+          ascending: true,
+        }),
 
       supabase
         .from("periode_operasional_khusus")
@@ -158,7 +171,9 @@ export default function Page() {
           "id, cabang_id, nama, tanggal_mulai, tanggal_selesai, aktif"
         )
         .eq("cabang_id", cabangId)
-        .order("tanggal_mulai", { ascending: true }),
+        .order("tanggal_mulai", {
+          ascending: true,
+        }),
     ]);
 
     if (normalResult.error) {
@@ -177,30 +192,40 @@ export default function Page() {
       return;
     }
 
-    const existingNormal = normalResult.data || [];
+    const existingNormal =
+      normalResult.data || [];
 
-    const mergedSchedule = createEmptySchedule().map(
-      (defaultItem) => {
-        const found = existingNormal.find(
-          (item) =>
-            Number(item.hari) === Number(defaultItem.hari)
-        );
+    const mergedSchedule =
+      createEmptySchedule().map(
+        (defaultItem) => {
+          const found =
+            existingNormal.find(
+              (item) =>
+                Number(item.hari) ===
+                Number(defaultItem.hari)
+            );
 
-        if (!found) {
-          return defaultItem;
+          if (!found) {
+            return defaultItem;
+          }
+
+          return {
+            hari: Number(found.hari),
+            buka: found.buka !== false,
+            jam_buka: formatTime(
+              found.jam_buka
+            ),
+            jam_tutup: formatTime(
+              found.jam_tutup
+            ),
+          };
         }
-
-        return {
-          hari: Number(found.hari),
-          buka: found.buka !== false,
-          jam_buka: formatTime(found.jam_buka),
-          jam_tutup: formatTime(found.jam_tutup),
-        };
-      }
-    );
+      );
 
     setSchedule(mergedSchedule);
-    setSpecialPeriods(specialResult.data || []);
+    setSpecialPeriods(
+      specialResult.data || []
+    );
   }
 
   function handleScheduleChange(
@@ -210,7 +235,10 @@ export default function Page() {
   ) {
     setSchedule((current) =>
       current.map((item) => {
-        if (Number(item.hari) !== Number(hari)) {
+        if (
+          Number(item.hari) !==
+          Number(hari)
+        ) {
           return item;
         }
 
@@ -226,7 +254,9 @@ export default function Page() {
     event.preventDefault();
 
     if (!selectedCabangId) {
-      setError("Pilih cabang terlebih dahulu.");
+      setError(
+        "Pilih cabang terlebih dahulu."
+      );
       return;
     }
 
@@ -237,27 +267,33 @@ export default function Page() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError(
+        "Koneksi database belum tersedia."
+      );
       setSavingNormal(false);
       return;
     }
 
-    const payload = schedule.map((item) => ({
-      cabang_id: Number(selectedCabangId),
-      hari: Number(item.hari),
-      buka: Boolean(item.buka),
-      jam_buka: item.buka
-        ? item.jam_buka || null
-        : null,
-      jam_tutup: item.buka
-        ? item.jam_tutup || null
-        : null,
-    }));
+    const payload = schedule.map(
+      (item) => ({
+        cabang_id:
+          Number(selectedCabangId),
+        hari: Number(item.hari),
+        buka: Boolean(item.buka),
+        jam_buka: item.buka
+          ? item.jam_buka || null
+          : null,
+        jam_tutup: item.buka
+          ? item.jam_tutup || null
+          : null,
+      })
+    );
 
     const invalid = payload.find(
       (item) =>
         item.buka &&
-        (!item.jam_buka || !item.jam_tutup)
+        (!item.jam_buka ||
+          !item.jam_tutup)
     );
 
     if (invalid) {
@@ -268,11 +304,13 @@ export default function Page() {
       return;
     }
 
-    const { error: saveError } = await supabase
-      .from("jam_operasional_toko")
-      .upsert(payload, {
-        onConflict: "cabang_id,hari",
-      });
+    const { error: saveError } =
+      await supabase
+        .from("jam_operasional_toko")
+        .upsert(payload, {
+          onConflict:
+            "cabang_id,hari",
+        });
 
     if (saveError) {
       setError(
@@ -283,15 +321,24 @@ export default function Page() {
       return;
     }
 
+    /*
+      Refresh data terlebih dahulu.
+      clearMessages = false supaya pesan sukses
+      tidak langsung terhapus.
+    */
+    await loadCabangSchedule(
+      selectedCabangId,
+      false
+    );
+
     setSuccess(
       "Jam operasional " +
-        (selectedCabang?.nama || "cabang") +
+        (selectedCabang?.nama ||
+          "cabang") +
         " berhasil disimpan."
     );
 
     setSavingNormal(false);
-
-    await loadCabangSchedule(selectedCabangId);
   }
 
   function bukaFormTambahSpecial() {
@@ -304,7 +351,10 @@ export default function Page() {
       aktif: true,
     });
 
-    setSpecialSchedule(createEmptySpecialSchedule());
+    setSpecialSchedule(
+      createEmptySpecialSchedule()
+    );
+
     setShowSpecialForm(true);
 
     setError("");
@@ -315,20 +365,32 @@ export default function Page() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError(
+        "Koneksi database belum tersedia."
+      );
       return;
     }
 
     setError("");
     setSuccess("");
 
-    const { data, error: detailError } = await supabase
-      .from("periode_operasional_khusus_detail")
+    const {
+      data,
+      error: detailError,
+    } = await supabase
+      .from(
+        "periode_operasional_khusus_detail"
+      )
       .select(
         "id, periode_id, hari, buka, jam_buka, jam_tutup"
       )
-      .eq("periode_id", period.id)
-      .order("hari", { ascending: true });
+      .eq(
+        "periode_id",
+        period.id
+      )
+      .order("hari", {
+        ascending: true,
+      });
 
     if (detailError) {
       setError(
@@ -341,11 +403,12 @@ export default function Page() {
     const mergedSchedule =
       createEmptySpecialSchedule().map(
         (defaultItem) => {
-          const found = (data || []).find(
-            (item) =>
-              Number(item.hari) ===
-              Number(defaultItem.hari)
-          );
+          const found =
+            (data || []).find(
+              (item) =>
+                Number(item.hari) ===
+                Number(defaultItem.hari)
+            );
 
           if (!found) {
             return defaultItem;
@@ -354,8 +417,12 @@ export default function Page() {
           return {
             hari: Number(found.hari),
             buka: found.buka !== false,
-            jam_buka: formatTime(found.jam_buka),
-            jam_tutup: formatTime(found.jam_tutup),
+            jam_buka: formatTime(
+              found.jam_buka
+            ),
+            jam_tutup: formatTime(
+              found.jam_tutup
+            ),
           };
         }
       );
@@ -371,7 +438,10 @@ export default function Page() {
       aktif: period.aktif !== false,
     });
 
-    setSpecialSchedule(mergedSchedule);
+    setSpecialSchedule(
+      mergedSchedule
+    );
+
     setShowSpecialForm(true);
 
     window.scrollTo({
@@ -387,7 +457,10 @@ export default function Page() {
   ) {
     setSpecialSchedule((current) =>
       current.map((item) => {
-        if (Number(item.hari) !== Number(hari)) {
+        if (
+          Number(item.hari) !==
+          Number(hari)
+        ) {
           return item;
         }
 
@@ -403,22 +476,30 @@ export default function Page() {
     event.preventDefault();
 
     if (!selectedCabangId) {
-      setError("Pilih cabang terlebih dahulu.");
+      setError(
+        "Pilih cabang terlebih dahulu."
+      );
       return;
     }
 
     if (!specialForm.nama.trim()) {
-      setError("Nama periode wajib diisi.");
+      setError(
+        "Nama periode wajib diisi."
+      );
       return;
     }
 
     if (!specialForm.tanggal_mulai) {
-      setError("Tanggal mulai wajib diisi.");
+      setError(
+        "Tanggal mulai wajib diisi."
+      );
       return;
     }
 
     if (!specialForm.tanggal_selesai) {
-      setError("Tanggal selesai wajib diisi.");
+      setError(
+        "Tanggal selesai wajib diisi."
+      );
       return;
     }
 
@@ -432,11 +513,13 @@ export default function Page() {
       return;
     }
 
-    const invalid = specialSchedule.find(
-      (item) =>
-        item.buka &&
-        (!item.jam_buka || !item.jam_tutup)
-    );
+    const invalid =
+      specialSchedule.find(
+        (item) =>
+          item.buka &&
+          (!item.jam_buka ||
+            !item.jam_tutup)
+      );
 
     if (invalid) {
       setError(
@@ -452,26 +535,39 @@ export default function Page() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError(
+        "Koneksi database belum tersedia."
+      );
       setSavingSpecial(false);
       return;
     }
 
-    let periodId = editingSpecialId;
+    let periodId =
+      editingSpecialId;
 
     if (editingSpecialId) {
-      const { error: updateError } = await supabase
-        .from("periode_operasional_khusus")
+      const {
+        error: updateError,
+      } = await supabase
+        .from(
+          "periode_operasional_khusus"
+        )
         .update({
-          nama: specialForm.nama.trim(),
+          nama:
+            specialForm.nama.trim(),
           tanggal_mulai:
             specialForm.tanggal_mulai,
           tanggal_selesai:
             specialForm.tanggal_selesai,
-          aktif: specialForm.aktif,
-          updated_at: new Date().toISOString(),
+          aktif:
+            specialForm.aktif,
+          updated_at:
+            new Date().toISOString(),
         })
-        .eq("id", editingSpecialId);
+        .eq(
+          "id",
+          editingSpecialId
+        );
 
       if (updateError) {
         setError(
@@ -482,13 +578,17 @@ export default function Page() {
         return;
       }
 
-      const { error: deleteDetailError } =
-        await supabase
-          .from(
-            "periode_operasional_khusus_detail"
-          )
-          .delete()
-          .eq("periode_id", editingSpecialId);
+      const {
+        error: deleteDetailError,
+      } = await supabase
+        .from(
+          "periode_operasional_khusus_detail"
+        )
+        .delete()
+        .eq(
+          "periode_id",
+          editingSpecialId
+        );
 
       if (deleteDetailError) {
         setError(
@@ -499,20 +599,27 @@ export default function Page() {
         return;
       }
     } else {
-      const { data, error: insertError } =
-        await supabase
-          .from("periode_operasional_khusus")
-          .insert({
-            cabang_id: Number(selectedCabangId),
-            nama: specialForm.nama.trim(),
-            tanggal_mulai:
-              specialForm.tanggal_mulai,
-            tanggal_selesai:
-              specialForm.tanggal_selesai,
-            aktif: specialForm.aktif,
-          })
-          .select()
-          .single();
+      const {
+        data,
+        error: insertError,
+      } = await supabase
+        .from(
+          "periode_operasional_khusus"
+        )
+        .insert({
+          cabang_id:
+            Number(selectedCabangId),
+          nama:
+            specialForm.nama.trim(),
+          tanggal_mulai:
+            specialForm.tanggal_mulai,
+          tanggal_selesai:
+            specialForm.tanggal_selesai,
+          aktif:
+            specialForm.aktif,
+        })
+        .select()
+        .single();
 
       if (insertError) {
         setError(
@@ -526,26 +633,28 @@ export default function Page() {
       periodId = data.id;
     }
 
-    const detailPayload = specialSchedule.map(
-      (item) => ({
-        periode_id: periodId,
-        hari: Number(item.hari),
-        buka: Boolean(item.buka),
-        jam_buka: item.buka
-          ? item.jam_buka || null
-          : null,
-        jam_tutup: item.buka
-          ? item.jam_tutup || null
-          : null,
-      })
-    );
+    const detailPayload =
+      specialSchedule.map(
+        (item) => ({
+          periode_id: periodId,
+          hari: Number(item.hari),
+          buka: Boolean(item.buka),
+          jam_buka: item.buka
+            ? item.jam_buka || null
+            : null,
+          jam_tutup: item.buka
+            ? item.jam_tutup || null
+            : null,
+        })
+      );
 
-    const { error: detailInsertError } =
-      await supabase
-        .from(
-          "periode_operasional_khusus_detail"
-        )
-        .insert(detailPayload);
+    const {
+      error: detailInsertError,
+    } = await supabase
+      .from(
+        "periode_operasional_khusus_detail"
+      )
+      .insert(detailPayload);
 
     if (detailInsertError) {
       setError(
@@ -555,6 +664,11 @@ export default function Page() {
       setSavingSpecial(false);
       return;
     }
+
+    await loadCabangSchedule(
+      selectedCabangId,
+      false
+    );
 
     setSuccess(
       editingSpecialId
@@ -573,9 +687,9 @@ export default function Page() {
       aktif: true,
     });
 
-    setSpecialSchedule(createEmptySpecialSchedule());
-
-    await loadCabangSchedule(selectedCabangId);
+    setSpecialSchedule(
+      createEmptySpecialSchedule()
+    );
   }
 
   async function hapusSpecial(period) {
@@ -588,15 +702,21 @@ export default function Page() {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError(
+        "Koneksi database belum tersedia."
+      );
       return;
     }
 
     setError("");
     setSuccess("");
 
-    const { error: deleteError } = await supabase
-      .from("periode_operasional_khusus")
+    const {
+      error: deleteError,
+    } = await supabase
+      .from(
+        "periode_operasional_khusus"
+      )
       .delete()
       .eq("id", period.id);
 
@@ -608,29 +728,39 @@ export default function Page() {
       return;
     }
 
+    await loadCabangSchedule(
+      selectedCabangId,
+      false
+    );
+
     setSuccess(
       "Periode operasional khusus berhasil dihapus."
     );
-
-    await loadCabangSchedule(selectedCabangId);
   }
 
   async function toggleSpecial(period) {
     const supabase = getSupabase();
 
     if (!supabase) {
-      setError("Koneksi database belum tersedia.");
+      setError(
+        "Koneksi database belum tersedia."
+      );
       return;
     }
 
     setError("");
     setSuccess("");
 
-    const { error: updateError } = await supabase
-      .from("periode_operasional_khusus")
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "periode_operasional_khusus"
+      )
       .update({
         aktif: !period.aktif,
-        updated_at: new Date().toISOString(),
+        updated_at:
+          new Date().toISOString(),
       })
       .eq("id", period.id);
 
@@ -642,13 +772,18 @@ export default function Page() {
       return;
     }
 
-    setSuccess(
-      `Periode "${period.nama}" berhasil ${
-        period.aktif ? "dinonaktifkan" : "diaktifkan"
-      }.`
+    await loadCabangSchedule(
+      selectedCabangId,
+      false
     );
 
-    await loadCabangSchedule(selectedCabangId);
+    setSuccess(
+      `Periode "${period.nama}" berhasil ${
+        period.aktif
+          ? "dinonaktifkan"
+          : "diaktifkan"
+      }.`
+    );
   }
 
   if (loading) {
@@ -672,8 +807,9 @@ export default function Page() {
           </h1>
 
           <p style={styles.subtitle}>
-            Atur jam buka normal dan jam operasional
-            khusus setiap cabang toko.
+            Atur jam buka normal dan jam
+            operasional khusus setiap
+            cabang toko.
           </p>
         </div>
 
@@ -686,13 +822,21 @@ export default function Page() {
       </div>
 
       {error && (
-        <div style={styles.errorBox}>
+        <div
+          style={styles.errorBox}
+          role="alert"
+          aria-live="assertive"
+        >
           {error}
         </div>
       )}
 
       {success && (
-        <div style={styles.successBox}>
+        <div
+          style={styles.successBox}
+          role="status"
+          aria-live="polite"
+        >
           {success}
         </div>
       )}
@@ -705,8 +849,9 @@ export default function Page() {
             </h2>
 
             <p style={styles.muted}>
-              Pengaturan jam operasional berlaku
-              untuk cabang yang dipilih.
+              Pengaturan jam operasional
+              berlaku untuk cabang yang
+              dipilih.
             </p>
           </div>
         </div>
@@ -714,7 +859,9 @@ export default function Page() {
         <select
           value={selectedCabangId}
           onChange={(event) =>
-            setSelectedCabangId(event.target.value)
+            setSelectedCabangId(
+              event.target.value
+            )
           }
           style={styles.select}
         >
@@ -760,11 +907,15 @@ export default function Page() {
                   key={item.hari}
                   style={styles.scheduleRow}
                 >
-                  <div style={styles.dayName}>
+                  <div
+                    style={styles.dayName}
+                  >
                     {hari?.label}
                   </div>
 
-                  <label style={styles.switchRow}>
+                  <label
+                    style={styles.switchRow}
+                  >
                     <input
                       type="checkbox"
                       checked={item.buka}
@@ -772,7 +923,8 @@ export default function Page() {
                         handleScheduleChange(
                           item.hari,
                           "buka",
-                          event.target.checked
+                          event.target
+                            .checked
                         )
                       }
                     />
@@ -784,7 +936,9 @@ export default function Page() {
                     </span>
                   </label>
 
-                  <div style={styles.timeGroup}>
+                  <div
+                    style={styles.timeGroup}
+                  >
                     <input
                       type="time"
                       value={item.jam_buka}
@@ -804,7 +958,9 @@ export default function Page() {
                       }}
                     />
 
-                    <span style={styles.timeDash}>
+                    <span
+                      style={styles.timeDash}
+                    >
                       –
                     </span>
 
@@ -859,17 +1015,22 @@ export default function Page() {
             </h2>
 
             <p style={styles.muted}>
-              Digunakan untuk periode tertentu,
-              misalnya Natal, Paskah, atau periode
-              khusus lainnya.
+              Digunakan untuk periode
+              tertentu, misalnya Natal,
+              Paskah, atau periode khusus
+              lainnya.
             </p>
           </div>
 
           {!showSpecialForm && (
             <button
               type="button"
-              onClick={bukaFormTambahSpecial}
-              style={styles.primaryButton}
+              onClick={
+                bukaFormTambahSpecial
+              }
+              style={
+                styles.primaryButton
+              }
             >
               + Tambah Periode
             </button>
@@ -881,17 +1042,23 @@ export default function Page() {
             onSubmit={simpanSpecial}
             style={styles.specialForm}
           >
-            <div style={styles.specialFormHeader}>
+            <div
+              style={
+                styles.specialFormHeader
+              }
+            >
               <div>
-                <h3 style={styles.formTitle}>
+                <h3
+                  style={styles.formTitle}
+                >
                   {editingSpecialId
                     ? "Edit Periode Operasional"
                     : "Tambah Periode Operasional"}
                 </h3>
 
                 <p style={styles.muted}>
-                  Atur periode dan jam khusus
-                  untuk cabang{" "}
+                  Atur periode dan jam
+                  khusus untuk cabang{" "}
                   <strong>
                     {selectedCabang?.nama}
                   </strong>
@@ -902,10 +1069,16 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowSpecialForm(false);
-                  setEditingSpecialId(null);
+                  setShowSpecialForm(
+                    false
+                  );
+                  setEditingSpecialId(
+                    null
+                  );
                 }}
-                style={styles.smallSecondaryButton}
+                style={
+                  styles.smallSecondaryButton
+                }
               >
                 Batal
               </button>
@@ -918,12 +1091,17 @@ export default function Page() {
                 </label>
 
                 <input
-                  value={specialForm.nama}
+                  value={
+                    specialForm.nama
+                  }
                   onChange={(event) =>
-                    setSpecialForm((current) => ({
-                      ...current,
-                      nama: event.target.value,
-                    }))
+                    setSpecialForm(
+                      (current) => ({
+                        ...current,
+                        nama: event.target
+                          .value,
+                      })
+                    )
                   }
                   placeholder="Contoh: Periode Natal"
                   style={styles.input}
@@ -935,16 +1113,23 @@ export default function Page() {
                   Status
                 </label>
 
-                <label style={styles.checkboxLabel}>
+                <label
+                  style={
+                    styles.checkboxLabel
+                  }
+                >
                   <input
                     type="checkbox"
-                    checked={specialForm.aktif}
+                    checked={
+                      specialForm.aktif
+                    }
                     onChange={(event) =>
                       setSpecialForm(
                         (current) => ({
                           ...current,
                           aktif:
-                            event.target.checked,
+                            event.target
+                              .checked,
                         })
                       )
                     }
@@ -967,11 +1152,14 @@ export default function Page() {
                     specialForm.tanggal_mulai
                   }
                   onChange={(event) =>
-                    setSpecialForm((current) => ({
-                      ...current,
-                      tanggal_mulai:
-                        event.target.value,
-                    }))
+                    setSpecialForm(
+                      (current) => ({
+                        ...current,
+                        tanggal_mulai:
+                          event.target
+                            .value,
+                      })
+                    )
                   }
                   style={styles.input}
                 />
@@ -988,122 +1176,183 @@ export default function Page() {
                     specialForm.tanggal_selesai
                   }
                   onChange={(event) =>
-                    setSpecialForm((current) => ({
-                      ...current,
-                      tanggal_selesai:
-                        event.target.value,
-                    }))
+                    setSpecialForm(
+                      (current) => ({
+                        ...current,
+                        tanggal_selesai:
+                          event.target
+                            .value,
+                      })
+                    )
                   }
                   style={styles.input}
                 />
               </div>
             </div>
 
-            <div style={styles.specialScheduleBox}>
-              <h3 style={styles.formTitle}>
+            <div
+              style={
+                styles.specialScheduleBox
+              }
+            >
+              <h3
+                style={styles.formTitle}
+              >
                 Jam Selama Periode Ini
               </h3>
 
-              <div style={styles.scheduleList}>
-                {specialSchedule.map((item) => {
-                  const hari = HARI.find(
-                    (day) =>
-                      Number(day.value) ===
-                      Number(item.hari)
-                  );
+              <div
+                style={
+                  styles.scheduleList
+                }
+              >
+                {specialSchedule.map(
+                  (item) => {
+                    const hari =
+                      HARI.find(
+                        (day) =>
+                          Number(
+                            day.value
+                          ) ===
+                          Number(
+                            item.hari
+                          )
+                      );
 
-                  return (
-                    <div
-                      key={item.hari}
-                      style={styles.scheduleRow}
-                    >
-                      <div style={styles.dayName}>
-                        {hari?.label}
-                      </div>
-
-                      <label
-                        style={styles.switchRow}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.buka}
-                          onChange={(event) =>
-                            handleSpecialScheduleChange(
-                              item.hari,
-                              "buka",
-                              event.target.checked
-                            )
-                          }
-                        />
-
-                        <span>
-                          {item.buka
-                            ? "Buka"
-                            : "Tutup"}
-                        </span>
-                      </label>
-
+                    return (
                       <div
-                        style={styles.timeGroup}
+                        key={item.hari}
+                        style={
+                          styles.scheduleRow
+                        }
                       >
-                        <input
-                          type="time"
-                          value={item.jam_buka}
-                          disabled={!item.buka}
-                          onChange={(event) =>
-                            handleSpecialScheduleChange(
-                              item.hari,
-                              "jam_buka",
-                              event.target.value
-                            )
+                        <div
+                          style={
+                            styles.dayName
                           }
-                          style={{
-                            ...styles.timeInput,
-                            opacity: item.buka
-                              ? 1
-                              : 0.5,
-                          }}
-                        />
-
-                        <span
-                          style={styles.timeDash}
                         >
-                          –
-                        </span>
+                          {hari?.label}
+                        </div>
 
-                        <input
-                          type="time"
-                          value={item.jam_tutup}
-                          disabled={!item.buka}
-                          onChange={(event) =>
-                            handleSpecialScheduleChange(
-                              item.hari,
-                              "jam_tutup",
-                              event.target.value
-                            )
+                        <label
+                          style={
+                            styles.switchRow
                           }
-                          style={{
-                            ...styles.timeInput,
-                            opacity: item.buka
-                              ? 1
-                              : 0.5,
-                          }}
-                        />
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              item.buka
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              handleSpecialScheduleChange(
+                                item.hari,
+                                "buka",
+                                event.target
+                                  .checked
+                              )
+                            }
+                          />
+
+                          <span>
+                            {item.buka
+                              ? "Buka"
+                              : "Tutup"}
+                          </span>
+                        </label>
+
+                        <div
+                          style={
+                            styles.timeGroup
+                          }
+                        >
+                          <input
+                            type="time"
+                            value={
+                              item.jam_buka
+                            }
+                            disabled={
+                              !item.buka
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              handleSpecialScheduleChange(
+                                item.hari,
+                                "jam_buka",
+                                event.target
+                                  .value
+                              )
+                            }
+                            style={{
+                              ...styles.timeInput,
+                              opacity:
+                                item.buka
+                                  ? 1
+                                  : 0.5,
+                            }}
+                          />
+
+                          <span
+                            style={
+                              styles.timeDash
+                            }
+                          >
+                            –
+                          </span>
+
+                          <input
+                            type="time"
+                            value={
+                              item.jam_tutup
+                            }
+                            disabled={
+                              !item.buka
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              handleSpecialScheduleChange(
+                                item.hari,
+                                "jam_tutup",
+                                event.target
+                                  .value
+                              )
+                            }
+                            style={{
+                              ...styles.timeInput,
+                              opacity:
+                                item.buka
+                                  ? 1
+                                  : 0.5,
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
             </div>
 
-            <div style={styles.formActions}>
+            <div
+              style={styles.formActions}
+            >
               <button
                 type="button"
                 onClick={() => {
-                  setShowSpecialForm(false);
-                  setEditingSpecialId(null);
+                  setShowSpecialForm(
+                    false
+                  );
+                  setEditingSpecialId(
+                    null
+                  );
                 }}
-                style={styles.secondaryButton}
+                style={
+                  styles.secondaryButton
+                }
               >
                 Batal
               </button>
@@ -1128,9 +1377,12 @@ export default function Page() {
           </form>
         )}
 
-        {specialPeriods.length === 0 ? (
+        {specialPeriods.length ===
+        0 ? (
           <div style={styles.emptyBox}>
-            <div style={styles.emptyIcon}>
+            <div
+              style={styles.emptyIcon}
+            >
               🗓️
             </div>
 
@@ -1139,103 +1391,133 @@ export default function Page() {
             </strong>
 
             <p style={styles.muted}>
-              Tambahkan periode khusus jika ada
-              perubahan jam buka pada tanggal
-              tertentu.
+              Tambahkan periode khusus
+              jika ada perubahan jam buka
+              pada tanggal tertentu.
             </p>
           </div>
         ) : (
-          <div style={styles.periodList}>
-            {specialPeriods.map((period) => (
-              <div
-                key={period.id}
-                style={styles.periodCard}
-              >
-                <div style={styles.periodMain}>
-                  <div>
-                    <div
-                      style={
-                        styles.periodTitleRow
-                      }
-                    >
-                      <h3
+          <div
+            style={styles.periodList}
+          >
+            {specialPeriods.map(
+              (period) => (
+                <div
+                  key={period.id}
+                  style={styles.periodCard}
+                >
+                  <div
+                    style={
+                      styles.periodMain
+                    }
+                  >
+                    <div>
+                      <div
                         style={
-                          styles.periodTitle
+                          styles.periodTitleRow
                         }
                       >
-                        {period.nama}
-                      </h3>
+                        <h3
+                          style={
+                            styles.periodTitle
+                          }
+                        >
+                          {period.nama}
+                        </h3>
 
-                      <span
-                        style={{
-                          ...styles.statusBadge,
-                          ...(period.aktif
-                            ? styles.statusActive
-                            : styles.statusInactive),
-                        }}
+                        <span
+                          style={{
+                            ...styles.statusBadge,
+                            ...(period.aktif
+                              ? styles.statusActive
+                              : styles.statusInactive),
+                          }}
+                        >
+                          {period.aktif
+                            ? "Aktif"
+                            : "Nonaktif"}
+                        </span>
+                      </div>
+
+                      <p
+                        style={
+                          styles.periodDate
+                        }
                       >
-                        {period.aktif
-                          ? "Aktif"
-                          : "Nonaktif"}
-                      </span>
+                        {
+                          period.tanggal_mulai
+                        }{" "}
+                        →{" "}
+                        {
+                          period.tanggal_selesai
+                        }
+                      </p>
+
+                      <p
+                        style={styles.muted}
+                      >
+                        Cabang:{" "}
+                        <strong>
+                          {
+                            selectedCabang?.nama
+                          }
+                        </strong>
+                      </p>
                     </div>
 
-                    <p style={styles.periodDate}>
-                      {period.tanggal_mulai}{" "}
-                      →{" "}
-                      {period.tanggal_selesai}
-                    </p>
-
-                    <p style={styles.muted}>
-                      Cabang:{" "}
-                      <strong>
-                        {selectedCabang?.nama}
-                      </strong>
-                    </p>
-                  </div>
-
-                  <div style={styles.periodActions}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        editSpecial(period)
-                      }
+                    <div
                       style={
-                        styles.smallSecondaryButton
+                        styles.periodActions
                       }
                     >
-                      Edit
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editSpecial(
+                            period
+                          )
+                        }
+                        style={
+                          styles.smallSecondaryButton
+                        }
+                      >
+                        Edit
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        toggleSpecial(period)
-                      }
-                      style={
-                        styles.smallSecondaryButton
-                      }
-                    >
-                      {period.aktif
-                        ? "Nonaktifkan"
-                        : "Aktifkan"}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleSpecial(
+                            period
+                          )
+                        }
+                        style={
+                          styles.smallSecondaryButton
+                        }
+                      >
+                        {period.aktif
+                          ? "Nonaktifkan"
+                          : "Aktifkan"}
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        hapusSpecial(period)
-                      }
-                      style={
-                        styles.smallDangerButton
-                      }
-                    >
-                      Hapus
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          hapusSpecial(
+                            period
+                          )
+                        }
+                        style={
+                          styles.smallDangerButton
+                        }
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </section>
