@@ -98,7 +98,9 @@ function isVideoUrl(url) {
 }
 
 /*
- * Format tulisan sederhana untuk konten lowongan.
+ * ============================================================
+ * FORMAT TULISAN
+ * ============================================================
  *
  * Format yang didukung:
  *
@@ -113,125 +115,209 @@ function isVideoUrl(url) {
  *
  * `teks khusus`
  *
+ * Format dapat mencakup beberapa baris sekaligus.
+ *
+ * Contoh:
+ *
+ * *Benefit:
+ * Gaji UMP
+ * Makan Siang
+ * BPJS TK*
+ *
  * Baris baru tetap dipertahankan.
  *
- * Fungsi ini sengaja menggunakan React element,
- * bukan dangerouslySetInnerHTML, sehingga isi dari
- * database tetap diperlakukan sebagai teks biasa.
+ * Isi database tetap berupa teks biasa.
+ * Tidak menggunakan dangerouslySetInnerHTML.
  */
-function formatRichText(text) {
-  if (!text) return null;
 
-  const value = String(text);
+function renderTextWithLineBreaks(text, keyPrefix) {
+  const parts = String(text).split(/\r?\n/);
 
-  const lines = value.split(/\r?\n/);
+  return parts.map((part, index) => (
+    <span key={`${keyPrefix}-line-${index}`}>
+      {part}
 
-  return lines.map((line, lineIndex) => (
-    <span key={`line-${lineIndex}`}>
-      {formatRichTextLine(line)}
-
-      {lineIndex < lines.length - 1 && <br />}
+      {index < parts.length - 1 && <br />}
     </span>
   ));
 }
 
-function formatRichTextLine(text) {
+function renderFormattedText(text, keyPrefix) {
   if (!text) return null;
 
-  const pattern =
-    /(\*\*[^*\n]+\*\*|\*[^*\n]+\*|__[^_\n]+__|_[^_\n]+_|~~[^~\n]+~~|~[^~\n]+~|`[^`\n]+`)/g;
+  const value = String(text);
 
-  const parts = String(text).split(pattern);
+  /*
+   * Urutan regex sengaja dimulai dari format dua karakter
+   * sebelum format satu karakter agar:
+   *
+   * **tebal** tidak dibaca sebagai *tebal*
+   * __miring__ tidak dibaca sebagai _miring_
+   * ~~coret~~ tidak dibaca sebagai ~coret~
+   */
+  const pattern =
+    /(\*\*[\s\S]+?\*\*|\*[\s\S]+?\*|__[\s\S]+?__|_[\s\S]+?_|~~[\s\S]+?~~|~[\s\S]+?~|`[\s\S]+?`)/g;
+
+  const parts = value.split(pattern);
 
   return parts.map((part, index) => {
     if (!part) return null;
 
+    /*
+     * TEBAL
+     * **teks**
+     */
     if (
       part.startsWith("**") &&
       part.endsWith("**") &&
       part.length > 4
     ) {
       return (
-        <strong key={index}>
-          {part.slice(2, -2)}
+        <strong key={`${keyPrefix}-bold-double-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(2, -2),
+            `${keyPrefix}-bold-double-${index}`
+          )}
         </strong>
       );
     }
 
+    /*
+     * TEBAL
+     * *teks*
+     */
     if (
       part.startsWith("*") &&
       part.endsWith("*") &&
       part.length > 2
     ) {
       return (
-        <strong key={index}>
-          {part.slice(1, -1)}
+        <strong key={`${keyPrefix}-bold-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(1, -1),
+            `${keyPrefix}-bold-${index}`
+          )}
         </strong>
       );
     }
 
+    /*
+     * MIRING
+     * __teks__
+     */
     if (
       part.startsWith("__") &&
       part.endsWith("__") &&
       part.length > 4
     ) {
       return (
-        <em key={index}>
-          {part.slice(2, -2)}
+        <em key={`${keyPrefix}-italic-double-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(2, -2),
+            `${keyPrefix}-italic-double-${index}`
+          )}
         </em>
       );
     }
 
+    /*
+     * MIRING
+     * _teks_
+     */
     if (
       part.startsWith("_") &&
       part.endsWith("_") &&
       part.length > 2
     ) {
       return (
-        <em key={index}>
-          {part.slice(1, -1)}
+        <em key={`${keyPrefix}-italic-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(1, -1),
+            `${keyPrefix}-italic-${index}`
+          )}
         </em>
       );
     }
 
+    /*
+     * CORET
+     * ~~teks~~
+     */
     if (
       part.startsWith("~~") &&
       part.endsWith("~~") &&
       part.length > 4
     ) {
       return (
-        <del key={index}>
-          {part.slice(2, -2)}
+        <del key={`${keyPrefix}-strike-double-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(2, -2),
+            `${keyPrefix}-strike-double-${index}`
+          )}
         </del>
       );
     }
 
+    /*
+     * CORET
+     * ~teks~
+     */
     if (
       part.startsWith("~") &&
       part.endsWith("~") &&
       part.length > 2
     ) {
       return (
-        <del key={index}>
-          {part.slice(1, -1)}
+        <del key={`${keyPrefix}-strike-${index}`}>
+          {renderTextWithLineBreaks(
+            part.slice(1, -1),
+            `${keyPrefix}-strike-${index}`
+          )}
         </del>
       );
     }
 
+    /*
+     * TEKS KHUSUS
+     * `teks`
+     */
     if (
       part.startsWith("`") &&
       part.endsWith("`") &&
       part.length > 2
     ) {
       return (
-        <code key={index} className="inlineCode">
-          {part.slice(1, -1)}
+        <code
+          key={`${keyPrefix}-code-${index}`}
+          className="inlineCode"
+        >
+          {renderTextWithLineBreaks(
+            part.slice(1, -1),
+            `${keyPrefix}-code-${index}`
+          )}
         </code>
       );
     }
 
-    return <span key={index}>{part}</span>;
+    /*
+     * Teks biasa.
+     * Baris baru tetap dipertahankan.
+     */
+    return (
+      <span key={`${keyPrefix}-text-${index}`}>
+        {renderTextWithLineBreaks(
+          part,
+          `${keyPrefix}-text-${index}`
+        )}
+      </span>
+    );
   });
+}
+
+function formatRichText(text, keyPrefix = "rich-text") {
+  if (!text) return null;
+
+  return renderFormattedText(text, keyPrefix);
 }
 
 function JobBriefIcon() {
@@ -547,7 +633,10 @@ export default async function LokerPage() {
                           <h3>Tentang Posisi</h3>
 
                           <div className="jobText">
-                            {formatRichText(job.deskripsi)}
+                            {formatRichText(
+                              job.deskripsi,
+                              `description-${job.id}`
+                            )}
                           </div>
                         </div>
                       )}
@@ -557,7 +646,10 @@ export default async function LokerPage() {
                           <h3>Persyaratan</h3>
 
                           <div className="jobText">
-                            {formatRichText(job.persyaratan)}
+                            {formatRichText(
+                              job.persyaratan,
+                              `requirements-${job.id}`
+                            )}
                           </div>
                         </div>
                       )}
@@ -643,7 +735,10 @@ export default async function LokerPage() {
                           </div>
 
                           <p>
-                            {formatRichText(job.pengumuman)}
+                            {formatRichText(
+                              job.pengumuman,
+                              `announcement-${job.id}`
+                            )}
                           </p>
                         </div>
                       )}
