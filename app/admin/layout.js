@@ -58,33 +58,29 @@ export default function AdminLayout({ children }) {
       </div>
 
       <style>{`
-        /* =========================================================
-           ADMIN LAYOUT UTAMA
-        ========================================================= */
-
         .admin {
           min-height: 100vh;
           box-sizing: border-box;
           background: #f5f0e8;
           color: #3f2f24;
+
+          /*
+           * Jangan diubah.
+           * Ini menjaga posisi Admin agar tidak bertabrakan
+           * dengan header/logo website.
+           */
+          padding-top: 76px;
         }
 
-        /* =========================================================
-           HEADER ADMIN
-        ========================================================= */
-
         .adminhead {
-          position: relative;
+          position: sticky;
+          top: 0;
           z-index: 100;
 
           width: 100%;
-          height: 56px;
-          min-height: 56px;
+          min-height: 66px;
 
           box-sizing: border-box;
-
-          display: flex;
-          align-items: center;
 
           background: #6f4c36;
           color: #ffffff;
@@ -98,60 +94,47 @@ export default function AdminLayout({ children }) {
           align-items: center;
 
           width: 100%;
-          height: 56px;
+          min-height: 66px;
 
           box-sizing: border-box;
 
-          padding: 0 28px;
+          padding: 0 24px;
 
-          font-size: 18px;
+          /*
+           * SATU-SATUNYA PERUBAHAN:
+           * ukuran tulisan Admin Panel diperkecil.
+           */
+          font-size: 16px;
           font-weight: 700;
-          line-height: 1;
-
-          letter-spacing: 0.1px;
+          line-height: 1.2;
         }
-
-        /* =========================================================
-           AREA UTAMA
-        ========================================================= */
 
         .adminlayout {
           display: grid;
-
-          grid-template-columns:
-            240px minmax(0, 1fr);
+          grid-template-columns: 240px minmax(0, 1fr);
 
           width: 100%;
-
-          min-height:
-            calc(100vh - 56px);
+          min-height: calc(100vh - 142px);
 
           box-sizing: border-box;
         }
 
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
-
         .side {
           position: sticky;
-          top: 0;
+          top: 66px;
 
           align-self: start;
 
           width: 240px;
-
-          min-height:
-            calc(100vh - 56px);
+          min-height: calc(100vh - 142px);
 
           box-sizing: border-box;
 
           background: #fffaf3;
 
-          border-right:
-            1px solid #dfd2c3;
+          border-right: 1px solid #dfd2c3;
 
-          padding: 18px 14px;
+          padding: 20px 14px;
 
           overflow-y: auto;
         }
@@ -160,36 +143,29 @@ export default function AdminLayout({ children }) {
           display: block;
 
           width: 100%;
-
           box-sizing: border-box;
 
-          padding: 10px 14px;
-          margin-bottom: 4px;
+          padding: 11px 14px;
+          margin-bottom: 5px;
 
           border-radius: 8px;
 
           color: #4b3326;
-
           text-decoration: none;
 
-          font-size: 15px;
+          font-size: 16px;
           line-height: 1.35;
           font-weight: 500;
 
           transition:
             background 0.15s ease,
-            color 0.15s ease,
-            transform 0.15s ease;
+            color 0.15s ease;
         }
 
         .side a:hover {
           background: #f1e7dc;
           color: #3d291f;
         }
-
-        /* =========================================================
-           KONTEN UTAMA
-        ========================================================= */
 
         .dash {
           min-width: 0;
@@ -205,35 +181,19 @@ export default function AdminLayout({ children }) {
           box-sizing: border-box;
         }
 
-        /* =========================================================
-           TABLET
-        ========================================================= */
-
         @media (max-width: 900px) {
-          .adminhead {
-            height: 54px;
-            min-height: 54px;
-          }
-
-          .adminheadInner {
-            height: 54px;
-            padding: 0 22px;
-            font-size: 17px;
+          .admin {
+            padding-top: 70px;
           }
 
           .adminlayout {
-            grid-template-columns:
-              210px minmax(0, 1fr);
-
-            min-height:
-              calc(100vh - 54px);
+            grid-template-columns: 210px minmax(0, 1fr);
+            min-height: calc(100vh - 136px);
           }
 
           .side {
             width: 210px;
-
-            min-height:
-              calc(100vh - 54px);
+            min-height: calc(100vh - 136px);
           }
 
           .dash {
@@ -241,22 +201,19 @@ export default function AdminLayout({ children }) {
           }
         }
 
-        /* =========================================================
-           MOBILE
-        ========================================================= */
-
         @media (max-width: 700px) {
+          .admin {
+            padding-top: 64px;
+          }
+
           .adminhead {
-            height: 54px;
-            min-height: 54px;
+            min-height: 58px;
           }
 
           .adminheadInner {
-            height: 54px;
-
+            min-height: 58px;
             padding: 0 16px;
-
-            font-size: 16px;
+            font-size: 15px;
           }
 
           .adminlayout {
@@ -271,7 +228,6 @@ export default function AdminLayout({ children }) {
             min-height: auto;
 
             display: grid;
-
             grid-template-columns:
               repeat(2, minmax(0, 1fr));
 
@@ -280,38 +236,23 @@ export default function AdminLayout({ children }) {
             padding: 12px;
 
             border-right: none;
-
-            border-bottom:
-              1px solid #dfd2c3;
+            border-bottom: 1px solid #dfd2c3;
           }
 
           .side a {
             margin-bottom: 0;
-
-            padding: 10px 12px;
-
             font-size: 14px;
           }
 
           .dash {
             width: 100%;
-
-            padding:
-              18px 14px 30px;
+            padding: 18px 14px 30px;
           }
         }
-
-        /* =========================================================
-           MOBILE KECIL
-        ========================================================= */
 
         @media (max-width: 460px) {
           .side {
             grid-template-columns: 1fr;
-          }
-
-          .adminheadInner {
-            font-size: 15px;
           }
         }
       `}</style>
