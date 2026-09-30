@@ -38,9 +38,11 @@ export default function TokoPage() {
 
     if (fetchError) {
       console.error(fetchError);
+
       setError(
         `Gagal mengambil data cabang: ${fetchError.message}`
       );
+
       setLoading(false);
       return;
     }
@@ -82,6 +84,7 @@ export default function TokoPage() {
 
     if (deleteError) {
       console.error(deleteError);
+
       setError(deleteError.message);
       setProcessingId(null);
       return;
@@ -97,8 +100,14 @@ export default function TokoPage() {
   }
 
   const totalCabang = cabang.length;
-  const aktif = cabang.filter((item) => item.aktif).length;
-  const nonaktif = cabang.filter((item) => !item.aktif).length;
+
+  const aktif = cabang.filter(
+    (item) => item.aktif
+  ).length;
+
+  const nonaktif = cabang.filter(
+    (item) => !item.aktif
+  ).length;
 
   const filteredCabang = cabang.filter((item) => {
     const matchesFilter =
@@ -106,28 +115,41 @@ export default function TokoPage() {
       (filter === "aktif" && item.aktif) ||
       (filter === "nonaktif" && !item.aktif);
 
-    const keyword = search.trim().toLowerCase();
+    const keyword = search
+      .trim()
+      .toLowerCase();
 
     const matchesSearch =
       !keyword ||
-      (item.nama || "").toLowerCase().includes(keyword) ||
-      (item.alamat || "").toLowerCase().includes(keyword) ||
-      (item.telepon || "").toLowerCase().includes(keyword);
+      (item.nama || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      (item.alamat || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      (item.telepon || "")
+        .toLowerCase()
+        .includes(keyword);
 
     return matchesFilter && matchesSearch;
   });
 
   return (
-    <main className="tokoAdminPage">
-      <div className="page">
+    <main className="page">
+      <div className="pageInner">
 
+        {/* HEADER HALAMAN */}
         <div className="topbar">
           <div>
+            <div className="eyebrow">
+              ADMINISTRASI TOKO
+            </div>
+
             <h1>Toko &amp; Kontak</h1>
 
             <p>
-              Kelola cabang toko dan informasi kontak utama
-              Sinar Kasih.
+              Kelola cabang toko dan informasi kontak
+              utama Sinar Kasih.
             </p>
           </div>
 
@@ -155,6 +177,7 @@ export default function TokoPage() {
           </div>
         </div>
 
+        {/* RINGKASAN CABANG */}
         <div className="summary">
           <div className="summaryCard">
             <span>Total Cabang</span>
@@ -172,6 +195,7 @@ export default function TokoPage() {
           </div>
         </div>
 
+        {/* SEARCH DAN FILTER */}
         <div className="toolbar">
           <div className="searchWrap">
             <input
@@ -196,33 +220,58 @@ export default function TokoPage() {
           </div>
 
           <div className="filters">
-            {[
-              ["semua", "Semua"],
-              ["aktif", "Aktif"],
-              ["nonaktif", "Nonaktif"],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={
-                  filter === value
-                    ? "filter active"
-                    : "filter"
-                }
-                onClick={() => setFilter(value)}
-              >
-                {label}
-              </button>
-            ))}
+            <button
+              type="button"
+              className={
+                filter === "semua"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("semua")}
+            >
+              Semua
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "aktif"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() => setFilter("aktif")}
+            >
+              Aktif
+            </button>
+
+            <button
+              type="button"
+              className={
+                filter === "nonaktif"
+                  ? "filter active"
+                  : "filter"
+              }
+              onClick={() =>
+                setFilter("nonaktif")
+              }
+            >
+              Nonaktif
+            </button>
           </div>
         </div>
 
+        {/* ERROR */}
         {error && (
-          <div className="error" role="alert">
+          <div
+            className="error"
+            role="alert"
+            aria-live="assertive"
+          >
             {error}
           </div>
         )}
 
+        {/* DATA CABANG */}
         <div className="card">
           {loading ? (
             <div className="empty">
@@ -253,7 +302,9 @@ export default function TokoPage() {
                 <tbody>
                   {filteredCabang.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.urutan ?? "-"}</td>
+                      <td>
+                        {item.urutan ?? "-"}
+                      </td>
 
                       <td>
                         <strong>
@@ -272,7 +323,9 @@ export default function TokoPage() {
                       <td>
                         {item.google_maps_url ? (
                           <a
-                            href={item.google_maps_url}
+                            href={
+                              item.google_maps_url
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="linkButton"
@@ -289,7 +342,9 @@ export default function TokoPage() {
                       <td>
                         {item.google_review_url ? (
                           <a
-                            href={item.google_review_url}
+                            href={
+                              item.google_review_url
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="linkButton"
@@ -333,10 +388,12 @@ export default function TokoPage() {
                               hapusCabang(item)
                             }
                             disabled={
-                              processingId === item.id
+                              processingId ===
+                              item.id
                             }
                           >
-                            {processingId === item.id
+                            {processingId ===
+                            item.id
                               ? "Menghapus..."
                               : "Hapus"}
                           </button>
@@ -351,31 +408,50 @@ export default function TokoPage() {
         </div>
       </div>
 
-      <style>{`
-        .tokoAdminPage {
+      <style jsx>{`
+        .page {
           width: 100%;
-          min-height: 100%;
-          padding-top: 82px;
+          min-height: 100vh;
           box-sizing: border-box;
           background: #f5f0e8;
           color: #3f2f24;
+
+          /*
+           * Header Admin berada di bagian atas.
+           * Konten halaman diberi jarak agar tidak masuk
+           * ke area header saat halaman pertama dibuka
+           * maupun ketika di-scroll.
+           */
+          padding-top: 92px;
+          padding-left: 28px;
+          padding-right: 28px;
+          padding-bottom: 50px;
         }
 
-        .page {
+        .pageInner {
           width: 100%;
+          max-width: 1500px;
+          margin: 0 auto;
           box-sizing: border-box;
-          padding: 0 28px 40px;
         }
 
         .topbar {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          gap: 20px;
+          align-items: flex-start;
+          gap: 24px;
           margin-bottom: 24px;
         }
 
-        .topbar h1 {
+        .eyebrow {
+          margin-bottom: 6px;
+          color: #9a806a;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        h1 {
           margin: 0 0 7px;
           color: #3f2f24;
           font-size: 30px;
@@ -385,6 +461,7 @@ export default function TokoPage() {
         .topbar p {
           margin: 0;
           color: #76685d;
+          font-size: 15px;
         }
 
         .topActions {
@@ -405,58 +482,80 @@ export default function TokoPage() {
           padding: 0 18px;
           border-radius: 9px;
           text-decoration: none;
+          font-family: inherit;
           font-size: 14px;
           font-weight: 700;
           white-space: nowrap;
           box-sizing: border-box;
+          transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            transform 0.15s ease;
         }
 
-        .contactButton,
-        .hoursButton {
-          background: #fff;
+        .contactButton {
+          background: #ffffff;
           color: #4b3326;
           border: 1px solid #cfc1b1;
         }
 
-        .contactButton:hover,
+        .contactButton:hover {
+          background: #f3eadf;
+          border-color: #bba995;
+        }
+
+        .hoursButton {
+          background: #ffffff;
+          color: #4b3326;
+          border: 1px solid #cfc1b1;
+        }
+
         .hoursButton:hover {
           background: #f3eadf;
+          border-color: #bba995;
         }
 
         .addButton {
           background: #4b3326;
-          color: #fff;
+          color: #ffffff;
           border: 1px solid #4b3326;
         }
 
         .addButton:hover {
           background: #39251b;
+          border-color: #39251b;
         }
 
         .summary {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(
+            3,
+            minmax(0, 1fr)
+          );
           gap: 18px;
           margin-bottom: 22px;
         }
 
         .summaryCard {
-          background: #fff;
+          background: #ffffff;
           border: 1px solid #dfd2c3;
-          border-radius: 12px;
+          border-radius: 13px;
           padding: 20px;
+          box-sizing: border-box;
         }
 
         .summaryCard span {
           display: block;
-          color: #76685d;
           margin-bottom: 8px;
-          font-size: 14px;
+          color: #76685d;
+          font-size: 15px;
         }
 
         .summaryCard strong {
+          display: block;
+          color: #2f241d;
           font-size: 28px;
-          color: #3f2f24;
+          line-height: 1;
         }
 
         .toolbar {
@@ -469,72 +568,92 @@ export default function TokoPage() {
 
         .searchWrap {
           position: relative;
-          flex: 1;
-          max-width: 600px;
+          width: 100%;
+          max-width: 735px;
         }
 
         .searchWrap input {
           width: 100%;
+          height: 56px;
           box-sizing: border-box;
-          padding: 13px 42px 13px 14px;
+          padding: 0 45px 0 17px;
           border: 1px solid #cfc1b1;
-          border-radius: 9px;
-          background: #fff;
+          border-radius: 10px;
+          background: #ffffff;
           color: #3f2f24;
-          font-size: 15px;
+          font-family: inherit;
+          font-size: 16px;
+          outline: none;
+        }
+
+        .searchWrap input:focus {
+          border-color: #8a5a3c;
+          box-shadow:
+            0 0 0 3px
+            rgba(138, 90, 60, 0.08);
         }
 
         .clearSearch {
           position: absolute;
-          right: 8px;
           top: 50%;
-          transform: translateY(-50%);
-          width: 28px;
-          height: 28px;
+          right: 10px;
+          width: 30px;
+          height: 30px;
           border: none;
           background: transparent;
           color: #76685d;
           font-size: 23px;
+          line-height: 1;
           cursor: pointer;
+          transform: translateY(-50%);
         }
 
         .filters {
           display: flex;
+          align-items: center;
           gap: 8px;
         }
 
         .filter {
-          padding: 10px 15px;
+          min-height: 46px;
+          padding: 0 17px;
           border: 1px solid #cfc1b1;
-          background: #fff;
+          border-radius: 9px;
+          background: #ffffff;
           color: #4b3326;
-          border-radius: 8px;
-          cursor: pointer;
+          font-family: inherit;
+          font-size: 14px;
           font-weight: 700;
+          cursor: pointer;
+        }
+
+        .filter:hover {
+          background: #f5eee6;
         }
 
         .filter.active {
           background: #4b3326;
-          color: #fff;
+          color: #ffffff;
           border-color: #4b3326;
         }
 
         .error {
           margin-bottom: 18px;
           padding: 14px 16px;
+          border: 1px solid #e4bcbc;
           border-radius: 9px;
           background: #fff0f0;
-          border: 1px solid #e4bcbc;
           color: #9b2929;
           font-weight: 600;
         }
 
         .card {
           width: 100%;
-          background: #fff;
+          background: #ffffff;
           border: 1px solid #dfd2c3;
-          border-radius: 12px;
+          border-radius: 14px;
           overflow: hidden;
+          box-sizing: border-box;
         }
 
         .tableWrap {
@@ -550,7 +669,7 @@ export default function TokoPage() {
 
         th,
         td {
-          padding: 15px 14px;
+          padding: 16px 14px;
           border-bottom: 1px solid #eee5dc;
           text-align: left;
           vertical-align: middle;
@@ -560,12 +679,27 @@ export default function TokoPage() {
           background: #faf6f0;
           color: #5f5045;
           font-size: 13px;
+          font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.03em;
         }
 
+        td {
+          color: #3f2f24;
+          font-size: 15px;
+        }
+
         tbody tr:last-child td {
           border-bottom: none;
+        }
+
+        tbody tr:hover {
+          background: #fdfaf7;
+        }
+
+        td strong {
+          color: #2f241d;
+          font-weight: 800;
         }
 
         .linkButton {
@@ -584,11 +718,13 @@ export default function TokoPage() {
         }
 
         .status {
-          display: inline-block;
-          padding: 6px 10px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px 11px;
           border-radius: 999px;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
           white-space: nowrap;
         }
 
@@ -610,24 +746,39 @@ export default function TokoPage() {
 
         .editButton,
         .deleteButton {
-          padding: 8px 12px;
-          border-radius: 7px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 38px;
+          padding: 0 12px;
+          border-radius: 8px;
+          font-family: inherit;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
           text-decoration: none;
-          cursor: pointer;
           white-space: nowrap;
+          box-sizing: border-box;
+          cursor: pointer;
         }
 
         .editButton {
           background: #f3eadf;
           color: #4b3326;
+          border: 1px solid transparent;
+        }
+
+        .editButton:hover {
+          background: #eadcca;
         }
 
         .deleteButton {
-          border: none;
           background: #f7dddd;
           color: #9b2929;
+          border: 1px solid transparent;
+        }
+
+        .deleteButton:hover {
+          background: #f1cece;
         }
 
         .deleteButton:disabled {
@@ -636,16 +787,12 @@ export default function TokoPage() {
         }
 
         .empty {
-          padding: 45px;
+          padding: 50px 30px;
           text-align: center;
           color: #76685d;
         }
 
-        @media (max-width: 1000px) {
-          .tokoAdminPage {
-            padding-top: 78px;
-          }
-
+        @media (max-width: 1100px) {
           .topbar {
             align-items: flex-start;
             flex-direction: column;
@@ -664,11 +811,18 @@ export default function TokoPage() {
           .searchWrap {
             max-width: none;
           }
+
+          .filters {
+            justify-content: flex-start;
+            flex-wrap: wrap;
+          }
         }
 
         @media (max-width: 800px) {
           .page {
-            padding: 0 16px 30px;
+            padding-top: 88px;
+            padding-left: 18px;
+            padding-right: 18px;
           }
 
           .summary {
@@ -676,8 +830,8 @@ export default function TokoPage() {
           }
 
           .topActions {
-            flex-direction: column;
             align-items: stretch;
+            flex-direction: column;
           }
 
           .contactButton,
@@ -692,6 +846,26 @@ export default function TokoPage() {
 
           .filter {
             flex: 1;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .page {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          h1 {
+            font-size: 26px;
+          }
+
+          .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .filter {
+            width: 100%;
           }
         }
       `}</style>
