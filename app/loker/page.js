@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { getSupabase } from "@/lib/supabase";
 
 const tahapSeleksi = [
@@ -93,9 +94,7 @@ function getStatusInfo(status) {
 function isVideoUrl(url) {
   if (!url) return false;
 
-  return /\.(mp4|webm)(\?.*)?$/i.test(
-    String(url)
-  );
+  return /\.(mp4|webm)(\?.*)?$/i.test(String(url));
 }
 
 function JobBriefIcon() {
@@ -110,18 +109,9 @@ function JobBriefIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect
-        x="3"
-        y="7"
-        width="18"
-        height="13"
-        rx="2"
-      />
-
+      <rect x="3" y="7" width="18" height="13" rx="2" />
       <path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" />
-
       <path d="M3 12h18" />
-
       <path d="M10 12v2h4v-2" />
     </svg>
   );
@@ -140,12 +130,7 @@ function LocationIcon() {
       strokeLinejoin="round"
     >
       <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-
-      <circle
-        cx="12"
-        cy="10"
-        r="2.5"
-      />
+      <circle cx="12" cy="10" r="2.5" />
     </svg>
   );
 }
@@ -162,18 +147,9 @@ function CalendarIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect
-        x="3"
-        y="4"
-        width="18"
-        height="17"
-        rx="2"
-      />
-
+      <rect x="3" y="4" width="18" height="17" rx="2" />
       <path d="M16 2v4" />
-
       <path d="M8 2v4" />
-
       <path d="M3 9h18" />
     </svg>
   );
@@ -192,7 +168,6 @@ function ArrowIcon() {
       strokeLinejoin="round"
     >
       <path d="M5 12h14" />
-
       <path d="m13 6 6 6-6 6" />
     </svg>
   );
@@ -227,14 +202,7 @@ function LockIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect
-        x="5"
-        y="10"
-        width="14"
-        height="10"
-        rx="2"
-      />
-
+      <rect x="5" y="10" width="14" height="10" rx="2" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
     </svg>
   );
@@ -292,7 +260,12 @@ function NoFeeIcon() {
   );
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function LokerPage() {
+  noStore();
+
   const supabase = getSupabase();
 
   const { data: lowongan } = await supabase
@@ -301,12 +274,8 @@ export default async function LokerPage() {
       "id, posisi, gambar_url, deskripsi, persyaratan, lokasi, google_form_url, status, tahap_seleksi, tanggal_buka, tanggal_tutup, pengumuman, aktif, urutan"
     )
     .eq("aktif", true)
-    .order("urutan", {
-      ascending: true,
-    })
-    .order("id", {
-      ascending: false,
-    });
+    .order("urutan", { ascending: true })
+    .order("id", { ascending: false });
 
   const daftarLowongan = lowongan || [];
 
@@ -331,7 +300,6 @@ export default async function LokerPage() {
 
           {daftarLowongan.length === 0 ? (
             <section className="emptyBox">
-
               <div className="emptyIcon">
                 <JobBriefIcon />
               </div>
@@ -344,46 +312,38 @@ export default async function LokerPage() {
                 untuk melihat kesempatan kerja terbaru dari
                 Toko Listrik Sinar Kasih.
               </p>
-
             </section>
           ) : (
             <section className="jobList">
-
               {daftarLowongan.map((job) => {
+                const currentIndex = getTahapIndex(
+                  job.tahap_seleksi
+                );
 
-                const currentIndex =
-                  getTahapIndex(
-                    job.tahap_seleksi
-                  );
+                const currentStatus = getStatusInfo(
+                  job.status
+                );
 
-                const currentStatus =
-                  getStatusInfo(job.status);
+                const tanggalBuka = formatTanggal(
+                  job.tanggal_buka
+                );
 
-                const tanggalBuka =
-                  formatTanggal(
-                    job.tanggal_buka
-                  );
+                const tanggalTutup = formatTanggal(
+                  job.tanggal_tutup
+                );
 
-                const tanggalTutup =
-                  formatTanggal(
-                    job.tanggal_tutup
-                  );
-
-                const video =
-                  isVideoUrl(
-                    job.gambar_url
-                  );
+                const mediaIsVideo = isVideoUrl(
+                  job.gambar_url
+                );
 
                 return (
                   <article
                     key={job.id}
                     className="jobCard"
                   >
-
                     {job.gambar_url ? (
                       <div className="jobMediaWrap">
-
-                        {video ? (
+                        {mediaIsVideo ? (
                           <video
                             src={job.gambar_url}
                             className="jobMedia"
@@ -401,52 +361,36 @@ export default async function LokerPage() {
                             className="jobMedia"
                           />
                         )}
-
                       </div>
                     ) : (
-                      <div className="jobMediaPlaceholder">
-
+                      <div className="jobImagePlaceholder">
                         <JobBriefIcon />
-
-                        <span>
-                          Lowongan Kerja
-                        </span>
-
+                        <span>Lowongan Kerja</span>
                       </div>
                     )}
 
                     <div className="jobBody">
 
                       <div className="jobTop">
-
                         <span
                           className={`jobStatus ${currentStatus.className}`}
                         >
                           {currentStatus.label}
                         </span>
-
                       </div>
 
-                      <h2>
-                        {job.posisi}
-                      </h2>
+                      <h2>{job.posisi}</h2>
 
                       <div className="jobMeta">
-
                         {job.lokasi && (
                           <div className="jobMetaItem">
                             <LocationIcon />
-
-                            <span>
-                              {job.lokasi}
-                            </span>
+                            <span>{job.lokasi}</span>
                           </div>
                         )}
 
-                        {(tanggalBuka ||
-                          tanggalTutup) && (
+                        {(tanggalBuka || tanggalTutup) && (
                           <div className="jobMetaItem">
-
                             <CalendarIcon />
 
                             <span>
@@ -460,45 +404,32 @@ export default async function LokerPage() {
                               {tanggalTutup &&
                                 `Tutup ${tanggalTutup}`}
                             </span>
-
                           </div>
                         )}
-
                       </div>
 
                       {job.deskripsi && (
                         <div className="jobSection">
-
-                          <h3>
-                            Tentang Posisi
-                          </h3>
+                          <h3>Tentang Posisi</h3>
 
                           <div className="jobText">
                             {job.deskripsi}
                           </div>
-
                         </div>
                       )}
 
                       {job.persyaratan && (
                         <div className="jobSection">
-
-                          <h3>
-                            Persyaratan
-                          </h3>
+                          <h3>Persyaratan</h3>
 
                           <div className="jobText">
                             {job.persyaratan}
                           </div>
-
                         </div>
                       )}
 
                       <div className="processSection">
-
-                        <h3>
-                          Proses Seleksi
-                        </h3>
+                        <h3>Proses Seleksi</h3>
 
                         <p className="processDescription">
                           Ikuti tahapan seleksi berikut sesuai
@@ -506,17 +437,13 @@ export default async function LokerPage() {
                         </p>
 
                         <div className="timeline">
-
                           {tahapSeleksi.map(
                             (tahap, index) => {
-
                               const selesai =
-                                index <
-                                currentIndex;
+                                index < currentIndex;
 
                               const sedangBerjalan =
-                                index ===
-                                currentIndex;
+                                index === currentIndex;
 
                               return (
                                 <div
@@ -531,31 +458,25 @@ export default async function LokerPage() {
                                       : ""
                                   }`}
                                 >
-
                                   {index !==
-                                    tahapSeleksi.length -
-                                      1 && (
+                                    tahapSeleksi.length - 1 && (
                                     <div className="timelineLine" />
                                   )}
 
                                   <div className="timelineDot">
-
                                     {selesai ? (
                                       <CheckIcon />
                                     ) : (
                                       tahap.nomor
                                     )}
-
                                   </div>
 
                                   <div className="timelineContent">
-
                                     <span className="timelineIcon">
                                       {tahap.icon}
                                     </span>
 
                                     <div>
-
                                       <strong>
                                         {tahap.judul}
                                       </strong>
@@ -571,47 +492,29 @@ export default async function LokerPage() {
                                           Selesai
                                         </span>
                                       )}
-
                                     </div>
-
                                   </div>
-
                                 </div>
                               );
                             }
                           )}
-
                         </div>
-
                       </div>
 
                       {job.pengumuman && (
                         <div className="announcementBox">
-
                           <div className="announcementTitle">
-
-                            <span>
-                              📢
-                            </span>
-
-                            <strong>
-                              Pengumuman
-                            </strong>
-
+                            <span>📢</span>
+                            <strong>Pengumuman</strong>
                           </div>
 
-                          <p>
-                            {job.pengumuman}
-                          </p>
-
+                          <p>{job.pengumuman}</p>
                         </div>
                       )}
 
                       <div className="jobAction">
-
                         {job.status === "dibuka" &&
                         job.google_form_url ? (
-
                           <a
                             href={job.google_form_url}
                             target="_blank"
@@ -624,67 +527,49 @@ export default async function LokerPage() {
 
                             <ArrowIcon />
                           </a>
-
                         ) : job.status === "dibuka" ? (
-
                           <div className="waitingNotice">
-
                             <LockIcon />
 
                             <span>
                               Formulir lamaran belum tersedia.
                             </span>
-
                           </div>
-
                         ) : (
-
                           <div className="closedNotice">
-
                             <LockIcon />
 
                             <span>
                               Pendaftaran untuk posisi ini
                               sudah tidak dibuka.
                             </span>
-
                           </div>
-
                         )}
-
                       </div>
 
                     </div>
-
                   </article>
                 );
               })}
-
             </section>
           )}
 
           <div className="bottomBack">
-
             <a
               href="/lainnya"
               className="bottomBackButton"
             >
               ← Kembali ke Informasi &amp; Layanan
             </a>
-
           </div>
 
           <section className="importantNotice">
-
             <div className="importantIcon">
               <NoFeeIcon />
             </div>
 
             <div>
-
-              <h3>
-                Informasi Penting
-              </h3>
+              <h3>Informasi Penting</h3>
 
               <p>
                 Toko Listrik Sinar Kasih tidak memungut biaya
@@ -692,16 +577,13 @@ export default async function LokerPage() {
                 lowongan dan formulir yang Anda gunakan berasal
                 dari website resmi Sinar Kasih.
               </p>
-
             </div>
-
           </section>
 
         </div>
       </main>
 
       <style>{`
-
         .lokerPage {
           min-height: calc(100vh - 64px);
           padding: 48px 20px 70px;
@@ -758,13 +640,7 @@ export default async function LokerPage() {
           background: #ffffff;
           border: 1px solid #eadfd5;
           border-radius: 20px;
-          box-shadow:
-            0 8px 24px rgba(
-              75,
-              36,
-              24,
-              0.06
-            );
+          box-shadow: 0 8px 24px rgba(75, 36, 24, 0.06);
         }
 
         .emptyIcon {
@@ -804,24 +680,10 @@ export default async function LokerPage() {
           border: 1px solid #eadfd5;
           border-radius: 22px;
           background: #ffffff;
-          box-shadow:
-            0 10px 28px rgba(
-              75,
-              36,
-              24,
-              0.07
-            );
+          box-shadow: 0 10px 28px rgba(75, 36, 24, 0.07);
         }
 
-        /*
-          ==================================================
-          MEDIA LOWONGAN
-          STANDAR RESMI: RASIO 4:5
-          ==================================================
-        */
-
         .jobMediaWrap {
-          position: relative;
           width: 100%;
           aspect-ratio: 4 / 5;
           overflow: hidden;
@@ -836,28 +698,22 @@ export default async function LokerPage() {
           background: #f5eee8;
         }
 
-        .jobMediaWrap video {
-          outline: none;
-        }
-
-        .jobMediaPlaceholder {
-          width: 100%;
+        .jobImagePlaceholder {
           aspect-ratio: 4 / 5;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          background:
-            linear-gradient(
-              135deg,
-              #f5eee8,
-              #fff8f1
-            );
+          background: linear-gradient(
+            135deg,
+            #f5eee8,
+            #fff8f1
+          );
           color: #8a6d5d;
         }
 
-        .jobMediaPlaceholder span {
+        .jobImagePlaceholder span {
           font-size: 13px;
           font-weight: 600;
         }
@@ -1016,19 +872,14 @@ export default async function LokerPage() {
           border-color: #3575c5;
           background: #e5f0ff;
           color: #3575c5;
-          box-shadow:
-            0 0 0 5px #f2f7fd;
+          box-shadow: 0 0 0 5px #f2f7fd;
         }
 
         .timelineContent {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding:
-            0
-            0
-            26px
-            15px;
+          padding: 0 0 26px 15px;
         }
 
         .timelineIcon {
@@ -1101,13 +952,7 @@ export default async function LokerPage() {
           text-decoration: none;
           font-size: 15px;
           font-weight: 700;
-          box-shadow:
-            0 8px 18px rgba(
-              32,
-              169,
-              91,
-              0.18
-            );
+          box-shadow: 0 8px 18px rgba(32, 169, 91, 0.18);
         }
 
         .waitingNotice,
@@ -1156,7 +1001,6 @@ export default async function LokerPage() {
         .bottomBackButton:hover {
           background: #f8f1eb;
           border-color: #cdb9aa;
-          transform: translateY(-1px);
         }
 
         .importantNotice {
@@ -1197,7 +1041,6 @@ export default async function LokerPage() {
         }
 
         @media (max-width: 760px) {
-
           .lokerPage {
             min-height: calc(100vh - 60px);
             padding: 34px 16px 55px;
@@ -1242,19 +1085,6 @@ export default async function LokerPage() {
 
           .jobCard {
             border-radius: 18px;
-          }
-
-          /*
-            Tetap 4:5 di HP.
-            Tidak ada perubahan rasio.
-          */
-
-          .jobMediaWrap {
-            aspect-ratio: 4 / 5;
-          }
-
-          .jobMediaPlaceholder {
-            aspect-ratio: 4 / 5;
           }
 
           .jobBody {
@@ -1308,55 +1138,6 @@ export default async function LokerPage() {
             font-size: 12px;
           }
         }
-
-        @media (max-width: 420px) {
-
-          .lokerHeader h1 {
-            font-size: 25px;
-          }
-
-          .jobBody {
-            padding: 20px 17px;
-          }
-
-          .jobBody > h2 {
-            font-size: 21px;
-          }
-
-          .jobMetaItem {
-            font-size: 12.5px;
-          }
-
-          .jobSection h3,
-          .processSection h3 {
-            font-size: 17px;
-          }
-
-          .jobText {
-            font-size: 13px;
-          }
-
-          .timelineContent {
-            padding-left: 10px;
-          }
-
-          .timelineContent strong {
-            font-size: 13px;
-          }
-
-          .timelineIcon {
-            font-size: 19px;
-          }
-
-          .announcementBox {
-            padding: 16px;
-          }
-
-          .announcementBox p {
-            font-size: 13px;
-          }
-        }
-
       `}</style>
     </>
   );
