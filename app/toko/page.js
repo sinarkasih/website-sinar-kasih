@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 const HARI = [
   { value: 0, label: "Minggu" },
   { value: 1, label: "Senin" },
