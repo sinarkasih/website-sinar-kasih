@@ -81,7 +81,10 @@ function NavItem({
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: "5px",
+        verticalAlign: "middle",
+        lineHeight: 1,
       }}
     >
       <span
@@ -90,12 +93,38 @@ function NavItem({
           alignItems: "center",
           justifyContent: "center",
           color,
+          lineHeight: 0,
         }}
       >
         {icon}
       </span>
 
-      <span>{label}</span>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+function CartLink() {
+  return (
+    <Link
+      href="/troli"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        verticalAlign: "middle",
+        lineHeight: 1,
+      }}
+    >
+      <CartNav label="Troli" />
     </Link>
   );
 }
@@ -134,9 +163,7 @@ export default function RootLayout({ children }) {
                 icon={<CategoryIcon />}
               />
 
-              <Link href="/troli">
-                <CartNav label="Troli" />
-              </Link>
+              <CartLink />
 
               <NavItem
                 href="/lainnya"
@@ -169,9 +196,7 @@ export default function RootLayout({ children }) {
             icon={<CategoryIcon />}
           />
 
-          <Link href="/troli">
-            <CartNav label="Troli" />
-          </Link>
+          <CartLink />
 
           <NavItem
             href="/lainnya"
