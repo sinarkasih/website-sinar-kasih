@@ -27,6 +27,8 @@ export default function EditProdukPage() {
     satuan: "pcs",
     stok: 0,
     aktif: true,
+    tampilkan_di_beranda: false,
+    produk_unggulan: false,
   });
 
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,9 @@ export default function EditProdukPage() {
           brand_id,
           satuan,
           stok,
-          aktif
+          aktif,
+          tampilkan_di_beranda,
+          produk_unggulan
         `)
         .eq("id", productId)
         .maybeSingle(),
@@ -96,8 +100,12 @@ export default function EditProdukPage() {
         .from("label_produk")
         .select("id, nama, slug, warna")
         .eq("aktif", true)
-        .order("urutan", { ascending: true })
-        .order("nama", { ascending: true }),
+        .order("urutan", {
+          ascending: true,
+        })
+        .order("nama", {
+          ascending: true,
+        }),
 
       supabase
         .from("produk_label")
@@ -106,10 +114,16 @@ export default function EditProdukPage() {
 
       supabase
         .from("produk_gambar")
-        .select("id, produk_id, url, alt_text, utama")
+        .select(
+          "id, produk_id, url, alt_text, utama"
+        )
         .eq("produk_id", productId)
-        .order("utama", { ascending: false })
-        .order("id", { ascending: true }),
+        .order("utama", {
+          ascending: false,
+        })
+        .order("id", {
+          ascending: true,
+        }),
     ]);
 
     if (produkResult.error) {
@@ -190,6 +204,10 @@ export default function EditProdukPage() {
       satuan: data.satuan || "pcs",
       stok: data.stok ?? 0,
       aktif: data.aktif ?? true,
+      tampilkan_di_beranda:
+        data.tampilkan_di_beranda ?? false,
+      produk_unggulan:
+        data.produk_unggulan ?? false,
     });
 
     setKategori(kategoriResult.data || []);
@@ -262,7 +280,8 @@ export default function EditProdukPage() {
       nama: form.nama.trim(),
       deskripsi:
         form.deskripsi.trim() || null,
-      sku: form.sku.trim() || null,
+      sku:
+        form.sku.trim() || null,
       slug:
         form.slug.trim() || null,
       kategori_id: form.kategori_id
@@ -275,6 +294,10 @@ export default function EditProdukPage() {
         form.satuan.trim() || "pcs",
       stok: Number(form.stok) || 0,
       aktif: form.aktif,
+      tampilkan_di_beranda:
+        form.tampilkan_di_beranda,
+      produk_unggulan:
+        form.produk_unggulan,
     };
 
     const {
@@ -346,7 +369,6 @@ export default function EditProdukPage() {
 
     setSaving(false);
 
-    // Kembali otomatis ke daftar produk
     setTimeout(() => {
       router.push("/admin/produk");
     }, 500);
@@ -425,8 +447,13 @@ export default function EditProdukPage() {
         if (isFirstPhoto) {
           await supabase
             .from("produk_gambar")
-            .update({ utama: false })
-            .eq("produk_id", productId);
+            .update({
+              utama: false,
+            })
+            .eq(
+              "produk_id",
+              productId
+            );
         }
 
         const {
@@ -462,13 +489,14 @@ export default function EditProdukPage() {
 
       setError(
         "Gagal upload foto: " +
-          (uploadError.message ||
+          (uploadError?.message ||
             "Terjadi kesalahan.")
       );
-    }
+    } finally {
+      setUploading(false);
 
-    e.target.value = "";
-    setUploading(false);
+      e.target.value = "";
+    }
   }
 
   async function jadikanUtama(photoId) {
@@ -486,7 +514,9 @@ export default function EditProdukPage() {
       error: resetError,
     } = await supabase
       .from("produk_gambar")
-      .update({ utama: false })
+      .update({
+        utama: false,
+      })
       .eq("produk_id", productId);
 
     if (resetError) {
@@ -498,17 +528,18 @@ export default function EditProdukPage() {
     }
 
     const {
-      error: mainError,
+      error: updateError,
     } = await supabase
       .from("produk_gambar")
-      .update({ utama: true })
-      .eq("id", photoId)
-      .eq("produk_id", productId);
+      .update({
+        utama: true,
+      })
+      .eq("id", photoId);
 
-    if (mainError) {
+    if (updateError) {
       setError(
-        "Gagal memilih foto utama: " +
-          mainError.message
+        "Gagal menetapkan foto utama: " +
+          updateError.message
       );
       return;
     }
@@ -525,7 +556,7 @@ export default function EditProdukPage() {
     );
   }
 
-  async function hapusFoto(photo) {
+  async function hapusFoto(item) {
     const yakin = window.confirm(
       "Hapus foto produk ini?"
     );
@@ -543,23 +574,39 @@ export default function EditProdukPage() {
     setMessage("");
 
     try {
-      const marker =
-        "/storage/v1/object/public/produk/";
+      const publicUrl = item.url;
 
-      const markerIndex =
-        photo.url.indexOf(marker);
-
-      if (markerIndex !== -1) {
-        const filePath =
-          decodeURIComponent(
-            photo.url.substring(
-              markerIndex + marker.length
-            )
-          );
-
-        await supabase.storage
+      const bucketUrl =
+        supabase.storage
           .from("produk")
-          .remove([filePath]);
+          .getPublicUrl("")
+          .data.publicUrl;
+
+      let storagePath = "";
+
+      if (
+        publicUrl &&
+        bucketUrl &&
+        publicUrl.startsWith(bucketUrl)
+      ) {
+        storagePath = publicUrl
+          .replace(bucketUrl, "")
+          .split("?")[0];
+      }
+
+      if (storagePath) {
+        const {
+          error: storageError,
+        } = await supabase.storage
+          .from("produk")
+          .remove([storagePath]);
+
+        if (storageError) {
+          console.warn(
+            "Gagal menghapus file storage:",
+            storageError
+          );
+        }
       }
 
       const {
@@ -567,35 +614,29 @@ export default function EditProdukPage() {
       } = await supabase
         .from("produk_gambar")
         .delete()
-        .eq("id", photo.id);
+        .eq("id", item.id);
 
       if (deleteError) {
         throw deleteError;
       }
 
-      const remaining =
-        foto.filter(
-          (item) => item.id !== photo.id
-        );
-
-      setFoto(remaining);
-
-      if (
-        photo.utama &&
-        remaining.length > 0
-      ) {
-        await jadikanUtama(
-          remaining[0].id
-        );
-      }
+      setFoto((current) =>
+        current.filter(
+          (fotoItem) =>
+            fotoItem.id !== item.id
+        )
+      );
 
       setMessage(
         "Foto produk berhasil dihapus."
       );
     } catch (deleteError) {
+      console.error(deleteError);
+
       setError(
         "Gagal menghapus foto: " +
-          deleteError.message
+          (deleteError?.message ||
+            "Terjadi kesalahan.")
       );
     }
   }
@@ -604,7 +645,7 @@ export default function EditProdukPage() {
     return (
       <main className="admin-content">
         <div className="admin-card">
-          Memuat data produk...
+          <p>Memuat data produk...</p>
         </div>
       </main>
     );
@@ -613,8 +654,23 @@ export default function EditProdukPage() {
   if (!produk) {
     return (
       <main className="admin-content">
-        <div className="admin-message admin-message-error">
-          Produk tidak ditemukan.
+        <div className="admin-card">
+          <div className="admin-message admin-message-error">
+            {error || "Produk tidak ditemukan."}
+          </div>
+
+          <button
+            type="button"
+            className="admin-secondary-button"
+            onClick={() =>
+              router.push("/admin/produk")
+            }
+            style={{
+              marginTop: "16px",
+            }}
+          >
+            ← Kembali ke Produk
+          </button>
         </div>
       </main>
     );
@@ -622,7 +678,6 @@ export default function EditProdukPage() {
 
   return (
     <main className="admin-content">
-
       <div className="admin-page-header">
         <div>
           <h1>Edit Produk</h1>
@@ -645,27 +700,22 @@ export default function EditProdukPage() {
       </div>
 
       <div className="admin-card">
-
         <form
           onSubmit={handleSubmit}
           className="admin-form"
         >
-
           <div className="admin-form-group">
-            <label>
-              Nama Produk *
-            </label>
+            <label>Nama Produk</label>
 
             <input
               name="nama"
               value={form.nama}
               onChange={handleChange}
-              required
+              placeholder="Nama produk"
             />
           </div>
 
           <div className="admin-form-grid">
-
             <div className="admin-form-group">
               <label>SKU</label>
 
@@ -673,6 +723,7 @@ export default function EditProdukPage() {
                 name="sku"
                 value={form.sku}
                 onChange={handleChange}
+                placeholder="SKU produk"
               />
             </div>
 
@@ -683,13 +734,12 @@ export default function EditProdukPage() {
                 name="slug"
                 value={form.slug}
                 onChange={handleChange}
+                placeholder="slug-produk"
               />
             </div>
-
           </div>
 
           <div className="admin-form-grid">
-
             <div className="admin-form-group">
               <label>Kategori</label>
 
@@ -735,11 +785,9 @@ export default function EditProdukPage() {
                 ))}
               </select>
             </div>
-
           </div>
 
           <div className="admin-form-grid">
-
             <div className="admin-form-group">
               <label>Satuan</label>
 
@@ -761,7 +809,6 @@ export default function EditProdukPage() {
                 onChange={handleChange}
               />
             </div>
-
           </div>
 
           <div className="admin-form-group">
@@ -778,7 +825,6 @@ export default function EditProdukPage() {
           {/* LABEL PRODUK */}
 
           <div className="admin-form-group">
-
             <label>
               Label Produk
             </label>
@@ -796,9 +842,7 @@ export default function EditProdukPage() {
             </p>
 
             {labels.length === 0 ? (
-              <div
-                className="admin-message"
-              >
+              <div className="admin-message">
                 Belum ada label aktif.
               </div>
             ) : (
@@ -876,8 +920,45 @@ export default function EditProdukPage() {
                 })}
               </div>
             )}
-
           </div>
+
+          {/* PILIHAN BERANDA */}
+
+          <div className="admin-form-checkbox">
+            <input
+              type="checkbox"
+              id="tampilkan_di_beranda"
+              name="tampilkan_di_beranda"
+              checked={
+                form.tampilkan_di_beranda
+              }
+              onChange={handleChange}
+            />
+
+            <label htmlFor="tampilkan_di_beranda">
+              Tampilkan produk ini di Beranda
+            </label>
+          </div>
+
+          {/* PRODUK UNGGULAN */}
+
+          <div className="admin-form-checkbox">
+            <input
+              type="checkbox"
+              id="produk_unggulan"
+              name="produk_unggulan"
+              checked={
+                form.produk_unggulan
+              }
+              onChange={handleChange}
+            />
+
+            <label htmlFor="produk_unggulan">
+              Jadikan Produk Unggulan
+            </label>
+          </div>
+
+          {/* STATUS AKTIF */}
 
           <div className="admin-form-checkbox">
             <input
@@ -915,20 +996,18 @@ export default function EditProdukPage() {
               ? "Menyimpan..."
               : "Simpan Perubahan"}
           </button>
-
         </form>
-
       </div>
 
       {/* FOTO PRODUK */}
 
       <div
         className="admin-card"
-        style={{ marginTop: "24px" }}
+        style={{
+          marginTop: "24px",
+        }}
       >
-
         <div className="admin-page-header">
-
           <div>
             <h2>Foto Produk</h2>
 
@@ -937,7 +1016,6 @@ export default function EditProdukPage() {
               salah satunya sebagai foto utama.
             </p>
           </div>
-
         </div>
 
         <div
@@ -971,7 +1049,11 @@ export default function EditProdukPage() {
           </p>
 
           {uploading && (
-            <p style={{ marginTop: "12px" }}>
+            <p
+              style={{
+                marginTop: "12px",
+              }}
+            >
               Mengupload foto...
             </p>
           )}
@@ -980,7 +1062,9 @@ export default function EditProdukPage() {
         {foto.length === 0 ? (
           <div
             className="admin-message"
-            style={{ marginTop: "20px" }}
+            style={{
+              marginTop: "20px",
+            }}
           >
             Belum ada foto produk.
           </div>
@@ -998,16 +1082,14 @@ export default function EditProdukPage() {
               <div
                 key={item.id}
                 style={{
-                  border:
-                    item.utama
-                      ? "2px solid #a47732"
-                      : "1px solid #ddd2c3",
+                  border: item.utama
+                    ? "2px solid #a47732"
+                    : "1px solid #ddd2c3",
                   borderRadius: "14px",
                   padding: "10px",
                   background: "#fff",
                 }}
               >
-
                 <div
                   style={{
                     width: "100%",
@@ -1060,7 +1142,9 @@ export default function EditProdukPage() {
                       type="button"
                       className="admin-secondary-button"
                       onClick={() =>
-                        jadikanUtama(item.id)
+                        jadikanUtama(
+                          item.id
+                        )
                       }
                     >
                       Jadikan Utama
@@ -1077,14 +1161,11 @@ export default function EditProdukPage() {
                     Hapus
                   </button>
                 </div>
-
               </div>
             ))}
           </div>
         )}
-
       </div>
-
     </main>
   );
 }
