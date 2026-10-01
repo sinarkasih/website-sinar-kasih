@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import Link from "next/link";
+import CartNav from "./CartNav";
 
 export const metadata = {
   title: "Sinar Kasih | Toko Listrik Ambon",
@@ -48,26 +49,6 @@ function CategoryIcon() {
   );
 }
 
-function CartIcon() {
-  return (
-    <svg
-      width="21"
-      height="21"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="9" cy="20" r="1.5" />
-      <circle cx="18" cy="20" r="1.5" />
-      <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H6" />
-    </svg>
-  );
-}
-
 function InfoIcon() {
   return (
     <svg
@@ -88,11 +69,33 @@ function InfoIcon() {
   );
 }
 
-function NavItem({ href, label, icon }) {
+function NavItem({
+  href,
+  label,
+  icon,
+  color,
+}) {
   return (
-    <Link href={href}>
-      <span className="nav-icon">{icon}</span>
-      <span className="nav-label">{label}</span>
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "5px",
+      }}
+    >
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color,
+        }}
+      >
+        {icon}
+      </span>
+
+      <span>{label}</span>
     </Link>
   );
 }
@@ -104,7 +107,10 @@ export default function RootLayout({ children }) {
         <header className="topbar">
           <div className="wrap topbar-inner">
 
-            <Link href="/" className="brand">
+            <Link
+              href="/"
+              className="brand"
+            >
               <b>SK</b>
 
               <span>
@@ -114,41 +120,30 @@ export default function RootLayout({ children }) {
             </Link>
 
             <nav>
-              <Link href="/">
-                <span className="nav-icon">
-                  <HomeIcon />
-                </span>
-                <span className="nav-label">
-                  Beranda
-                </span>
-              </Link>
+              <NavItem
+                href="/"
+                label="Beranda"
+                color="#6f4a32"
+                icon={<HomeIcon />}
+              />
 
-              <Link href="/kategori">
-                <span className="nav-icon">
-                  <CategoryIcon />
-                </span>
-                <span className="nav-label">
-                  Kategori
-                </span>
-              </Link>
+              <NavItem
+                href="/kategori"
+                label="Kategori"
+                color="#c58a2b"
+                icon={<CategoryIcon />}
+              />
 
               <Link href="/troli">
-                <span className="nav-icon">
-                  <CartIcon />
-                </span>
-                <span className="nav-label">
-                  Troli
-                </span>
+                <CartNav label="Troli" />
               </Link>
 
-              <Link href="/lainnya">
-                <span className="nav-icon">
-                  <InfoIcon />
-                </span>
-                <span className="nav-label">
-                  Informasi
-                </span>
-              </Link>
+              <NavItem
+                href="/lainnya"
+                label="Informasi"
+                color="#4d7185"
+                icon={<InfoIcon />}
+              />
             </nav>
 
           </div>
@@ -163,24 +158,25 @@ export default function RootLayout({ children }) {
           <NavItem
             href="/"
             label="Beranda"
+            color="#6f4a32"
             icon={<HomeIcon />}
           />
 
           <NavItem
             href="/kategori"
             label="Kategori"
+            color="#c58a2b"
             icon={<CategoryIcon />}
           />
 
-          <NavItem
-            href="/troli"
-            label="Troli"
-            icon={<CartIcon />}
-          />
+          <Link href="/troli">
+            <CartNav label="Troli" />
+          </Link>
 
           <NavItem
             href="/lainnya"
             label="Informasi"
+            color="#4d7185"
             icon={<InfoIcon />}
           />
         </nav>
