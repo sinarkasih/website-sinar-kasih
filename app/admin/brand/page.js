@@ -24,6 +24,7 @@ export default function AdminBrandPage() {
   const [preview, setPreview] = useState("");
 
   const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,22 +51,23 @@ export default function AdminBrandPage() {
       return;
     }
 
-    const { data, error: brandError } = await supabase
-      .from("brand")
-      .select(`
-        id,
-        nama,
-        slug,
-        aktif,
-        logo_url,
-        urutan
-      `)
-      .order("urutan", {
-        ascending: true,
-      })
-      .order("id", {
-        ascending: true,
-      });
+    const { data, error: brandError } =
+      await supabase
+        .from("brand")
+        .select(`
+          id,
+          nama,
+          slug,
+          urutan,
+          aktif,
+          logo_url
+        `)
+        .order("urutan", {
+          ascending: true,
+        })
+        .order("nama", {
+          ascending: true,
+        });
 
     if (brandError) {
       setError(
@@ -88,20 +90,43 @@ export default function AdminBrandPage() {
     setLogoUrl("");
     setLogoFile(null);
     setPreview("");
+    setShowForm(false);
+    setError("");
+  }
+
+  function bukaTambah() {
+    setEditingId(null);
+    setNama("");
+    setSlug("");
+    setUrutan(
+      brand.length > 0
+        ? Math.max(
+            ...brand.map(
+              (item) =>
+                Number(item.urutan) || 0
+            )
+          ) + 1
+        : 1
+    );
+    setLogoUrl("");
+    setLogoFile(null);
+    setPreview("");
     setError("");
     setMessage("");
+    setShowForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function mulaiEdit(item) {
     setEditingId(item.id);
+
     setNama(item.nama || "");
     setSlug(item.slug || "");
-    setUrutan(
-      item.urutan !== null &&
-      item.urutan !== undefined
-        ? item.urutan
-        : 1
-    );
+    setUrutan(item.urutan ?? 1);
 
     setLogoUrl(item.logo_url || "");
     setLogoFile(null);
@@ -109,6 +134,7 @@ export default function AdminBrandPage() {
 
     setError("");
     setMessage("");
+    setShowForm(true);
 
     window.scrollTo({
       top: 0,
@@ -142,7 +168,9 @@ export default function AdminBrandPage() {
     setError("");
     setLogoFile(file);
 
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl =
+      URL.createObjectURL(file);
+
     setPreview(objectUrl);
   }
 
@@ -237,13 +265,9 @@ export default function AdminBrandPage() {
     const finalSlug =
       slug.trim() || buatSlug(nama);
 
-    const finalUrutan =
-      Number(urutan) > 0
-        ? Number(urutan)
-        : 1;
-
     try {
       let brandId = editingId;
+
       const oldLogoUrl = logoUrl;
 
       if (editingId) {
@@ -253,7 +277,8 @@ export default function AdminBrandPage() {
             .update({
               nama: nama.trim(),
               slug: finalSlug,
-              urutan: finalUrutan,
+              urutan:
+                Number(urutan) || 0,
             })
             .eq("id", editingId);
 
@@ -267,7 +292,8 @@ export default function AdminBrandPage() {
             .insert({
               nama: nama.trim(),
               slug: finalSlug,
-              urutan: finalUrutan,
+              urutan:
+                Number(urutan) || 0,
               aktif: true,
             })
             .select()
@@ -321,7 +347,14 @@ export default function AdminBrandPage() {
           : "Brand berhasil ditambahkan."
       );
 
-      resetForm();
+      setEditingId(null);
+      setNama("");
+      setSlug("");
+      setUrutan(1);
+      setLogoUrl("");
+      setLogoFile(null);
+      setPreview("");
+      setShowForm(false);
 
       await loadBrand();
     } catch (submitError) {
@@ -346,6 +379,13 @@ export default function AdminBrandPage() {
     if (!yakin) return;
 
     const supabase = getSupabase();
+
+    if (!supabase) {
+      setError(
+        "Koneksi database belum tersedia."
+      );
+      return;
+    }
 
     try {
       await hapusFileStorage(
@@ -423,21 +463,22 @@ export default function AdminBrandPage() {
     await loadBrand();
   }
 
-  const filteredBrand = brand.filter((item) => {
-    const keyword =
-      search.toLowerCase().trim();
+  const filteredBrand =
+    brand.filter((item) => {
+      const keyword =
+        search.toLowerCase().trim();
 
-    if (!keyword) return true;
+      if (!keyword) return true;
 
-    return (
-      item.nama
-        ?.toLowerCase()
-        .includes(keyword) ||
-      item.slug
-        ?.toLowerCase()
-        .includes(keyword)
-    );
-  });
+      return (
+        item.nama
+          ?.toLowerCase()
+          .includes(keyword) ||
+        item.slug
+          ?.toLowerCase()
+          .includes(keyword)
+      );
+    });
 
   return (
     <main className="admin-content">
@@ -447,360 +488,472 @@ export default function AdminBrandPage() {
           <h1>Brand</h1>
 
           <p>
-            Kelola brand, logo, status, dan
-            urutan tampilan brand Toko Listrik
-            Sinar Kasih.
+            Kelola brand, logo, dan urutan
+            brand Toko Listrik Sinar Kasih.
           </p>
         </div>
       </div>
 
-      <div className="admin-card">
-
-        <h2>
-          {editingId
-            ? "Edit Brand"
-            : "Tambah Brand"}
-        </h2>
-
-        <form
-          onSubmit={handleSubmit}
-          className="admin-form"
-          style={{ marginTop: "18px" }}
+      {message && (
+        <div
+          className="admin-message admin-message-success"
+          style={{ marginBottom: "20px" }}
         >
+          {message}
+        </div>
+      )}
 
-          <div className="admin-form-grid">
+      {error && !showForm && (
+        <div
+          className="admin-message admin-message-error"
+          style={{ marginBottom: "20px" }}
+        >
+          {error}
+        </div>
+      )}
 
-            <div className="admin-form-group">
-              <label>
-                Nama Brand *
-              </label>
-
-              <input
-                value={nama}
-                onChange={(e) =>
-                  handleNamaChange(
-                    e.target.value
-                  )
-                }
-                placeholder="Contoh: Philips"
-                required
-              />
-            </div>
-
-            <div className="admin-form-group">
-              <label>
-                Slug
-              </label>
-
-              <input
-                value={slug}
-                onChange={(e) =>
-                  setSlug(e.target.value)
-                }
-                placeholder="philips"
-              />
-            </div>
-
-          </div>
-
-          <div className="admin-form-group">
-
-            <label>
-              Urutan Tampil
-            </label>
-
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={urutan}
-              onChange={(e) =>
-                setUrutan(e.target.value)
-              }
-              placeholder="1"
-            />
-
-            <small>
-              Semakin kecil angkanya,
-              semakin atas brand ditampilkan.
-              Contoh: 1 = paling atas,
-              2 = urutan kedua, dan seterusnya.
-            </small>
-
-          </div>
-
-          <div className="admin-form-group">
-
-            <label>
-              Logo Brand
-            </label>
-
-            {preview && (
-              <div
-                style={{
-                  width: "180px",
-                  height: "120px",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  background: "#fff",
-                  border:
-                    "1px solid #ddd2c3",
-                  marginBottom: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img
-                  src={preview}
-                  alt="Preview logo"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                  }}
-                />
-              </div>
-            )}
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-            />
-
-            <small>
-              JPG, PNG atau WEBP.
-              Maksimal 5 MB.
-            </small>
-
-            {editingId && logoUrl && (
-              <div
-                style={{
-                  marginTop: "10px",
-                }}
-              >
-                <button
-                  type="button"
-                  className="admin-secondary-button"
-                  onClick={() =>
-                    hapusLogo({
-                      id: editingId,
-                      logo_url: logoUrl,
-                    })
-                  }
-                >
-                  Hapus Logo
-                </button>
-              </div>
-            )}
-
-          </div>
-
-          {error && (
-            <div className="admin-message admin-message-error">
-              {error}
-            </div>
-          )}
-
-          {message && (
-            <div className="admin-message admin-message-success">
-              {message}
-            </div>
-          )}
-
+      {!showForm && (
+        <div
+          className="admin-card"
+          style={{
+            marginBottom: "24px",
+          }}
+        >
           <div
             style={{
               display: "flex",
-              gap: "10px",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "14px",
               flexWrap: "wrap",
             }}
           >
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                }}
+              >
+                Daftar Brand
+              </h2>
+
+              <p
+                style={{
+                  margin:
+                    "6px 0 0",
+                }}
+              >
+                {brand.length} brand
+                tersimpan.
+              </p>
+            </div>
 
             <button
-              type="submit"
+              type="button"
               className="admin-primary-button"
-              disabled={
-                saving || uploading
-              }
+              onClick={bukaTambah}
             >
-              {uploading
-                ? "Mengupload logo..."
-                : saving
-                ? "Menyimpan..."
-                : editingId
-                ? "Simpan Perubahan"
-                : "+ Tambah Brand"}
+              + Tambah Brand
             </button>
+          </div>
+        </div>
+      )}
 
-            {editingId && (
+      {showForm && (
+        <div
+          className="admin-card"
+          style={{
+            marginBottom: "24px",
+          }}
+        >
+          <div
+            className="admin-page-header"
+          >
+            <div>
+              <h2>
+                {editingId
+                  ? "Edit Brand"
+                  : "Tambah Brand"}
+              </h2>
+
+              <p>
+                Isi informasi brand dan
+                tentukan urutan tampilnya.
+              </p>
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="admin-form"
+            style={{
+              marginTop: "18px",
+            }}
+          >
+            <div className="admin-form-grid">
+
+              <div className="admin-form-group">
+                <label>
+                  Nama Brand *
+                </label>
+
+                <input
+                  value={nama}
+                  onChange={(e) =>
+                    handleNamaChange(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Contoh: Philips"
+                  required
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label>
+                  Slug
+                </label>
+
+                <input
+                  value={slug}
+                  onChange={(e) =>
+                    setSlug(
+                      e.target.value
+                    )
+                  }
+                  placeholder="philips"
+                />
+              </div>
+
+            </div>
+
+            <div className="admin-form-grid">
+
+              <div className="admin-form-group">
+                <label>
+                  Urutan Tampil
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  value={urutan}
+                  onChange={(e) =>
+                    setUrutan(
+                      e.target.value
+                    )
+                  }
+                />
+
+                <small>
+                  Angka lebih kecil akan
+                  tampil lebih dahulu.
+                </small>
+              </div>
+
+              <div className="admin-form-group">
+                <label>
+                  Logo Brand
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={
+                    handleLogoChange
+                  }
+                />
+
+                <small>
+                  JPG, PNG atau WEBP.
+                  Maksimal 5 MB.
+                </small>
+              </div>
+
+            </div>
+
+            {preview && (
+              <div className="admin-form-group">
+                <label>
+                  Preview Logo
+                </label>
+
+                <div
+                  style={{
+                    width: "180px",
+                    height: "120px",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    background: "#fff",
+                    border:
+                      "1px solid #ddd2c3",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent:
+                      "center",
+                  }}
+                >
+                  <img
+                    src={preview}
+                    alt="Preview logo"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
+                </div>
+
+                {editingId &&
+                  logoUrl && (
+                    <button
+                      type="button"
+                      className="admin-secondary-button"
+                      onClick={() =>
+                        hapusLogo({
+                          id: editingId,
+                          logo_url:
+                            logoUrl,
+                        })
+                      }
+                    >
+                      Hapus Logo
+                    </button>
+                  )}
+              </div>
+            )}
+
+            {error && (
+              <div className="admin-message admin-message-error">
+                {error}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                type="submit"
+                className="admin-primary-button"
+                disabled={
+                  saving || uploading
+                }
+              >
+                {uploading
+                  ? "Mengupload logo..."
+                  : saving
+                  ? "Menyimpan..."
+                  : editingId
+                  ? "Simpan Perubahan"
+                  : "Simpan Brand"}
+              </button>
+
               <button
                 type="button"
                 className="admin-secondary-button"
                 onClick={resetForm}
               >
-                Batal Edit
+                Batal
               </button>
-            )}
+            </div>
+          </form>
+        </div>
+      )}
 
-          </div>
-
-        </form>
-
-      </div>
-
-      <div
-        className="admin-card"
-        style={{ marginTop: "24px" }}
-      >
+      <div className="admin-card">
 
         <div className="admin-page-header">
-
           <div>
             <h2>
-              Daftar Brand
+              Semua Brand
             </h2>
 
             <p>
-              {brand.length} brand tersimpan.
+              Brand diurutkan berdasarkan
+              Urutan Tampil.
             </p>
           </div>
-
         </div>
 
         <div
           className="admin-product-toolbar"
-          style={{ marginTop: "16px" }}
+          style={{
+            marginTop: "16px",
+          }}
         >
-
           <input
             type="text"
             placeholder="Cari brand..."
             value={search}
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
           />
-
         </div>
 
         {loading ? (
-          <div style={{ padding: "20px 0" }}>
+          <div
+            style={{
+              padding: "20px 0",
+            }}
+          >
             Memuat brand...
           </div>
         ) : filteredBrand.length === 0 ? (
           <div
             className="admin-message"
-            style={{ marginTop: "20px" }}
+            style={{
+              marginTop: "20px",
+            }}
           >
             Belum ada brand yang sesuai.
           </div>
         ) : (
           <div
             className="admin-product-table-wrapper"
-            style={{ marginTop: "20px" }}
+            style={{
+              marginTop: "20px",
+            }}
           >
-
             <table className="admin-product-table">
 
               <thead>
                 <tr>
-                  <th>Urutan</th>
-                  <th>Logo</th>
-                  <th>Nama Brand</th>
-                  <th>Slug</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
+                  <th>
+                    Urutan
+                  </th>
+
+                  <th>
+                    Logo
+                  </th>
+
+                  <th>
+                    Nama Brand
+                  </th>
+
+                  <th>
+                    Slug
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Aksi
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
+                {filteredBrand.map(
+                  (item) => (
+                    <tr
+                      key={item.id}
+                    >
+                      <td>
+                        <strong>
+                          {item.urutan ??
+                            0}
+                        </strong>
+                      </td>
 
-                {filteredBrand.map((item) => (
-                  <tr key={item.id}>
+                      <td>
+                        {item.logo_url ? (
+                          <img
+                            src={
+                              item.logo_url
+                            }
+                            alt={
+                              item.nama
+                            }
+                            style={{
+                              width:
+                                "80px",
+                              height:
+                                "55px",
+                              objectFit:
+                                "contain",
+                              borderRadius:
+                                "8px",
+                              background:
+                                "#fff",
+                            }}
+                          />
+                        ) : (
+                          <span>
+                            -
+                          </span>
+                        )}
+                      </td>
 
-                    <td>
-                      <strong>
-                        {item.urutan || 1}
-                      </strong>
-                    </td>
+                      <td>
+                        <strong>
+                          {item.nama}
+                        </strong>
+                      </td>
 
-                    <td>
-                      {item.logo_url ? (
-                        <img
-                          src={item.logo_url}
-                          alt={item.nama}
-                          style={{
-                            width: "80px",
-                            height: "55px",
-                            objectFit: "contain",
-                            borderRadius: "8px",
-                            background: "#fff",
-                          }}
-                        />
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </td>
+                      <td>
+                        {item.slug ||
+                          "-"}
+                      </td>
 
-                    <td>
-                      <strong>
-                        {item.nama}
-                      </strong>
-                    </td>
+                      <td>
+                        {item.aktif ? (
+                          <span className="admin-status active">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="admin-status inactive">
+                            Nonaktif
+                          </span>
+                        )}
+                      </td>
 
-                    <td>
-                      {item.slug || "-"}
-                    </td>
+                      <td>
+                        <div className="admin-product-actions">
 
-                    <td>
-                      {item.aktif ? (
-                        <span className="admin-status active">
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="admin-status inactive">
-                          Nonaktif
-                        </span>
-                      )}
-                    </td>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              mulaiEdit(
+                                item
+                              )
+                            }
+                          >
+                            Edit
+                          </button>
 
-                    <td>
-                      <div className="admin-product-actions">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toggleAktif(
+                                item
+                              )
+                            }
+                          >
+                            {item.aktif
+                              ? "Nonaktifkan"
+                              : "Aktifkan"}
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            mulaiEdit(item)
-                          }
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            toggleAktif(item)
-                          }
-                        >
-                          {item.aktif
-                            ? "Nonaktifkan"
-                            : "Aktifkan"}
-                        </button>
-
-                      </div>
-                    </td>
-
-                  </tr>
-                ))}
-
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
 
             </table>
-
           </div>
         )}
-
       </div>
 
     </main>
