@@ -87,7 +87,10 @@ export default function CartNav({
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: "5px",
+        verticalAlign: "middle",
+        lineHeight: 1,
       }}
     >
       <span
@@ -97,6 +100,7 @@ export default function CartNav({
           alignItems: "center",
           justifyContent: "center",
           color: "#4f8a5b",
+          lineHeight: 0,
         }}
       >
         <CartIcon />
@@ -127,7 +131,15 @@ export default function CartNav({
         )}
       </span>
 
-      <span>{label}</span>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </span>
     </span>
   );
 }
