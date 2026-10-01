@@ -148,6 +148,13 @@ export default function TokoPage() {
           >
             Informasi Toko & Kontak
           </Link>
+              
+          <Link
+            href="/admin/toko/jam-operasional"
+            className="contactButton"
+          >
+            Jam Operasional
+          </Link>
 
           <Link
             href="/admin/toko/cabang/tambah"
