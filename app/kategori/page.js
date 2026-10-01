@@ -1,129 +1,90 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
 
-export default function Page() {
-  const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") === "brand"
-    ? "brand"
-    : "kategori";
+export const dynamic = "force-dynamic";
 
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+export default async function Page({ searchParams }) {
+  const params = await searchParams;
 
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const activeTab =
+    params?.tab === "brand"
+      ? "brand"
+      : "kategori";
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      setErrorMessage("");
+  const supabase = getSupabase();
 
-      const supabase = getSupabase();
+  let categories = [];
+  let brands = [];
+  let errorMessage = null;
 
-      if (!supabase) {
-        setErrorMessage(
-          "Koneksi Supabase belum tersedia."
-        );
-        setLoading(false);
-        return;
-      }
+  if (!supabase) {
+    errorMessage =
+      "Koneksi Supabase belum tersedia.";
+  } else {
+    const [
+      categoriesResult,
+      brandsResult,
+    ] = await Promise.all([
+      supabase
+        .from("kategori")
+        .select(`
+          id,
+          nama,
+          slug,
+          deskripsi,
+          parent_id,
+          urutan,
+          gambar_url
+        `)
+        .eq("aktif", true)
+        .order("urutan", {
+          ascending: true,
+        })
+        .order("nama", {
+          ascending: true,
+        }),
 
-      const [
-        categoriesResult,
-        brandsResult,
-      ] = await Promise.all([
-        supabase
-          .from("kategori")
-          .select(`
-            id,
-            nama,
-            slug,
-            deskripsi,
-            parent_id,
-            urutan,
-            gambar_url
-          `)
-          .eq("aktif", true)
-          .order("urutan", {
-            ascending: true,
-          })
-          .order("nama", {
-            ascending: true,
-          }),
+      supabase
+        .from("brand")
+        .select(`
+          id,
+          nama,
+          slug,
+          logo_url
+        `)
+        .eq("aktif", true)
+        .order("nama", {
+          ascending: true,
+        }),
+    ]);
 
-        supabase
-          .from("brand")
-          .select(`
-            id,
-            nama,
-            slug,
-            logo_url
-          `)
-          .eq("aktif", true)
-          .order("nama", {
-            ascending: true,
-          }),
-      ]);
-
-      if (categoriesResult.error) {
-        console.error(
-          "SUPABASE KATEGORI ERROR:",
-          categoriesResult.error
-        );
-
-        setErrorMessage(
-          categoriesResult.error.message
-        );
-        setLoading(false);
-        return;
-      }
-
-      if (brandsResult.error) {
-        console.error(
-          "SUPABASE BRAND ERROR:",
-          brandsResult.error
-        );
-
-        setErrorMessage(
-          brandsResult.error.message
-        );
-        setLoading(false);
-        return;
-      }
-
-      setCategories(
-        categoriesResult.data || []
+    if (categoriesResult.error) {
+      console.error(
+        "SUPABASE KATEGORI ERROR:",
+        categoriesResult.error
       );
 
-      setBrands(
-        brandsResult.data || []
-      );
-
-      setLoading(false);
+      errorMessage =
+        categoriesResult.error.message;
+    } else {
+      categories =
+        categoriesResult.data || [];
     }
 
-    loadData();
-  }, []);
+    if (brandsResult.error) {
+      console.error(
+        "SUPABASE BRAND ERROR:",
+        brandsResult.error
+      );
 
-  function changeTab(nextTab) {
-    const url =
-      nextTab === "brand"
-        ? "/kategori?tab=brand"
-        : "/kategori";
-
-    window.history.pushState(
-      {},
-      "",
-      url
-    );
-
-    window.dispatchEvent(
-      new PopStateEvent("popstate")
-    );
+      if (!errorMessage) {
+        errorMessage =
+          brandsResult.error.message;
+      }
+    } else {
+      brands =
+        brandsResult.data || [];
+    }
   }
 
   return (
@@ -138,11 +99,11 @@ export default function Page() {
             color: "#6b6258",
           }}
         >
-          Jelajahi produk berdasarkan kategori
-          atau brand.
+          Jelajahi produk berdasarkan
+          kategori atau brand.
         </p>
 
-        {/* TAB */}
+        {/* TAB KATEGORI / BRAND */}
         <div
           style={{
             display: "flex",
@@ -153,57 +114,49 @@ export default function Page() {
               "1px solid #e2d7c8",
           }}
         >
-          <button
-            type="button"
-            onClick={() =>
-              changeTab("kategori")
-            }
+          <Link
+            href="/kategori"
             style={{
-              border: "none",
+              textDecoration: "none",
               background:
-                tab === "kategori"
+                activeTab === "kategori"
                   ? "#7a4f35"
                   : "#f5f0e8",
               color:
-                tab === "kategori"
-                  ? "#fff"
+                activeTab === "kategori"
+                  ? "#ffffff"
                   : "#4b3528",
               padding:
-                "10px 18px",
+                "10px 20px",
               borderRadius:
                 "10px 10px 0 0",
               fontWeight: 700,
-              cursor: "pointer",
             }}
           >
             Kategori
-          </button>
+          </Link>
 
-          <button
-            type="button"
-            onClick={() =>
-              changeTab("brand")
-            }
+          <Link
+            href="/kategori?tab=brand"
             style={{
-              border: "none",
+              textDecoration: "none",
               background:
-                tab === "brand"
+                activeTab === "brand"
                   ? "#7a4f35"
                   : "#f5f0e8",
               color:
-                tab === "brand"
-                  ? "#fff"
+                activeTab === "brand"
+                  ? "#ffffff"
                   : "#4b3528",
               padding:
-                "10px 18px",
+                "10px 20px",
               borderRadius:
                 "10px 10px 0 0",
               fontWeight: 700,
-              cursor: "pointer",
             }}
           >
             Brand
-          </button>
+          </Link>
         </div>
 
         {errorMessage ? (
@@ -211,15 +164,9 @@ export default function Page() {
             <b>Koneksi database:</b>{" "}
             {errorMessage}
           </div>
-        ) : loading ? (
-          <div className="notice">
-            Memuat data...
-          </div>
-        ) : tab === "brand" ? (
+        ) : activeTab === "brand" ? (
           <>
-            <h2>
-              Brand
-            </h2>
+            <h2>Brand</h2>
 
             {brands.length === 0 ? (
               <div className="notice">
@@ -246,9 +193,12 @@ export default function Page() {
                       padding: "16px",
                       minHeight: "160px",
                       display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flexDirection:
+                        "column",
+                      alignItems:
+                        "center",
+                      justifyContent:
+                        "center",
                       textAlign: "center",
                     }}
                   >
@@ -257,8 +207,10 @@ export default function Page() {
                         width: "100%",
                         height: "90px",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        alignItems:
+                          "center",
+                        justifyContent:
+                          "center",
                         marginBottom: "12px",
                       }}
                     >
@@ -267,8 +219,10 @@ export default function Page() {
                           src={brand.logo_url}
                           alt={brand.nama}
                           style={{
-                            maxWidth: "100%",
-                            maxHeight: "82px",
+                            maxWidth:
+                              "100%",
+                            maxHeight:
+                              "82px",
                             objectFit:
                               "contain",
                           }}
@@ -276,9 +230,12 @@ export default function Page() {
                       ) : (
                         <span
                           style={{
-                            fontSize: "18px",
-                            fontWeight: 800,
-                            color: "#6f4a32",
+                            fontSize:
+                              "18px",
+                            fontWeight:
+                              800,
+                            color:
+                              "#6f4a32",
                           }}
                         >
                           {brand.nama}
@@ -302,9 +259,7 @@ export default function Page() {
           </>
         ) : (
           <>
-            <h2>
-              Kategori
-            </h2>
+            <h2>Kategori</h2>
 
             {categories.length === 0 ? (
               <div className="notice">
@@ -333,27 +288,32 @@ export default function Page() {
                     >
                       <article
                         style={{
-                          background: "#fff",
+                          background:
+                            "#fff",
                           border:
                             "1px solid #e2d7c8",
                           borderRadius:
                             "14px",
-                          padding: "14px",
+                          padding:
+                            "14px",
                           minHeight:
                             "190px",
                         }}
                       >
                         <div
                           style={{
-                            width: "100%",
-                            height: "130px",
+                            width:
+                              "100%",
+                            height:
+                              "130px",
                             borderRadius:
                               "10px",
                             overflow:
                               "hidden",
                             background:
                               "#f5f0e8",
-                            display: "flex",
+                            display:
+                              "flex",
                             alignItems:
                               "center",
                             justifyContent:
@@ -386,7 +346,8 @@ export default function Page() {
                                   "14px",
                               }}
                             >
-                              Belum ada gambar
+                              Belum ada
+                              gambar
                             </span>
                           )}
                         </div>
