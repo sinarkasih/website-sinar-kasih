@@ -1,5 +1,7 @@
 import { getSupabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 function normalizeUrl(value, type) {
   if (!value) return "#";
 
