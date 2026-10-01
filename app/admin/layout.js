@@ -19,6 +19,26 @@ export default function AdminLayout({ children }) {
             Produk
           </Link>
 
+          <Link
+            href="/admin/kategori"
+            style={{
+              paddingLeft: "28px",
+              fontSize: "15px",
+            }}
+          >
+            Kategori
+          </Link>
+
+          <Link
+            href="/admin/brand"
+            style={{
+              paddingLeft: "28px",
+              fontSize: "15px",
+            }}
+          >
+            Brand
+          </Link>
+
           <Link href="/admin/pesanan">
             Pesanan
           </Link>
@@ -100,10 +120,6 @@ export default function AdminLayout({ children }) {
 
           padding: 0 24px;
 
-          /*
-           * SATU-SATUNYA PERUBAHAN:
-           * ukuran tulisan Admin Panel diperkecil.
-           */
           font-size: 16px;
           font-weight: 700;
           line-height: 1.2;
