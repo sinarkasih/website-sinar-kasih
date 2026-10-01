@@ -6,7 +6,9 @@ export default function AddToCart({ product }) {
       localStorage.getItem("sinar_kasih_cart") || "[]"
     );
 
-    const existing = current.find((item) => item.id === product.id);
+    const existing = current.find(
+      (item) => item.id === product.id
+    );
 
     if (existing) {
       existing.qty += 1;
@@ -28,11 +30,18 @@ export default function AddToCart({ product }) {
       JSON.stringify(current)
     );
 
+    window.dispatchEvent(
+      new Event("sinar-kasih-cart-updated")
+    );
+
     window.location.href = "/troli";
   }
 
   return (
-    <button className="btn" onClick={addToCart}>
+    <button
+      className="btn"
+      onClick={addToCart}
+    >
       Tambah ke Troli
     </button>
   );
