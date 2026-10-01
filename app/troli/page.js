@@ -20,6 +20,10 @@ export default function Page() {
       "sinar_kasih_cart",
       JSON.stringify(nextCart)
     );
+
+    window.dispatchEvent(
+      new Event("sinar-kasih-cart-updated")
+    );
   }
 
   function changeQty(id, amount) {
@@ -74,7 +78,8 @@ export default function Page() {
   }
 
   const totalItems = cart.reduce(
-    (total, item) => total + item.qty,
+    (total, item) =>
+      total + Math.max(0, Number(item.qty) || 0),
     0
   );
 
