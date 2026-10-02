@@ -2,6 +2,7 @@ import "./globals.css";
 
 import Link from "next/link";
 import CartNav from "./CartNav";
+import TampilanPublik from "./TampilanPublik";
 
 export const metadata = {
   title: "Sinar Kasih | Toko Listrik Ambon",
@@ -69,12 +70,7 @@ function InfoIcon() {
   );
 }
 
-function NavItem({
-  href,
-  label,
-  icon,
-  color,
-}) {
+function NavItem({ href, label, icon, color }) {
   return (
     <Link
       href={href}
@@ -133,82 +129,76 @@ export default function RootLayout({ children }) {
   return (
     <html lang="id">
       <body>
-        <header className="topbar">
-          <div className="wrap topbar-inner">
+        <TampilanPublik>
+          <header className="topbar">
+            <div className="wrap topbar-inner">
+              <Link href="/" className="brand">
+                <b>SK</b>
 
-            <Link
-              href="/"
-              className="brand"
-            >
-              <b>SK</b>
+                <span>
+                  <strong>SINAR KASIH</strong>
+                  <small>Toko Listrik Ambon</small>
+                </span>
+              </Link>
 
-              <span>
-                <strong>SINAR KASIH</strong>
-                <small>Toko Listrik Ambon</small>
-              </span>
-            </Link>
+              <nav>
+                <NavItem
+                  href="/"
+                  label="Beranda"
+                  color="#6f4a32"
+                  icon={<HomeIcon />}
+                />
 
-            <nav>
-              <NavItem
-                href="/"
-                label="Beranda"
-                color="#6f4a32"
-                icon={<HomeIcon />}
-              />
+                <NavItem
+                  href="/kategori"
+                  label="Kategori"
+                  color="#c58a2b"
+                  icon={<CategoryIcon />}
+                />
 
-              <NavItem
-                href="/kategori"
-                label="Kategori"
-                color="#c58a2b"
-                icon={<CategoryIcon />}
-              />
+                <CartLink />
 
-              <CartLink />
-
-              <NavItem
-                href="/lainnya"
-                label="Informasi"
-                color="#4d7185"
-                icon={<InfoIcon />}
-              />
-            </nav>
-
-          </div>
-        </header>
+                <NavItem
+                  href="/lainnya"
+                  label="Informasi"
+                  color="#4d7185"
+                  icon={<InfoIcon />}
+                />
+              </nav>
+            </div>
+          </header>
+        </TampilanPublik>
 
         <main>{children}</main>
 
-        <nav
-          className="bottom"
-          aria-label="Navigasi utama"
-        >
-          <NavItem
-            href="/"
-            label="Beranda"
-            color="#6f4a32"
-            icon={<HomeIcon />}
-          />
+        <TampilanPublik>
+          <nav className="bottom" aria-label="Navigasi utama">
+            <NavItem
+              href="/"
+              label="Beranda"
+              color="#6f4a32"
+              icon={<HomeIcon />}
+            />
 
-          <NavItem
-            href="/kategori"
-            label="Kategori"
-            color="#c58a2b"
-            icon={<CategoryIcon />}
-          />
+            <NavItem
+              href="/kategori"
+              label="Kategori"
+              color="#c58a2b"
+              icon={<CategoryIcon />}
+            />
 
-          <CartLink />
+            <CartLink />
 
-          <NavItem
-            href="/lainnya"
-            label="Informasi"
-            color="#4d7185"
-            icon={<InfoIcon />}
-          />
-        </nav>
+            <NavItem
+              href="/lainnya"
+              label="Informasi"
+              color="#4d7185"
+              icon={<InfoIcon />}
+            />
+          </nav>
 
-        <footer>
-          © 2026 Toko Listrik Sinar Kasih Ambon
-        </footer>
+          <footer>© 2026 Toko Listrik Sinar Kasih Ambon</footer>
+        </TampilanPublik>
       </body>
     </html>
   );
