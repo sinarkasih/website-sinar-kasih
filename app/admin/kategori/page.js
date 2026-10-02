@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 import Paginasi from "../Paginasi";
 
+import { useUrut, KolomUrut } from "../Urut";
 const PER_HALAMAN = 25;
 
 function buatSlug(text) {
@@ -557,12 +558,20 @@ export default function AdminKategoriPage() {
       );
     });
 
+  const urut = useUrut(filteredKategori, {
+    k0: (x) => Number(x.urutan ?? 0),
+    k1: (x) => x.nama,
+    k2: (x) => x.slug,
+    k3: (x) => x.parent_id ? namaParent(x.parent_id) : "Kategori Utama",
+    k4: (x) => x.aktif,
+  });
+
   const totalHalaman = Math.max(
     1,
-    Math.ceil(filteredKategori.length / PER_HALAMAN)
+    Math.ceil(urut.data.length / PER_HALAMAN)
   );
   const halamanAman = Math.min(halaman, totalHalaman);
-  const kategoriTampil = filteredKategori.slice(
+  const kategoriTampil = urut.data.slice(
     (halamanAman - 1) * PER_HALAMAN,
     halamanAman * PER_HALAMAN
   );
@@ -999,6 +1008,7 @@ export default function AdminKategoriPage() {
             marginTop: "16px",
           }}
         >
+          <div className="cari-x-wrap" style={{ maxWidth: "440px" }}>
           <input
             type="text"
             placeholder="Cari kategori..."
@@ -1010,6 +1020,18 @@ export default function AdminKategoriPage() {
               }
             }
           />
+          {search !== "" && (
+            <button
+              type="button"
+              className="cari-x"
+              onClick={() => { setSearch(""); setHalaman(1); }}
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+            >
+              ×
+            </button>
+          )}
+          </div>
         </div>
 
         {/* DATA */}
@@ -1049,29 +1071,19 @@ export default function AdminKategoriPage() {
 
               <thead>
                 <tr>
-                  <th>
-                    Urutan
-                  </th>
+                  <KolomUrut urut={urut} kunci="k0">Urutan</KolomUrut>
 
                   <th>
                     Gambar
                   </th>
 
-                  <th>
-                    Nama
-                  </th>
+                  <KolomUrut urut={urut} kunci="k1">Nama</KolomUrut>
 
-                  <th>
-                    Slug
-                  </th>
+                  <KolomUrut urut={urut} kunci="k2">Slug</KolomUrut>
 
-                  <th>
-                    Kategori Induk
-                  </th>
+                  <KolomUrut urut={urut} kunci="k3">Kategori Induk</KolomUrut>
 
-                  <th>
-                    Status
-                  </th>
+                  <KolomUrut urut={urut} kunci="k4">Status</KolomUrut>
 
                   <th>
                     Aksi

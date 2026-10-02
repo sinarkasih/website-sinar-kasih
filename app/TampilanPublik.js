@@ -15,3 +15,15 @@ export default function TampilanPublik({ children }) {
 
   return children;
 }
+
+// Membungkus isi halaman toko dengan kelas "situs"
+// supaya gaya seragam (judul, jarak) hanya berlaku di website publik.
+export function BungkusPublik({ children }) {
+  const pathname = usePathname();
+
+  if (pathname && pathname.startsWith("/admin")) {
+    return children;
+  }
+
+  return <div className="situs">{children}</div>;
+}

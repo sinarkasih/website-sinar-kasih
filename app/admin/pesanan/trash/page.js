@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../../Urut";
 export default function TrashPesananPage() {
   const router = useRouter();
 
@@ -240,6 +241,16 @@ export default function TrashPesananPage() {
 
     setProcessingId(null);
   }
+
+
+  const urut = useUrut(filteredPesanan, {
+    k0: (x) => x.nomor_pesanan,
+    k1: (x) => x.created_at,
+    k2: (x) => x.pelanggan?.nama,
+    k3: (x) => x.cabang?.nama,
+    k4: (x) => Number(x.total ?? 0),
+    k5: (x) => x.deleted_at,
+  });
 
   return (
     <main className="admin-content">
@@ -588,29 +599,17 @@ export default function TrashPesananPage() {
               <table className="trash-table">
                 <thead>
                   <tr>
-                    <th className="col-number">
-                      No. Pesanan
-                    </th>
+                    <KolomUrut urut={urut} kunci="k0" className="col-number">No. Pesanan</KolomUrut>
 
-                    <th className="col-date">
-                      Tanggal
-                    </th>
+                    <KolomUrut urut={urut} kunci="k1" className="col-date">Tanggal</KolomUrut>
 
-                    <th className="col-customer">
-                      Pelanggan
-                    </th>
+                    <KolomUrut urut={urut} kunci="k2" className="col-customer">Pelanggan</KolomUrut>
 
-                    <th className="col-branch">
-                      Cabang
-                    </th>
+                    <KolomUrut urut={urut} kunci="k3" className="col-branch">Cabang</KolomUrut>
 
-                    <th className="col-total">
-                      Total
-                    </th>
+                    <KolomUrut urut={urut} kunci="k4" className="col-total">Total</KolomUrut>
 
-                    <th className="col-deleted">
-                      Masuk Trash
-                    </th>
+                    <KolomUrut urut={urut} kunci="k5" className="col-deleted">Masuk Trash</KolomUrut>
 
                     <th className="col-action">
                       Aksi
@@ -619,7 +618,7 @@ export default function TrashPesananPage() {
                 </thead>
 
                 <tbody>
-                  {filteredPesanan.map(
+                  {urut.data.map(
                     (item) => (
                       <tr key={item.id}>
                         <td>

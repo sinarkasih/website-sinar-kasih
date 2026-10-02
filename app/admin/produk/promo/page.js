@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../../Urut";
 const FILTER_LABELS = [
   { key: "semua", nama: "Semua" },
   { key: "Baru", nama: "Baru" },
@@ -126,6 +127,15 @@ export default function PromoProdukPage() {
       .map((relasi) => relasi.label_produk)
       .filter(Boolean);
   }
+
+
+  const urut = useUrut(filteredProduk, {
+    k0: (x) => x.nama,
+    k1: (x) => x.sku,
+    k2: (x) => x.kategori?.nama,
+    k3: (x) => x.brand?.nama,
+    k4: (x) => x.aktif,
+  });
 
   return (
     <main className="admin-content">
@@ -472,29 +482,19 @@ export default function PromoProdukPage() {
 
               <thead>
                 <tr>
-                  <th className="col-product">
-                    Produk
-                  </th>
+                  <KolomUrut urut={urut} kunci="k0" className="col-product">Produk</KolomUrut>
 
-                  <th className="col-sku">
-                    SKU
-                  </th>
+                  <KolomUrut urut={urut} kunci="k1" className="col-sku">SKU</KolomUrut>
 
-                  <th className="col-category">
-                    Kategori
-                  </th>
+                  <KolomUrut urut={urut} kunci="k2" className="col-category">Kategori</KolomUrut>
 
-                  <th className="col-brand">
-                    Brand
-                  </th>
+                  <KolomUrut urut={urut} kunci="k3" className="col-brand">Brand</KolomUrut>
 
                   <th className="col-label">
                     Label
                   </th>
 
-                  <th className="col-status">
-                    Status
-                  </th>
+                  <KolomUrut urut={urut} kunci="k4" className="col-status">Status</KolomUrut>
 
                   <th className="col-action">
                     Aksi
@@ -504,7 +504,7 @@ export default function PromoProdukPage() {
 
               <tbody>
 
-                {filteredProduk.map((item) => {
+                {urut.data.map((item) => {
 
                   const itemLabels =
                     getProductLabels(item);

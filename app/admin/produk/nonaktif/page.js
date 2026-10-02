@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../../Urut";
 export default function ProdukNonaktifPage() {
   const router = useRouter();
   const supabase = getSupabase();
@@ -97,6 +98,15 @@ export default function ProdukNonaktifPage() {
 
     loadProduk();
   }
+
+
+  const urut = useUrut(filteredProduk, {
+    k0: (x) => x.nama,
+    k1: (x) => x.sku,
+    k2: (x) => x.kategori?.nama,
+    k3: (x) => x.brand?.nama,
+    k4: (x) => Number(x.stok ?? 0),
+  });
 
   return (
     <main className="admin-content">
@@ -392,25 +402,15 @@ export default function ProdukNonaktifPage() {
 
               <thead>
                 <tr>
-                  <th className="col-product">
-                    Produk
-                  </th>
+                  <KolomUrut urut={urut} kunci="k0" className="col-product">Produk</KolomUrut>
 
-                  <th className="col-sku">
-                    SKU
-                  </th>
+                  <KolomUrut urut={urut} kunci="k1" className="col-sku">SKU</KolomUrut>
 
-                  <th className="col-category">
-                    Kategori
-                  </th>
+                  <KolomUrut urut={urut} kunci="k2" className="col-category">Kategori</KolomUrut>
 
-                  <th className="col-brand">
-                    Brand
-                  </th>
+                  <KolomUrut urut={urut} kunci="k3" className="col-brand">Brand</KolomUrut>
 
-                  <th className="col-stock">
-                    Stok
-                  </th>
+                  <KolomUrut urut={urut} kunci="k4" className="col-stock">Stok</KolomUrut>
 
                   <th className="col-status">
                     Status
@@ -424,7 +424,7 @@ export default function ProdukNonaktifPage() {
 
               <tbody>
 
-                {filteredProduk.map((item) => (
+                {urut.data.map((item) => (
                   <tr key={item.id}>
 
                     <td>

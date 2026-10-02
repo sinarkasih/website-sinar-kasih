@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+import { useUrut, KolomUrut } from "../Urut";
 export default function TokoPage() {
   const [cabang, setCabang] = useState([]);
   const [filter, setFilter] = useState("semua");
@@ -127,6 +128,15 @@ export default function TokoPage() {
         .includes(keyword);
 
     return matchesFilter && matchesSearch;
+  });
+
+
+  const urut = useUrut(filteredCabang, {
+    k0: (x) => Number(x.urutan ?? 0),
+    k1: (x) => x.nama,
+    k2: (x) => x.alamat,
+    k3: (x) => x.telepon,
+    k4: (x) => x.aktif,
   });
 
   return (
@@ -268,19 +278,19 @@ export default function TokoPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Urutan</th>
-                  <th>Nama Cabang</th>
-                  <th>Alamat</th>
-                  <th>Telepon</th>
+                  <KolomUrut urut={urut} kunci="k0">Urutan</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k1">Nama Cabang</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k2">Alamat</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k3">Telepon</KolomUrut>
                   <th>Google Maps</th>
                   <th>Google Review</th>
-                  <th>Status</th>
+                  <KolomUrut urut={urut} kunci="k4">Status</KolomUrut>
                   <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredCabang.map((item) => (
+                {urut.data.map((item) => (
                   <tr key={item.id}>
                     <td>
                       {item.urutan ?? "-"}

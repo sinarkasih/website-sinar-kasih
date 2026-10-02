@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../Urut";
 const DOMAIN_AKUN = "@sinarkasih.co.id";
 
 // Daftar jabatan & hak aksesnya.
@@ -251,6 +252,14 @@ export default function PengaturanPage() {
     muat();
   }
 
+
+  const urut = useUrut(daftar, {
+    k0: (x) => x.nama,
+    k1: (x) => x.email,
+    k2: (x) => x.role,
+    k3: (x) => x.aktif,
+  });
+
   return (
     <div className="pg">
       <div className="admin-page-header">
@@ -455,15 +464,15 @@ export default function PengaturanPage() {
           <table>
             <thead>
               <tr>
-                <th>Nama</th>
-                <th>Username</th>
-                <th>Jabatan</th>
-                <th>Status</th>
+                <KolomUrut urut={urut} kunci="k0">Nama</KolomUrut>
+                <KolomUrut urut={urut} kunci="k1">Username</KolomUrut>
+                <KolomUrut urut={urut} kunci="k2">Jabatan</KolomUrut>
+                <KolomUrut urut={urut} kunci="k3">Status</KolomUrut>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {daftar.map((akun) => {
+              {urut.data.map((akun) => {
                 const akunSaya = akun.auth_user_id === saya;
                 const sedangEdit = editId === akun.id;
                 const sibuk = prosesId === akun.id;

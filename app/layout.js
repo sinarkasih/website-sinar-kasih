@@ -2,7 +2,7 @@ import "./globals.css";
 
 import Link from "next/link";
 import CartNav from "./CartNav";
-import TampilanPublik from "./TampilanPublik";
+import TampilanPublik, { BungkusPublik } from "./TampilanPublik";
 
 export const metadata = {
   title: "Sinar Kasih | Toko Listrik Ambon",
@@ -170,7 +170,7 @@ export default function RootLayout({ children }) {
                 <CartLink />
 
                 <NavItem
-                  href="/lainnya"
+                  href="/info"
                   label="Informasi"
                   color="#4d7185"
                   icon={<InfoIcon />}
@@ -180,7 +180,9 @@ export default function RootLayout({ children }) {
           </header>
         </TampilanPublik>
 
-        <main>{children}</main>
+        <main>
+          <BungkusPublik>{children}</BungkusPublik>
+        </main>
 
         <TampilanPublik>
           <nav className="bottom" aria-label="Navigasi utama">
@@ -201,14 +203,50 @@ export default function RootLayout({ children }) {
             <CartLink />
 
             <NavItem
-              href="/lainnya"
+              href="/info"
               label="Informasi"
               color="#4d7185"
               icon={<InfoIcon />}
             />
           </nav>
 
-          <footer>© 2026 Toko Listrik Sinar Kasih Ambon</footer>
+          <footer className="kaki">
+            <div className="wrap kaki-isi">
+              <div className="kaki-merek">
+                <img
+                  src="/logo-sinar-kasih.png"
+                  alt="Sinar Kasih"
+                  width="180"
+                  height="35"
+                  style={{ width: "180px", height: "auto" }}
+                />
+                <p>
+                  Toko listrik, lampu, dan perlengkapan rumah di Ambon dan
+                  Maluku Tengah.
+                </p>
+              </div>
+
+              <div className="kaki-kolom">
+                <h4>Belanja</h4>
+                <Link href="/kategori">Kategori Produk</Link>
+                <Link href="/kategori?tab=brand">Brand</Link>
+                <Link href="/cari">Cari Produk</Link>
+                <Link href="/cara-pesan">Cara Pesan</Link>
+              </div>
+
+              <div className="kaki-kolom">
+                <h4>Sinar Kasih</h4>
+                <Link href="/toko">Toko Kami</Link>
+                <Link href="/tentang">Tentang Kami</Link>
+                <Link href="/loker">Lowongan Kerja</Link>
+                <Link href="/info">Informasi &amp; Layanan</Link>
+              </div>
+            </div>
+
+            <div className="wrap kaki-bawah">
+              © {new Date().getFullYear()} Toko Listrik Sinar Kasih Ambon
+            </div>
+          </footer>
         </TampilanPublik>
       </body>
     </html>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+import { useUrut, KolomUrut } from "../Urut";
 export default function Page() {
   const [pelanggan, setPelanggan] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +91,15 @@ export default function Page() {
   function clearSearch() {
     setSearch("");
   }
+
+
+  const urut = useUrut(filteredPelanggan, {
+    k0: (x) => x.nama,
+    k1: (x) => x.telepon,
+    k2: (x) => x.tipe,
+    k3: (x) => x.alamat,
+    k4: (x) => x.aktif,
+  });
 
   return (
     <section className="dash pelanggan-page">
@@ -205,17 +215,17 @@ export default function Page() {
             <table>
               <thead>
                 <tr>
-                  <th>Nama</th>
-                  <th>Kontak</th>
-                  <th>Tipe</th>
-                  <th>Alamat</th>
-                  <th>Status</th>
+                  <KolomUrut urut={urut} kunci="k0">Nama</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k1">Kontak</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k2">Tipe</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k3">Alamat</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k4">Status</KolomUrut>
                   <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredPelanggan.map((item) => (
+                {urut.data.map((item) => (
                   <tr key={item.id}>
                     <td>
                       <div className="customer-name">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 import Paginasi from "../Paginasi";
 
+import { useUrut, KolomUrut } from "../Urut";
 const PER_HALAMAN = 25;
 
 function buatSlug(text) {
@@ -484,12 +485,19 @@ export default function AdminBrandPage() {
       );
     });
 
+  const urut = useUrut(filteredBrand, {
+    k0: (x) => Number(x.urutan ?? 0),
+    k1: (x) => x.nama,
+    k2: (x) => x.slug,
+    k3: (x) => x.aktif,
+  });
+
   const totalHalaman = Math.max(
     1,
-    Math.ceil(filteredBrand.length / PER_HALAMAN)
+    Math.ceil(urut.data.length / PER_HALAMAN)
   );
   const halamanAman = Math.min(halaman, totalHalaman);
-  const brandTampil = filteredBrand.slice(
+  const brandTampil = urut.data.slice(
     (halamanAman - 1) * PER_HALAMAN,
     halamanAman * PER_HALAMAN
   );
@@ -800,6 +808,7 @@ export default function AdminBrandPage() {
             marginTop: "16px",
           }}
         >
+          <div className="cari-x-wrap" style={{ maxWidth: "440px" }}>
           <input
             type="text"
             placeholder="Cari brand..."
@@ -811,6 +820,18 @@ export default function AdminBrandPage() {
               }
             }
           />
+          {search !== "" && (
+            <button
+              type="button"
+              className="cari-x"
+              onClick={() => { setSearch(""); setHalaman(1); }}
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+            >
+              ×
+            </button>
+          )}
+          </div>
         </div>
 
         {loading ? (
@@ -842,25 +863,17 @@ export default function AdminBrandPage() {
 
               <thead>
                 <tr>
-                  <th>
-                    Urutan
-                  </th>
+                  <KolomUrut urut={urut} kunci="k0">Urutan</KolomUrut>
 
                   <th>
                     Logo
                   </th>
 
-                  <th>
-                    Nama Brand
-                  </th>
+                  <KolomUrut urut={urut} kunci="k1">Nama Brand</KolomUrut>
 
-                  <th>
-                    Slug
-                  </th>
+                  <KolomUrut urut={urut} kunci="k2">Slug</KolomUrut>
 
-                  <th>
-                    Status
-                  </th>
+                  <KolomUrut urut={urut} kunci="k3">Status</KolomUrut>
 
                   <th>
                     Aksi

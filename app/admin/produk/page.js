@@ -10,8 +10,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../lib/supabase";
 import Paginasi from "../Paginasi";
+import { KolomUrut } from "../Urut";
+import { useAdmin } from "../AdminContext";
 
 const PER_HALAMAN = 25;
+
+// Kolom tabel -> kolom database untuk mengurutkan
+const KOLOM_URUT = {
+  produk: "nama",
+  sku: "sku",
+  kategori: "kategori_nama",
+  brand: "brand_nama",
+  harga: "harga_urut",
+  stok: "stok",
+  status: "aktif",
+};
 
 function formatRupiah(angka) {
   return new Intl.NumberFormat("id-ID", {
@@ -33,8 +46,22 @@ function teksHarga(h) {
 
 export default function AdminProdukPage() {
   const router = useRouter();
+  const admin = useAdmin();
+  const [urutan, setUrutan] = useState({ kunci: null, arah: "asc" });
+
+  const urut = {
+    kunci: urutan.kunci,
+    arah: urutan.arah,
+    ganti: (kunci) => {
+      setUrutan((u) => {
+        if (u.kunci !== kunci) return { kunci, arah: "asc" };
+        if (u.arah === "asc") return { kunci, arah: "desc" };
+        return { kunci: null, arah: "asc" };
+      });
+      setHalaman(1);
+    },
+  };
   const [produk, setProduk] = useState([]);
-  const [harga, setHarga] = useState({});
   const [total, setTotal] = useState(0);
   const [halaman, setHalaman] = useState(1);
   const [ketik, setKetik] = useState("");
@@ -66,22 +93,20 @@ export default function AdminProdukPage() {
     const dari = (halaman - 1) * PER_HALAMAN;
 
     let q = supabase
-      .from("produk")
+      .from("produk_katalog")
       .select(
-        `
-          id,
-          nama,
-          sku,
-          slug,
-          satuan,
-          stok,
-          aktif,
-          kategori:kategori_id ( id, nama ),
-          brand:brand_id ( id, nama )
-        `,
+        "id, nama, sku, slug, satuan, stok, aktif, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max",
         { count: "exact" }
       )
-      .is("deleted_at", null)
+      .is("deleted_at", null);
+
+    if (urutan.kunci) {
+      q = q.order(KOLOM_URUT[urutan.kunci], {
+        ascending: urutan.arah === "asc",
+        nullsFirst: false,
+      });
+    }
+    q = q
       .order("id", { ascending: false })
       .range(dari, dari + PER_HALAMAN - 1);
 
@@ -96,7 +121,11 @@ export default function AdminProdukPage() {
 
     if (produkError) {
       console.error("Gagal mengambil produk:", produkError);
-      setError(produkError.message);
+      setError(
+        /produk_katalog/.test(produkError.message || "")
+          ? "Daftar produk butuh pembaruan database. Jalankan langkah SQL dari paket terbaru di Supabase."
+          : produkError.message
+      );
       setLoading(false);
       return;
     }
@@ -104,28 +133,8 @@ export default function AdminProdukPage() {
     setProduk(data || []);
     setTotal(count || 0);
 
-    // Ambil harga aktif untuk produk di halaman ini
-    const ids = (data || []).map((p) => p.id);
-    if (ids.length > 0) {
-      const { data: dataHarga } = await supabase
-        .from("harga_produk")
-        .select("produk_id, mode_harga, harga, harga_min, harga_max, id")
-        .in("produk_id", ids)
-        .is("variasi_id", null)
-        .eq("aktif", true)
-        .order("id", { ascending: false });
-
-      const peta = {};
-      (dataHarga || []).forEach((h) => {
-        if (!peta[h.produk_id]) peta[h.produk_id] = h;
-      });
-      setHarga(peta);
-    } else {
-      setHarga({});
-    }
-
     setLoading(false);
-  }, [halaman, cari]);
+  }, [halaman, cari, urutan]);
 
   useEffect(() => {
     loadProduk();
@@ -180,12 +189,14 @@ export default function AdminProdukPage() {
         </div>
 
         <div className="prd-aksi-kepala">
-          <Link
-            href="/admin/produk/impor-ekspor"
-            className="admin-secondary-button"
-          >
-            Impor / Ekspor
-          </Link>
+          {admin?.role === "admin_utama" && (
+            <Link
+              href="/admin/produk/impor-ekspor"
+              className="admin-secondary-button"
+            >
+              Impor / Ekspor
+            </Link>
+          )}
           <Link href="/admin/produk/tambah" className="admin-primary-button">
             + Tambah Produk
           </Link>
@@ -238,20 +249,20 @@ export default function AdminProdukPage() {
             <table className="admin-product-table">
               <thead>
                 <tr>
-                  <th>Produk</th>
-                  <th>SKU</th>
-                  <th>Kategori</th>
-                  <th>Brand</th>
-                  <th>Harga</th>
-                  <th>Stok</th>
-                  <th>Status</th>
+                  <KolomUrut urut={urut} kunci="produk">Produk</KolomUrut>
+                  <KolomUrut urut={urut} kunci="sku">SKU</KolomUrut>
+                  <KolomUrut urut={urut} kunci="kategori">Kategori</KolomUrut>
+                  <KolomUrut urut={urut} kunci="brand">Brand</KolomUrut>
+                  <KolomUrut urut={urut} kunci="harga">Harga</KolomUrut>
+                  <KolomUrut urut={urut} kunci="stok">Stok</KolomUrut>
+                  <KolomUrut urut={urut} kunci="status">Status</KolomUrut>
                   <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody className={loading ? "prd-redup" : ""}>
                 {produk.map((item) => {
-                  const h = teksHarga(harga[item.id]);
+                  const h = teksHarga(item);
                   return (
                     <tr key={item.id}>
                       <td>
@@ -259,8 +270,8 @@ export default function AdminProdukPage() {
                         <div className="admin-product-slug">/{item.slug}</div>
                       </td>
                       <td>{item.sku || "-"}</td>
-                      <td>{item.kategori?.nama || "-"}</td>
-                      <td>{item.brand?.nama || "-"}</td>
+                      <td>{item.kategori_nama || "-"}</td>
+                      <td>{item.brand_nama || "-"}</td>
                       <td className="prd-harga">
                         {h || <span className="prd-belum">Belum diatur</span>}
                       </td>

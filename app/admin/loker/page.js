@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
+import { useUrut, KolomUrut } from "../Urut";
 const tahapSeleksi = [
   {
     key: "pendaftaran",
@@ -946,6 +947,17 @@ export default function AdminLokerPage() {
       (item) => !item.aktif
     ).length;
 
+
+  const urut = useUrut(filteredLowongan, {
+    k0: (x) => Number(x.urutan ?? 0),
+    k1: (x) => x.posisi,
+    k2: (x) => x.lokasi,
+    k3: (x) => x.status,
+    k4: (x) => x.tahap_seleksi,
+    k5: (x) => x.tanggal_buka,
+    k6: (x) => x.aktif,
+  });
+
   return (
     <main className="lokerAdminPage">
       <div className="page">
@@ -1632,19 +1644,19 @@ export default function AdminLokerPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Urutan</th>
-                    <th>Posisi</th>
-                    <th>Lokasi</th>
-                    <th>Status</th>
-                    <th>Tahap</th>
-                    <th>Periode</th>
-                    <th>Tampil</th>
+                    <KolomUrut urut={urut} kunci="k0">Urutan</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k1">Posisi</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k2">Lokasi</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k3">Status</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k4">Tahap</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k5">Periode</KolomUrut>
+                    <KolomUrut urut={urut} kunci="k6">Tampil</KolomUrut>
                     <th>Aksi</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {filteredLowongan.map(
+                  {urut.data.map(
                     (item) => {
                       const video =
                         isVideoUrl(

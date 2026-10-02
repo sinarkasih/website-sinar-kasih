@@ -84,99 +84,84 @@ export default function Page() {
   );
 
   return (
-    <section className="section">
+    <section className="section halaman-atas">
       <div className="wrap">
-        <h1>Troli</h1>
+        <div className="kepala-halaman">
+          <h1>Troli</h1>
+          <p>Periksa produk yang akan Anda pesan sebelum checkout.</p>
+        </div>
 
         {cart.length === 0 ? (
-          <div className="notice">
-            Troli masih kosong.
-            <br />
-            <br />
-
-            <a href="/kategori">
-              ← Belanja Produk
+          <div className="kosong-cantik">
+            <h2>Troli masih kosong</h2>
+            <p>Yuk, pilih produk kebutuhan listrik Anda terlebih dahulu.</p>
+            <a href="/kategori" className="btn">
+              Belanja Produk
             </a>
           </div>
         ) : (
-          <>
-            <div className="cards">
+          <div className="troli-tata">
+            <div className="troli-daftar">
               {cart.map((item) => (
-                <div
-                  className="card"
-                  key={item.id}
-                >
-                  <div className="img">
+                <div className="troli-baris" key={item.id}>
+                  <div className="troli-foto">
                     {item.gambar ? (
-                      <img
-                        src={item.gambar}
-                        alt={item.nama}
-                      />
+                      <img src={item.gambar} alt={item.nama} />
                     ) : (
-                      "Foto Produk"
+                      <span>Foto</span>
                     )}
                   </div>
 
-                  <h3>{item.nama}</h3>
-
-                  <div className="price">
-                    {getDisplayPrice(item)}
+                  <div className="troli-info">
+                    <h3>{item.nama}</h3>
+                    <span className="troli-harga">
+                      {getDisplayPrice(item)}
+                    </span>
                   </div>
 
-                  <p>
-                    Jumlah: {item.qty}
-                  </p>
-
-                  <div>
+                  <div className="troli-jumlah">
                     <button
-                      className="btn"
                       type="button"
-                      onClick={() =>
-                        changeQty(item.id, -1)
-                      }
+                      onClick={() => changeQty(item.id, -1)}
+                      aria-label="Kurangi"
                     >
                       −
                     </button>
-
+                    <span>{item.qty}</span>
                     <button
-                      className="btn"
                       type="button"
-                      onClick={() =>
-                        changeQty(item.id, 1)
-                      }
+                      onClick={() => changeQty(item.id, 1)}
+                      aria-label="Tambah"
                     >
                       +
                     </button>
-
-                    <button
-                      className="btn"
-                      type="button"
-                      onClick={() =>
-                        removeItem(item.id)
-                      }
-                    >
-                      Hapus
-                    </button>
                   </div>
+
+                  <button
+                    type="button"
+                    className="troli-hapus"
+                    onClick={() => removeItem(item.id)}
+                  >
+                    Hapus
+                  </button>
                 </div>
               ))}
             </div>
 
-            <div className="notice">
-              <b>Jumlah produk:</b>{" "}
-              {totalItems}
-
-              <br />
-              <br />
-
-              <a
-                href="/checkout"
-                className="btn"
-              >
+            <aside className="troli-ringkas">
+              <h2>Ringkasan</h2>
+              <div className="troli-total">
+                <span>Jumlah produk</span>
+                <strong>{totalItems}</strong>
+              </div>
+              <a href="/checkout" className="btn troli-checkout">
                 Lanjut Checkout
               </a>
-            </div>
-          </>
+              <a href="/kategori" className="troli-lanjut">
+                ← Lanjut belanja
+              </a>
+            </aside>
+          </div>
         )}
       </div>
     </section>

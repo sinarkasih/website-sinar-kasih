@@ -587,6 +587,7 @@ export default async function Page() {
                         </span>
                       </div>
 
+                      <div className="infoKotak">
                       <div className="infoItem">
                         <span className="infoIcon">
                           <LocationIcon />
@@ -620,6 +621,7 @@ export default async function Page() {
                           </div>
                         </div>
                       )}
+                      </div>
 
                       <HoursAccordion
                         title="Jam Operasional"
@@ -1300,7 +1302,42 @@ export default async function Page() {
             font-size: 12px;
           }
         }
-      `}</style>
+      
+        /* Kotak alamat & telepon: dibuat sejajar dengan kotak Jam Operasional */
+        .infoKotak {
+          margin-top: 20px;
+          padding: 4px 17px;
+          border: 1px solid #e5d9cc;
+          border-radius: 13px;
+          background: #fcfaf8;
+        }
+
+        .infoKotak .infoItem {
+          align-items: center;
+          gap: 11px;
+          margin: 0;
+          padding: 12px 0;
+        }
+
+        .infoKotak .infoItem + .infoItem {
+          border-top: 1px solid #efe5d9;
+        }
+
+        .infoKotak .infoIcon {
+          background: #f0e4d7;
+        }
+
+        .infoKotak .infoItem strong {
+          margin-bottom: 2px;
+          font-size: 14px;
+          color: #4a382c;
+        }
+
+        .infoKotak .infoItem p {
+          font-size: 13.5px;
+          color: #5f5045;
+        }
+`}</style>
     </>
   );
 }

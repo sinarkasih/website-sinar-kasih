@@ -787,7 +787,7 @@ export default async function LokerPage() {
 
           <div className="bottomBack">
             <a
-              href="/lainnya"
+              href="/info"
               className="bottomBackButton"
             >
               ← Kembali ke Informasi &amp; Layanan

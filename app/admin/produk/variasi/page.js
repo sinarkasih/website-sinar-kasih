@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../../Urut";
 export default function AdminVariasiPage() {
   const router = useRouter();
 
@@ -140,6 +141,17 @@ export default function AdminVariasiPage() {
     }
   );
 
+
+  const urut = useUrut(filteredVariasi, {
+    k0: (x) => x.produk?.nama,
+    k1: (x) => x.nama,
+    k2: (x) => x.nilai,
+    k3: (x) => x.sku,
+    k4: (x) => Number(x.stok ?? 0),
+    k5: (x) => Number(x.urutan ?? 0),
+    k6: (x) => x.aktif,
+  });
+
   return (
     <main className="admin-content">
 
@@ -211,6 +223,7 @@ export default function AdminVariasiPage() {
             marginTop: "16px",
           }}
         >
+          <div className="cari-x-wrap" style={{ maxWidth: "440px" }}>
           <input
             type="text"
             placeholder="Cari produk, variasi, nilai atau SKU..."
@@ -219,6 +232,18 @@ export default function AdminVariasiPage() {
               setSearch(e.target.value)
             }
           />
+          {search !== "" && (
+            <button
+              type="button"
+              className="cari-x"
+              onClick={() => { setSearch(""); }}
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+            >
+              ×
+            </button>
+          )}
+          </div>
         </div>
 
         {loading ? (
@@ -249,20 +274,20 @@ export default function AdminVariasiPage() {
 
               <thead>
                 <tr>
-                  <th>Produk</th>
-                  <th>Nama Variasi</th>
-                  <th>Nilai</th>
-                  <th>SKU</th>
-                  <th>Stok</th>
-                  <th>Urutan</th>
-                  <th>Status</th>
+                  <KolomUrut urut={urut} kunci="k0">Produk</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k1">Nama Variasi</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k2">Nilai</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k3">SKU</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k4">Stok</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k5">Urutan</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k6">Status</KolomUrut>
                   <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
 
-                {filteredVariasi.map(
+                {urut.data.map(
                   (item) => (
                     <tr key={item.id}>
 

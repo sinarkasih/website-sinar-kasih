@@ -3,8 +3,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "../../../../../lib/supabase";
+import { useAdmin } from "../../../AdminContext";
+
+function buatSlugDariNama(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
 
 export default function EditProdukPage() {
+  const adminLogin = useAdmin();
+  const bolehUbahSlug = adminLogin?.role === "admin_utama";
   const params = useParams();
   const router = useRouter();
 
@@ -728,14 +740,49 @@ export default function EditProdukPage() {
             </div>
 
             <div className="admin-form-group">
-              <label>Slug</label>
+              <label>Slug (alamat halaman produk)</label>
 
               <input
                 name="slug"
                 value={form.slug}
-                onChange={handleChange}
+                readOnly
                 placeholder="slug-produk"
+                style={{ background: "#f6f1ea", color: "#7d6957" }}
               />
+
+              {bolehUbahSlug ? (
+                <button
+                  type="button"
+                  className="admin-secondary-button"
+                  style={{ marginTop: "8px", minHeight: "36px" }}
+                  onClick={() => {
+                    const slugBaru = buatSlugDariNama(form.nama);
+                    if (!slugBaru || slugBaru === form.slug) {
+                      window.alert("Slug sudah sesuai dengan nama produk.");
+                      return;
+                    }
+                    const yakin = window.confirm(
+                      "Buat ulang slug dari nama produk?\n\n" +
+                        "Slug lama: " + (form.slug || "-") + "\n" +
+                        "Slug baru: " + slugBaru + "\n\n" +
+                        "PERHATIAN: link lama produk ini yang sudah dibagikan " +
+                        "(WhatsApp, media sosial, Google) tidak akan berfungsi lagi. " +
+                        "Perubahan baru tersimpan setelah klik Simpan."
+                    );
+                    if (yakin) {
+                      setForm((f) => ({ ...f, slug: slugBaru }));
+                    }
+                  }}
+                >
+                  Buat ulang slug dari nama
+                </button>
+              ) : null}
+
+              <small style={{ display: "block", marginTop: "6px", color: "#9a8571", fontSize: "12.5px" }}>
+                Slug tidak ikut berubah saat nama diubah, supaya link produk
+                yang sudah dibagikan tetap berfungsi.
+                {!bolehUbahSlug && " Hanya Admin Utama yang bisa mengubahnya."}
+              </small>
             </div>
           </div>
 

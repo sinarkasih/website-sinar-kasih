@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
 
+import { useUrut, KolomUrut } from "../../Urut";
 export default function LabelProdukPage() {
   const router = useRouter();
   const supabase = getSupabase();
@@ -93,6 +94,15 @@ export default function LabelProdukPage() {
     );
   });
 
+
+  const urut = useUrut(filteredLabels, {
+    k0: (x) => Number(x.urutan ?? 0),
+    k1: (x) => x.nama,
+    k2: (x) => x.slug,
+    k3: (x) => x.warna,
+    k4: (x) => x.aktif,
+  });
+
   return (
     <main className="admin-content">
 
@@ -142,6 +152,7 @@ export default function LabelProdukPage() {
 
         <div className="admin-form-group">
 
+          <div className="cari-x-wrap" style={{ maxWidth: "440px" }}>
           <input
             type="text"
             placeholder="Cari label..."
@@ -150,6 +161,18 @@ export default function LabelProdukPage() {
               setSearch(e.target.value)
             }
           />
+          {search !== "" && (
+            <button
+              type="button"
+              className="cari-x"
+              onClick={() => { setSearch(""); }}
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+            >
+              ×
+            </button>
+          )}
+          </div>
 
         </div>
 
@@ -164,18 +187,18 @@ export default function LabelProdukPage() {
 
               <thead>
                 <tr>
-                  <th>Urutan</th>
-                  <th>Label</th>
-                  <th>Slug</th>
-                  <th>Warna</th>
-                  <th>Status</th>
+                  <KolomUrut urut={urut} kunci="k0">Urutan</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k1">Label</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k2">Slug</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k3">Warna</KolomUrut>
+                  <KolomUrut urut={urut} kunci="k4">Status</KolomUrut>
                   <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
 
-                {filteredLabels.map((label) => (
+                {urut.data.map((label) => (
 
                   <tr key={label.id}>
 

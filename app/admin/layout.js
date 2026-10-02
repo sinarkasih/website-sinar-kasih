@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
+import { AdminContext } from "./AdminContext";
 
 // ===== PENGATURAN HAK AKSES =====
 // "semua" = boleh membuka semua menu.
@@ -18,6 +19,12 @@ import { getSupabase } from "../../lib/supabase";
 const AKSES_ROLE = {
   admin_utama: "semua",
   karyawan_produk: ["/admin/produk", "/admin/akun"],
+};
+
+// Halaman yang tetap DIKUNCI untuk jabatan tertentu,
+// walaupun berada di dalam menu yang boleh dibuka.
+const DILARANG = {
+  karyawan_produk: ["/admin/produk/impor-ekspor"],
 };
 
 const HALAMAN_AWAL = {
@@ -76,6 +83,13 @@ const MENU = [
 function bolehBuka(role, path) {
   const akses = AKSES_ROLE[role];
   if (!akses) return false;
+  if (
+    (DILARANG[role] || []).some(
+      (d) => path === d || path.startsWith(d + "/")
+    )
+  ) {
+    return false;
+  }
   if (akses === "semua") return true;
   return akses.some((a) => path === a || path.startsWith(a + "/"));
 }
@@ -478,7 +492,9 @@ export default function AdminLayout({ children }) {
         </header>
 
         <main className="adm-konten">
-          <div className="adm-isi">{children}</div>
+          <div className="adm-isi">
+            <AdminContext.Provider value={admin}>{children}</AdminContext.Provider>
+          </div>
         </main>
       </div>
 
@@ -1174,6 +1190,72 @@ const CSS = `
   /* Kepala kartu bagian */
   .adm-isi .admin-section-header {
     margin-bottom: 18px !important;
+  }
+
+
+  /* Tombol urutkan di judul kolom tabel */
+  .adm-isi th .urut-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .adm-isi th .urut-btn:hover {
+    color: #3f2f24;
+  }
+
+  .adm-isi th .urut-ikon path {
+    fill: #cdbca8;
+  }
+
+  .adm-isi th .urut-ikon path.nyala {
+    fill: #6f4c36;
+  }
+
+  .adm-isi th .urut-btn.aktif {
+    color: #3f2f24;
+  }
+
+  /* Tombol hapus (x) di kolom pencarian */
+  .adm-isi .cari-x-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  .adm-isi .cari-x-wrap input {
+    width: 100%;
+    padding-right: 44px !important;
+  }
+
+  .adm-isi .cari-x {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #e8dfd3;
+    color: #4a372d;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .adm-isi .cari-x:hover {
+    background: #ddd0c0;
   }
 
   @media (max-width: 600px) {
