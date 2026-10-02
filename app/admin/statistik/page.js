@@ -1,1 +1,18 @@
-export default function Page(){return <section className="dash"><h1>Statistik</h1><div className="notice">Modul Statistik akan dihubungkan ke Supabase.</div></section>}
+// Lokasi file: app/admin/statistik/page.js
+
+import SegeraHadir from "../SegeraHadir";
+
+export default function Page() {
+  return (
+    <SegeraHadir
+      judul="Statistik"
+      deskripsi="Pantau kunjungan website dan perkembangan penjualan."
+      rencana={[
+        "Jumlah pengunjung website per hari",
+        "Jumlah klik tombol WhatsApp",
+        "Produk yang paling sering dilihat",
+        "Grafik pesanan per minggu dan per bulan",
+      ]}
+    />
+  );
+}

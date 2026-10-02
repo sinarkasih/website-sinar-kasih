@@ -160,7 +160,17 @@ export default function DetailPesananPage() {
         return "Dibatalkan";
 
       default:
-        return status || "-";
+        // Ubah kode seperti "menunggu_konfirmasi"
+        // menjadi "Menunggu Konfirmasi"
+        if (!status) return "-";
+        return String(status)
+          .split("_")
+          .map(
+            (kata) =>
+              kata.charAt(0).toUpperCase() +
+              kata.slice(1)
+          )
+          .join(" ");
     }
   }
 

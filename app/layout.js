@@ -133,7 +133,18 @@ export default function RootLayout({ children }) {
           <header className="topbar">
             <div className="wrap topbar-inner">
               <Link href="/" className="brand">
-                <b>SK</b>
+                <img
+                  src="/logo-sk.png"
+                  alt="Logo Sinar Kasih"
+                  width="42"
+                  height="42"
+                  style={{
+                    width: "42px",
+                    height: "42px",
+                    display: "block",
+                    flexShrink: 0,
+                  }}
+                />
 
                 <span>
                   <strong>SINAR KASIH</strong>

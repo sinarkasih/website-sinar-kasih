@@ -211,7 +211,7 @@ function Ikon({ nama, ukuran = 19 }) {
 function LayarMuat() {
   return (
     <div className="adm-muat" aria-busy="true" aria-label="Memuat panel admin">
-      <span className="adm-muat-logo">SK</span>
+      <img src="/logo-sk.png" alt="" className="adm-muat-logo" />
       <style>{CSS}</style>
     </div>
   );
@@ -356,7 +356,9 @@ export default function AdminLayout({ children }) {
 
       <aside className={`adm-side ${menuTerbuka ? "buka" : ""}`}>
         <div className="adm-brand">
-          <span className="adm-logo">SK</span>
+          <span className="adm-logo">
+            <img src="/logo-sk.png" alt="Logo Sinar Kasih" />
+          </span>
           <span className="adm-brand-teks">
             <strong>Sinar Kasih</strong>
             <small>Panel Admin</small>
@@ -440,7 +442,9 @@ export default function AdminLayout({ children }) {
           </div>
         </header>
 
-        <main className="adm-konten">{children}</main>
+        <main className="adm-konten">
+          <div className="adm-isi">{children}</div>
+        </main>
       </div>
 
       <style>{CSS}</style>
@@ -457,6 +461,16 @@ const CSS = `
     background: #f7f2ea;
     color: #3f2f24;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .adm-root button,
+  .adm-root input,
+  .adm-root select,
+  .adm-root textarea {
+    font-family: inherit;
   }
 
   .adm-root *,
@@ -485,16 +499,20 @@ const CSS = `
   }
 
   .adm-logo {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: #c58a2b;
-    color: #3b2a20;
-    font-weight: 800;
-    font-size: 15px;
+    background: #f4e6d8;
+    padding: 2px;
+  }
+
+  .adm-logo img {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   .adm-brand-teks {
@@ -744,15 +762,9 @@ const CSS = `
   }
 
   .adm-muat-logo {
-    width: 52px;
-    height: 52px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: #6f4c36;
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 18px;
+    width: 64px;
+    height: 64px;
+    display: block;
     animation: adm-denyut 1.1s ease-in-out infinite;
   }
 
@@ -827,5 +839,311 @@ const CSS = `
   @media (prefers-reduced-motion: reduce) {
     .adm-muat-logo { animation: none; }
     .adm-side, .adm-overlay { transition: none; }
+  }
+
+  /* =====================================================
+     PENYERAGAM TAMPILAN SEMUA HALAMAN ADMIN
+     Bagian ini membuat judul, kartu, tabel, dan tombol
+     di setiap halaman admin tampil seragam.
+  ===================================================== */
+
+  .adm-isi {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  /* Bungkus halaman: hilangkan jarak & latar ganda */
+  .adm-isi > .admin-content,
+  .adm-isi > .dash,
+  .adm-isi > .page,
+  .adm-isi > .lokerAdminPage,
+  .adm-isi > .lokerAdminPage > .page,
+  .adm-isi > main,
+  .adm-isi > [style] {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .adm-isi > .admin-content > .pesanan-page,
+  .adm-isi > .admin-content > .trash-page,
+  .adm-isi > .admin-content > .detail-page {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Kepala halaman */
+  .adm-isi .admin-page-header,
+  .adm-isi .pesanan-header,
+  .adm-isi .trash-header,
+  .adm-isi .nonaktif-header,
+  .adm-isi .promo-header,
+  .adm-isi .page-head,
+  .adm-isi .topbar {
+    position: static !important;
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin: 0 0 24px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+  }
+
+  .adm-isi .eyebrow {
+    display: none !important;
+  }
+
+  /* Judul */
+  .adm-isi h1 {
+    font-size: 28px !important;
+    line-height: 1.25 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    color: #3f2f24 !important;
+    margin: 0 0 6px !important;
+    max-width: none !important;
+  }
+
+  .adm-isi h1 + p {
+    margin: 0 !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    color: #7d6957 !important;
+  }
+
+  .adm-isi h2 {
+    font-size: 19px !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    color: #3f2f24 !important;
+    margin: 0 0 4px !important;
+  }
+
+  .adm-isi h2 + p {
+    margin-top: 0 !important;
+    font-size: 14.5px !important;
+    color: #7d6957 !important;
+  }
+
+  .adm-isi h3 {
+    font-size: 16.5px !important;
+    line-height: 1.35 !important;
+    color: #3f2f24 !important;
+  }
+
+  /* Kartu */
+  .adm-isi .admin-card,
+  .adm-isi .content-card,
+  .adm-isi .form-card,
+  .adm-isi .formCard,
+  .adm-isi .info-card,
+  .adm-isi .admin-product-table-card {
+    max-width: none !important;
+    background: #ffffff !important;
+    border: 1px solid #eadfce !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 2px rgba(59, 42, 32, 0.04) !important;
+  }
+
+  .adm-isi .admin-card,
+  .adm-isi .content-card,
+  .adm-isi .form-card,
+  .adm-isi .formCard {
+    padding: 24px !important;
+  }
+
+  /* Kartu angka ringkasan */
+  .adm-isi .kpi,
+  .adm-isi .pesanan-summary-card,
+  .adm-isi .summary-card,
+  .adm-isi .summaryCard {
+    background: #ffffff !important;
+    border: 1px solid #eadfce !important;
+    border-radius: 14px !important;
+    padding: 18px 20px !important;
+    box-shadow: none !important;
+  }
+
+  .adm-isi .kpi span,
+  .adm-isi .pesanan-summary-label,
+  .adm-isi .summary-card span,
+  .adm-isi .summaryCard span {
+    font-size: 13.5px !important;
+    color: #7d6957 !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+  }
+
+  .adm-isi .kpi b,
+  .adm-isi .pesanan-summary-number,
+  .adm-isi .summary-card strong,
+  .adm-isi .summaryCard strong {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    color: #3f2f24 !important;
+    margin-top: 6px !important;
+  }
+
+  /* Tabel */
+  .adm-isi table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .adm-isi th {
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #7d6957 !important;
+    background: #faf6f0 !important;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .adm-isi td {
+    font-size: 14.5px;
+    color: #3f2f24;
+    vertical-align: middle;
+  }
+
+  /* Kolom pencarian & isian */
+  .adm-isi input[type="text"],
+  .adm-isi input[type="search"],
+  .adm-isi input[type="email"],
+  .adm-isi input[type="number"],
+  .adm-isi input[type="tel"],
+  .adm-isi input[type="url"],
+  .adm-isi input[type="date"],
+  .adm-isi input[type="time"],
+  .adm-isi input:not([type]),
+  .adm-isi select,
+  .adm-isi textarea {
+    border: 1px solid #dccbb7 !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+    color: #3f2f24;
+    background-color: #ffffff;
+  }
+
+  .adm-isi input:focus,
+  .adm-isi select:focus,
+  .adm-isi textarea:focus {
+    outline: none !important;
+    border-color: #6f4c36 !important;
+    box-shadow: 0 0 0 3px rgba(111, 76, 54, 0.14) !important;
+  }
+
+  /* Tombol utama */
+  .adm-isi .admin-primary-button,
+  .adm-isi .addButton,
+  .adm-isi .btn.primary {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 18px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    background: #6f4c36 !important;
+    color: #ffffff !important;
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .adm-isi .admin-primary-button:hover,
+  .adm-isi .addButton:hover,
+  .adm-isi .btn.primary:hover {
+    background: #5c3e2c !important;
+  }
+
+  /* Tombol kedua */
+  .adm-isi .admin-secondary-button,
+  .adm-isi .btn.secondary,
+  .adm-isi .contactButton,
+  .adm-isi .previewButton,
+  .adm-isi .back-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 16px !important;
+    border: 1px solid #e0cfbb !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    color: #5c3e2c !important;
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .adm-isi .admin-secondary-button:hover,
+  .adm-isi .btn.secondary:hover,
+  .adm-isi .contactButton:hover,
+  .adm-isi .previewButton:hover,
+  .adm-isi .back-button:hover {
+    background: #f8f1e8 !important;
+  }
+
+  /* Tombol kecil di tabel (Edit / Detail) */
+  .adm-isi .editButton,
+  .adm-isi .detail-link,
+  .adm-isi .btn.edit {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 12px !important;
+    border: 1px solid #e0cfbb !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #4b3326 !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+  }
+
+  .adm-isi .editButton:hover,
+  .adm-isi .detail-link:hover,
+  .adm-isi .btn.edit:hover {
+    background: #f8f1e8 !important;
+  }
+
+  /* Pesan info kuning */
+  .adm-isi .notice {
+    margin: 0 0 20px;
+    border-radius: 12px;
+  }
+
+  /* Kepala kartu bagian */
+  .adm-isi .admin-section-header {
+    margin-bottom: 18px !important;
+  }
+
+  @media (max-width: 600px) {
+    .adm-isi h1 {
+      font-size: 24px !important;
+    }
   }
 `;

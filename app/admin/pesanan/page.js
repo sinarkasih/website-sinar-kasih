@@ -137,7 +137,17 @@ export default function AdminPesananPage() {
         return "Dibatalkan";
 
       default:
-        return status || "-";
+        // Ubah kode seperti "menunggu_konfirmasi"
+        // menjadi "Menunggu Konfirmasi"
+        if (!status) return "-";
+        return String(status)
+          .split("_")
+          .map(
+            (kata) =>
+              kata.charAt(0).toUpperCase() +
+              kata.slice(1)
+          )
+          .join(" ");
     }
   }
 
@@ -418,7 +428,9 @@ export default function AdminPesananPage() {
           border-radius: 999px;
           font-size: 12px;
           font-weight: 700;
-          white-space: nowrap;
+          line-height: 1.25;
+          text-align: center;
+          white-space: normal;
         }
 
         .pesanan-status.baru {
@@ -442,8 +454,8 @@ export default function AdminPesananPage() {
         }
 
         .pesanan-status.lainnya {
-          background: #f0ece8;
-          color: #66584e;
+          background: #fdf0e1;
+          color: #9a5b16;
         }
 
         .detail-button {

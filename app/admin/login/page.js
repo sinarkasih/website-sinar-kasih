@@ -8,6 +8,16 @@ import { getSupabase } from "../../../lib/supabase";
 
 const ROLE_DIIZINKAN = ["admin_utama", "karyawan_produk"];
 
+// Karyawan cukup mengetik username (misal: karyawan1).
+// Sistem otomatis menambahkan akhiran email di bawah ini.
+const DOMAIN_AKUN = "@sinarkasih.co.id";
+
+function ubahKeEmail(isian) {
+  const teks = isian.trim().toLowerCase();
+  if (teks.includes("@")) return teks;
+  return teks + DOMAIN_AKUN;
+}
+
 const HALAMAN_AWAL = {
   admin_utama: "/admin",
   karyawan_produk: "/admin/produk",
@@ -37,12 +47,12 @@ export default function AdminLoginPage() {
 
     const { data, error: loginError } =
       await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: ubahKeEmail(email),
         password,
       });
 
     if (loginError) {
-      setError("Email atau password salah. Periksa lalu coba lagi.");
+      setError("Username/email atau password salah. Periksa lalu coba lagi.");
       setLoading(false);
       return;
     }
@@ -68,25 +78,27 @@ export default function AdminLoginPage() {
     <div className="lg-wrap">
       <div className="lg-card">
         <div className="lg-brand">
-          <span className="lg-logo">SK</span>
-          <span className="lg-brand-teks">
-            <strong>Sinar Kasih</strong>
-            <small>Toko Listrik Ambon</small>
-          </span>
+          <img
+            src="/logo-sinar-kasih.png"
+            alt="Sinar Kasih"
+            className="lg-logo"
+          />
         </div>
 
         <h1>Masuk ke panel admin</h1>
         <p className="lg-sub">
-          Gunakan email dan password akun admin toko.
+          Masukkan username atau email beserta password Anda.
         </p>
 
         <form onSubmit={handleLogin}>
-          <label htmlFor="lg-email">Email</label>
+          <label htmlFor="lg-email">Username atau email</label>
           <input
             id="lg-email"
-            type="email"
+            type="text"
             autoComplete="username"
-            placeholder="nama@email.com"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder="contoh: karyawan1"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -143,6 +155,13 @@ export default function AdminLoginPage() {
             radial-gradient(circle at 15% 20%, rgba(197, 138, 43, 0.12), transparent 45%),
             #f7f2ea;
           color: #3f2f24;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .lg-wrap button,
+        .lg-wrap input {
+          font-family: inherit;
         }
 
         .lg-wrap *,
@@ -163,46 +182,26 @@ export default function AdminLoginPage() {
 
         .lg-brand {
           display: flex;
-          align-items: center;
-          gap: 12px;
+          justify-content: center;
           margin-bottom: 26px;
         }
 
         .lg-logo {
-          width: 44px;
-          height: 44px;
-          display: grid;
-          place-items: center;
-          border-radius: 50%;
-          background: #6f4c36;
-          color: #ffffff;
-          font-weight: 800;
-          font-size: 16px;
-        }
-
-        .lg-brand-teks {
-          display: flex;
-          flex-direction: column;
-          line-height: 1.2;
-        }
-
-        .lg-brand-teks strong {
-          font-size: 17px;
-        }
-
-        .lg-brand-teks small {
-          font-size: 13px;
-          color: #9a8571;
-          margin-top: 2px;
+          display: block;
+          width: 100%;
+          max-width: 230px;
+          height: auto;
         }
 
         .lg-card h1 {
+          text-align: center;
           margin: 0 0 6px;
           font-size: 22px;
           line-height: 1.3;
         }
 
         .lg-sub {
+          text-align: center;
           margin: 0 0 22px;
           font-size: 14.5px;
           color: #7d6957;
