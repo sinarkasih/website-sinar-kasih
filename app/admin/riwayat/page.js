@@ -153,7 +153,8 @@ export default function RiwayatPage() {
       if (gagal) {
         console.error("Gagal memuat riwayat:", gagal);
         setError(
-          "Riwayat gagal dimuat. Pastikan langkah SQL Riwayat Perubahan di Supabase sudah dijalankan."
+          "Riwayat gagal dimuat. Keterangan teknis: " +
+            (gagal.message || gagal.code || "tidak diketahui")
         );
         setMemuat(false);
         return;

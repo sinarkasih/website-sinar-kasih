@@ -2,19 +2,30 @@
 
 // Lokasi file: app/admin/pengaturan/page.js
 // Pengaturan > Kelola Akun (khusus Admin Utama):
-// melihat semua akun, mengubah nama, dan mengaktifkan/menonaktifkan akun.
-// Membuat akun baru & reset password orang lain tetap lewat Supabase.
+// - Tambah akun baru + pilih jabatan (hak akses)
+// - Ubah nama & jabatan
+// - Reset password akun lain
+// - Aktifkan / nonaktifkan akun
+// Tambah akun & reset password berjalan lewat Edge Function "kelola-akun" di Supabase.
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 
-const NAMA_ROLE = {
-  admin_utama: "Admin Utama",
-  karyawan_produk: "Karyawan Produk",
-};
-
 const DOMAIN_AKUN = "@sinarkasih.co.id";
+
+// Daftar jabatan & hak aksesnya.
+// Jabatan baru harus dibuat bersama aturan keamanan database-nya.
+const JABATAN = {
+  admin_utama: {
+    nama: "Admin Utama",
+    akses: "Semua menu, termasuk pesanan, pelanggan, toko, dan pengaturan.",
+  },
+  karyawan_produk: {
+    nama: "Karyawan Produk",
+    akses: "Hanya menu Produk (tambah, ubah, harga, foto, variasi, label) dan Akun Saya.",
+  },
+};
 
 function tampilanUsername(email) {
   if (!email) return "-";
@@ -23,13 +34,53 @@ function tampilanUsername(email) {
     : email;
 }
 
+async function panggilKelolaAkun(body) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.functions.invoke("kelola-akun", {
+    body,
+  });
+
+  if (error) {
+    let teks = "Gagal terhubung ke server. Pastikan Edge Function kelola-akun sudah dipasang.";
+    try {
+      const isi = await error.context.json();
+      if (isi?.error) teks = isi.error;
+    } catch (_) {}
+    return { gagal: teks };
+  }
+
+  if (data?.error) return { gagal: data.error };
+  return { sukses: data?.pesan || "Berhasil." };
+}
+
+function keAtas() {
+  document
+    .querySelector(".adm-konten")
+    ?.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+const FORM_KOSONG = {
+  nama: "",
+  username: "",
+  password: "",
+  role: "karyawan_produk",
+};
+
 export default function PengaturanPage() {
   const [daftar, setDaftar] = useState([]);
   const [saya, setSaya] = useState(null);
   const [memuat, setMemuat] = useState(true);
   const [pesan, setPesan] = useState(null);
+
+  const [panel, setPanel] = useState(null); // null | "tambah" | { reset: akun }
+  const [form, setForm] = useState(FORM_KOSONG);
+  const [passwordReset, setPasswordReset] = useState("");
+  const [lihat, setLihat] = useState(false);
+  const [kirim, setKirim] = useState(false);
+
   const [editId, setEditId] = useState(null);
-  const [namaEdit, setNamaEdit] = useState("");
+  const [editNama, setEditNama] = useState("");
+  const [editRole, setEditRole] = useState("");
   const [prosesId, setProsesId] = useState(null);
 
   const muat = useCallback(async () => {
@@ -60,14 +111,80 @@ export default function PengaturanPage() {
     muat();
   }, [muat]);
 
+  function bukaTambah() {
+    setPesan(null);
+    setForm(FORM_KOSONG);
+    setLihat(false);
+    setPanel("tambah");
+    keAtas();
+  }
+
+  function bukaReset(akun) {
+    setPesan(null);
+    setPasswordReset("");
+    setLihat(false);
+    setPanel({ reset: akun });
+    keAtas();
+  }
+
+  async function simpanTambah(e) {
+    e.preventDefault();
+    setKirim(true);
+    setPesan(null);
+
+    const hasil = await panggilKelolaAkun({
+      aksi: "tambah",
+      nama: form.nama,
+      username: form.username,
+      password: form.password,
+      role: form.role,
+    });
+
+    setKirim(false);
+
+    if (hasil.gagal) {
+      setPesan({ jenis: "gagal", teks: hasil.gagal });
+      return;
+    }
+
+    setPesan({ jenis: "sukses", teks: hasil.sukses });
+    setPanel(null);
+    setForm(FORM_KOSONG);
+    muat();
+  }
+
+  async function simpanReset(e) {
+    e.preventDefault();
+    setKirim(true);
+    setPesan(null);
+
+    const hasil = await panggilKelolaAkun({
+      aksi: "reset_password",
+      admin_id: panel.reset.id,
+      password: passwordReset,
+    });
+
+    setKirim(false);
+
+    if (hasil.gagal) {
+      setPesan({ jenis: "gagal", teks: hasil.gagal });
+      return;
+    }
+
+    setPesan({ jenis: "sukses", teks: hasil.sukses });
+    setPanel(null);
+    setPasswordReset("");
+  }
+
   function mulaiEdit(akun) {
     setPesan(null);
     setEditId(akun.id);
-    setNamaEdit(akun.nama || "");
+    setEditNama(akun.nama || "");
+    setEditRole(akun.role);
   }
 
-  async function simpanNama(akun) {
-    const nama = namaEdit.trim();
+  async function simpanEdit(akun) {
+    const nama = editNama.trim();
     if (!nama) {
       setPesan({ jenis: "gagal", teks: "Nama tidak boleh kosong." });
       return;
@@ -75,22 +192,25 @@ export default function PengaturanPage() {
 
     setProsesId(akun.id);
     const supabase = getSupabase();
+    const perubahan = { nama };
+    if (akun.auth_user_id !== saya) perubahan.role = editRole;
+
     const { data, error } = await supabase
       .from("admin")
-      .update({ nama })
+      .update(perubahan)
       .eq("id", akun.id)
       .select("id");
 
     setProsesId(null);
 
     if (error || !data || data.length === 0) {
-      console.error("Gagal mengubah nama:", error);
-      setPesan({ jenis: "gagal", teks: "Nama gagal disimpan." });
+      console.error("Gagal menyimpan akun:", error);
+      setPesan({ jenis: "gagal", teks: "Perubahan gagal disimpan." });
       return;
     }
 
     setEditId(null);
-    setPesan({ jenis: "sukses", teks: `Nama berhasil diubah menjadi ${nama}.` });
+    setPesan({ jenis: "sukses", teks: `Data akun ${nama} berhasil disimpan.` });
     muat();
   }
 
@@ -139,9 +259,18 @@ export default function PengaturanPage() {
           <p>Kelola akun admin dan karyawan yang bisa membuka panel admin.</p>
         </div>
 
-        <Link href="/admin/akun" className="admin-secondary-button">
-          Ganti password saya
-        </Link>
+        <div className="pg-kepala-aksi">
+          <Link href="/admin/akun" className="admin-secondary-button">
+            Ganti password saya
+          </Link>
+          <button
+            type="button"
+            className="admin-primary-button"
+            onClick={bukaTambah}
+          >
+            + Tambah akun
+          </button>
+        </div>
       </div>
 
       {pesan && (
@@ -153,6 +282,169 @@ export default function PengaturanPage() {
         </div>
       )}
 
+      {/* ===== FORM TAMBAH AKUN ===== */}
+      {panel === "tambah" && (
+        <div className="admin-card pg-panel">
+          <h2>Tambah akun baru</h2>
+
+          <form onSubmit={simpanTambah} className="pg-form">
+            <div className="pg-form-grid">
+              <div className="pg-field">
+                <label htmlFor="pg-nama">Nama</label>
+                <input
+                  id="pg-nama"
+                  type="text"
+                  value={form.nama}
+                  onChange={(e) => setForm({ ...form, nama: e.target.value })}
+                  placeholder="Nama karyawan"
+                  required
+                />
+              </div>
+
+              <div className="pg-field">
+                <label htmlFor="pg-username">Username</label>
+                <div className="pg-akhiran">
+                  <input
+                    id="pg-username"
+                    type="text"
+                    value={form.username}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        username: e.target.value.toLowerCase().replace(/\s/g, ""),
+                      })
+                    }
+                    placeholder="Username untuk login"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    required
+                  />
+                </div>
+                <small>
+                  Huruf kecil, angka, titik, atau strip. Tanpa spasi. Dipakai
+                  karyawan untuk login.
+                </small>
+              </div>
+
+              <div className="pg-field">
+                <label htmlFor="pg-password">Password awal</label>
+                <input
+                  id="pg-password"
+                  type={lihat ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  autoComplete="new-password"
+                  required
+                />
+                <small>
+                  Minimal 8 karakter. Karyawan bisa menggantinya sendiri di
+                  menu Akun Saya.
+                </small>
+              </div>
+
+              <div className="pg-field">
+                <label htmlFor="pg-role">Jabatan</label>
+                <select
+                  id="pg-role"
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                >
+                  {Object.entries(JABATAN).map(([kode, j]) => (
+                    <option key={kode} value={kode}>
+                      {j.nama}
+                    </option>
+                  ))}
+                </select>
+                <small>Akses: {JABATAN[form.role].akses}</small>
+              </div>
+            </div>
+
+            <label className="pg-lihat">
+              <input
+                type="checkbox"
+                checked={lihat}
+                onChange={(e) => setLihat(e.target.checked)}
+              />
+              Tampilkan password
+            </label>
+
+            <div className="pg-form-aksi">
+              <button
+                type="submit"
+                className="admin-primary-button"
+                disabled={kirim}
+              >
+                {kirim ? "Membuat akun..." : "Buat akun"}
+              </button>
+              <button
+                type="button"
+                className="admin-secondary-button"
+                onClick={() => setPanel(null)}
+                disabled={kirim}
+              >
+                Batal
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ===== FORM RESET PASSWORD ===== */}
+      {panel && panel.reset && (
+        <div className="admin-card pg-panel">
+          <h2>Ganti password: {panel.reset.nama}</h2>
+          <p className="pg-sub">
+            Username: <strong>{tampilanUsername(panel.reset.email)}</strong>.
+            Beritahu password baru ini ke yang bersangkutan.
+          </p>
+
+          <form onSubmit={simpanReset} className="pg-form">
+            <div className="pg-field pg-sempit">
+              <label htmlFor="pg-reset">Password baru</label>
+              <input
+                id="pg-reset"
+                type={lihat ? "text" : "password"}
+                value={passwordReset}
+                onChange={(e) => setPasswordReset(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+              <small>Minimal 8 karakter.</small>
+            </div>
+
+            <label className="pg-lihat">
+              <input
+                type="checkbox"
+                checked={lihat}
+                onChange={(e) => setLihat(e.target.checked)}
+              />
+              Tampilkan password
+            </label>
+
+            <div className="pg-form-aksi">
+              <button
+                type="submit"
+                className="admin-primary-button"
+                disabled={kirim}
+              >
+                {kirim ? "Menyimpan..." : "Simpan password baru"}
+              </button>
+              <button
+                type="button"
+                className="admin-secondary-button"
+                onClick={() => setPanel(null)}
+                disabled={kirim}
+              >
+                Batal
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ===== DAFTAR AKUN ===== */}
       <div className="admin-card pg-kartu">
         <div className="admin-section-header">
           <h2>Akun</h2>
@@ -164,7 +456,7 @@ export default function PengaturanPage() {
             <thead>
               <tr>
                 <th>Nama</th>
-                <th>Username / email</th>
+                <th>Username</th>
                 <th>Jabatan</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -182,8 +474,8 @@ export default function PengaturanPage() {
                       {sedangEdit ? (
                         <input
                           type="text"
-                          value={namaEdit}
-                          onChange={(e) => setNamaEdit(e.target.value)}
+                          value={editNama}
+                          onChange={(e) => setEditNama(e.target.value)}
                           className="pg-input"
                           autoFocus
                         />
@@ -195,7 +487,23 @@ export default function PengaturanPage() {
                       )}
                     </td>
                     <td>{tampilanUsername(akun.email)}</td>
-                    <td>{NAMA_ROLE[akun.role] || akun.role}</td>
+                    <td>
+                      {sedangEdit && !akunSaya ? (
+                        <select
+                          value={editRole}
+                          onChange={(e) => setEditRole(e.target.value)}
+                          className="pg-input"
+                        >
+                          {Object.entries(JABATAN).map(([kode, j]) => (
+                            <option key={kode} value={kode}>
+                              {j.nama}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        JABATAN[akun.role]?.nama || akun.role
+                      )}
+                    </td>
                     <td>
                       <span
                         className={`pg-status ${akun.aktif ? "aktif" : "nonaktif"}`}
@@ -210,7 +518,7 @@ export default function PengaturanPage() {
                             <button
                               type="button"
                               className="pg-btn utama"
-                              onClick={() => simpanNama(akun)}
+                              onClick={() => simpanEdit(akun)}
                               disabled={sibuk}
                             >
                               {sibuk ? "Menyimpan..." : "Simpan"}
@@ -232,19 +540,29 @@ export default function PengaturanPage() {
                               onClick={() => mulaiEdit(akun)}
                               disabled={sibuk}
                             >
-                              Ubah nama
+                              Ubah
                             </button>
                             {!akunSaya && (
-                              <button
-                                type="button"
-                                className={`pg-btn ${
-                                  akun.aktif ? "bahaya" : "utama"
-                                }`}
-                                onClick={() => ubahStatus(akun)}
-                                disabled={sibuk}
-                              >
-                                {akun.aktif ? "Nonaktifkan" : "Aktifkan"}
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  className="pg-btn"
+                                  onClick={() => bukaReset(akun)}
+                                  disabled={sibuk}
+                                >
+                                  Ganti password
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`pg-btn ${
+                                    akun.aktif ? "bahaya" : "utama"
+                                  }`}
+                                  onClick={() => ubahStatus(akun)}
+                                  disabled={sibuk}
+                                >
+                                  {akun.aktif ? "Nonaktifkan" : "Aktifkan"}
+                                </button>
+                              </>
                             )}
                           </>
                         )}
@@ -258,27 +576,29 @@ export default function PengaturanPage() {
         </div>
       </div>
 
+      {/* ===== KETERANGAN HAK AKSES ===== */}
       <div className="admin-card pg-info">
-        <h2>Menambah akun atau reset password karyawan</h2>
-        <p>Demi keamanan, dua hal ini dilakukan langsung di Supabase:</p>
-        <ol>
-          <li>
-            <strong>Akun baru:</strong> Supabase → Authentication → Users →
-            Add user. Isi email seperti <code>nama{DOMAIN_AKUN}</code>, centang{" "}
-            <em>Auto Confirm User</em>, lalu daftarkan di tabel admin.
-          </li>
-          <li>
-            <strong>Reset password karyawan:</strong> Supabase → Authentication
-            → Users → klik akunnya → ganti password.
-          </li>
-        </ol>
+        <h2>Hak akses per jabatan</h2>
+        <ul>
+          {Object.entries(JABATAN).map(([kode, j]) => (
+            <li key={kode}>
+              <strong>{j.nama}:</strong> {j.akses}
+            </li>
+          ))}
+        </ul>
         <p className="pg-kecil">
-          Jika karyawan berhenti bekerja, cukup klik <strong>Nonaktifkan</strong>{" "}
-          di atas. Aksesnya langsung tertutup.
+          Jika karyawan berhenti bekerja, klik <strong>Nonaktifkan</strong>.
+          Aksesnya langsung tertutup.
         </p>
       </div>
 
       <style>{`
+        .pg-kepala-aksi {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
         .pg-pesan {
           margin-bottom: 20px;
           padding: 12px 16px;
@@ -296,6 +616,75 @@ export default function PengaturanPage() {
           background: #eaf7ed;
           border: 1px solid #c4e5cc;
           color: #2f6b3f;
+        }
+
+        .pg-panel {
+          margin-bottom: 20px;
+          border-color: #d6c1a8 !important;
+        }
+
+        .pg-sub {
+          margin: 4px 0 0;
+          font-size: 14.5px;
+          color: #7d6957;
+        }
+
+        .pg-form {
+          margin-top: 16px;
+        }
+
+        .pg-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px 20px;
+        }
+
+        .pg-field {
+          display: grid;
+          gap: 6px;
+          align-content: start;
+        }
+
+        .pg-sempit {
+          max-width: 360px;
+        }
+
+        .pg-field label {
+          font-size: 14px;
+          font-weight: 600;
+          color: #3f2f24;
+        }
+
+        .pg-field input,
+        .pg-field select {
+          width: 100%;
+          padding: 11px 14px;
+          border: 1px solid #dccbb7;
+          border-radius: 10px;
+          font-size: 15px;
+          background: #ffffff;
+        }
+
+        .pg-field small {
+          font-size: 12.5px;
+          color: #9a8571;
+          line-height: 1.4;
+        }
+
+        .pg-lihat {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 16px;
+          font-size: 14px;
+          cursor: pointer;
+        }
+
+        .pg-form-aksi {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
+          flex-wrap: wrap;
         }
 
         .pg-kartu {
@@ -335,7 +724,7 @@ export default function PengaturanPage() {
 
         .pg-input {
           width: 100%;
-          min-width: 160px;
+          min-width: 150px;
           padding: 8px 12px;
         }
 
@@ -397,31 +786,24 @@ export default function PengaturanPage() {
           cursor: wait;
         }
 
-        .pg-info p {
-          margin: 6px 0 10px;
-          font-size: 14.5px;
-          color: #5c4a3d;
-        }
-
-        .pg-info ol {
-          margin: 0;
+        .pg-info ul {
+          margin: 10px 0 0;
           padding-left: 20px;
           font-size: 14.5px;
-          line-height: 1.7;
+          line-height: 1.8;
           color: #3f2f24;
-        }
-
-        .pg-info code {
-          padding: 1px 6px;
-          border-radius: 6px;
-          background: #f3eadf;
-          font-size: 13.5px;
         }
 
         .pg-kecil {
           margin-top: 14px !important;
           font-size: 13.5px !important;
           color: #7d6957 !important;
+        }
+
+        @media (max-width: 760px) {
+          .pg-form-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
