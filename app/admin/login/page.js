@@ -8,7 +8,7 @@ import { getSupabase } from "../../../lib/supabase";
 
 const ROLE_DIIZINKAN = ["admin_utama", "karyawan_produk"];
 
-// Karyawan cukup mengetik username (misal: karyawan1).
+// Karyawan cukup mengetik username (misal: Masukkan username atau email).
 // Sistem otomatis menambahkan akhiran email di bawah ini.
 const DOMAIN_AKUN = "@sinarkasih.co.id";
 
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
-            placeholder="contoh: karyawan1"
+            placeholder="contoh: Masukkan username atau email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
