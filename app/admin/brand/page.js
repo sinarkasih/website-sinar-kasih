@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import Paginasi from "../Paginasi";
+
+const PER_HALAMAN = 25;
 
 function buatSlug(text) {
   return text
@@ -31,6 +34,7 @@ export default function AdminBrandPage() {
   const [uploading, setUploading] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [halaman, setHalaman] = useState(1);
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -480,6 +484,16 @@ export default function AdminBrandPage() {
       );
     });
 
+  const totalHalaman = Math.max(
+    1,
+    Math.ceil(filteredBrand.length / PER_HALAMAN)
+  );
+  const halamanAman = Math.min(halaman, totalHalaman);
+  const brandTampil = filteredBrand.slice(
+    (halamanAman - 1) * PER_HALAMAN,
+    halamanAman * PER_HALAMAN
+  );
+
   return (
     <main className="admin-content">
 
@@ -791,9 +805,10 @@ export default function AdminBrandPage() {
             placeholder="Cari brand..."
             value={search}
             onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
+              {
+                setSearch(e.target.value);
+                setHalaman(1);
+              }
             }
           />
         </div>
@@ -816,6 +831,7 @@ export default function AdminBrandPage() {
             Belum ada brand yang sesuai.
           </div>
         ) : (
+          <>
           <div
             className="admin-product-table-wrapper"
             style={{
@@ -853,7 +869,7 @@ export default function AdminBrandPage() {
               </thead>
 
               <tbody>
-                {filteredBrand.map(
+                {brandTampil.map(
                   (item) => (
                     <tr
                       key={item.id}
@@ -953,6 +969,16 @@ export default function AdminBrandPage() {
 
             </table>
           </div>
+
+            <Paginasi
+              halaman={halamanAman}
+              totalHalaman={totalHalaman}
+              totalData={filteredBrand.length}
+              perHalaman={PER_HALAMAN}
+              onGanti={setHalaman}
+              satuan="brand"
+            />
+          </>
         )}
       </div>
 

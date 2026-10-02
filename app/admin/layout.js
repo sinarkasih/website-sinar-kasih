@@ -320,6 +320,22 @@ export default function AdminLayout({ children }) {
     }
   }, [status, admin, pathname, halamanLogin, router]);
 
+  // Halaman admin memakai area gulir sendiri (.adm-konten).
+  // Perintah "gulir ke atas" dari halaman lama diarahkan ke area itu,
+  // supaya form Tambah/Edit langsung terlihat saat tombol diklik.
+  useEffect(() => {
+    const asli = window.scrollTo;
+    window.scrollTo = function (a, b) {
+      const konten = document.querySelector(".adm-konten");
+      if (!konten) return asli.apply(window, arguments);
+      if (a && typeof a === "object") konten.scrollTo(a);
+      else konten.scrollTo(a || 0, b || 0);
+    };
+    return () => {
+      window.scrollTo = asli;
+    };
+  }, []);
+
   // Tutup menu HP setiap pindah halaman
   useEffect(() => {
     setMenuTerbuka(false);

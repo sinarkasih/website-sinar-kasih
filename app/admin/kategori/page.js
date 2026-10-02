@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import Paginasi from "../Paginasi";
+
+const PER_HALAMAN = 25;
 
 function buatSlug(text) {
   return text
@@ -33,6 +36,7 @@ export default function AdminKategoriPage() {
   const [uploading, setUploading] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [halaman, setHalaman] = useState(1);
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -553,6 +557,16 @@ export default function AdminKategoriPage() {
       );
     });
 
+  const totalHalaman = Math.max(
+    1,
+    Math.ceil(filteredKategori.length / PER_HALAMAN)
+  );
+  const halamanAman = Math.min(halaman, totalHalaman);
+  const kategoriTampil = filteredKategori.slice(
+    (halamanAman - 1) * PER_HALAMAN,
+    halamanAman * PER_HALAMAN
+  );
+
   function namaParent(
     parentIdValue
   ) {
@@ -990,9 +1004,10 @@ export default function AdminKategoriPage() {
             placeholder="Cari kategori..."
             value={search}
             onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
+              {
+                setSearch(e.target.value);
+                setHalaman(1);
+              }
             }
           />
         </div>
@@ -1021,6 +1036,7 @@ export default function AdminKategoriPage() {
             yang sesuai.
           </div>
         ) : (
+          <>
           <div
             className="admin-product-table-wrapper"
             style={{
@@ -1065,7 +1081,7 @@ export default function AdminKategoriPage() {
 
               <tbody>
 
-                {filteredKategori.map(
+                {kategoriTampil.map(
                   (item) => (
                     <tr
                       key={
@@ -1179,6 +1195,16 @@ export default function AdminKategoriPage() {
             </table>
 
           </div>
+
+            <Paginasi
+              halaman={halamanAman}
+              totalHalaman={totalHalaman}
+              totalData={filteredKategori.length}
+              perHalaman={PER_HALAMAN}
+              onGanti={setHalaman}
+              satuan="kategori"
+            />
+          </>
         )}
 
       </div>
