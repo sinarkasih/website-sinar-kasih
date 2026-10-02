@@ -63,6 +63,7 @@ const MENU = [
     judul: "Laporan & Sistem",
     item: [
       { href: "/admin/statistik", label: "Statistik", ikon: "statistik" },
+      { href: "/admin/riwayat", label: "Riwayat Perubahan", ikon: "riwayat" },
       { href: "/admin/pengaturan", label: "Pengaturan", ikon: "pengaturan" },
     ],
   },
@@ -187,6 +188,13 @@ const IKON = {
       <rect x="4" y="10" width="16" height="11" rx="2" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
       <path d="M12 14.5v2" />
+    </>
+  ),
+  riwayat: (
+    <>
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 4v5h5" />
+      <path d="M12 7v5l3 2" />
     </>
   ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
