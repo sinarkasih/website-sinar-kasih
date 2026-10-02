@@ -17,7 +17,7 @@ import { getSupabase } from "../../lib/supabase";
 // misalnya: ["/admin/produk", "/admin/kategori", "/admin/brand"]
 const AKSES_ROLE = {
   admin_utama: "semua",
-  karyawan_produk: ["/admin/produk"],
+  karyawan_produk: ["/admin/produk", "/admin/akun"],
 };
 
 const HALAMAN_AWAL = {
@@ -65,6 +65,10 @@ const MENU = [
       { href: "/admin/statistik", label: "Statistik", ikon: "statistik" },
       { href: "/admin/pengaturan", label: "Pengaturan", ikon: "pengaturan" },
     ],
+  },
+  {
+    judul: "Akun",
+    item: [{ href: "/admin/akun", label: "Akun Saya", ikon: "akun" }],
   },
 ];
 
@@ -176,6 +180,13 @@ const IKON = {
       <path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" />
       <path d="m10 17-5-5 5-5" />
       <path d="M5 12h11" />
+    </>
+  ),
+  akun: (
+    <>
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      <path d="M12 14.5v2" />
     </>
   ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
