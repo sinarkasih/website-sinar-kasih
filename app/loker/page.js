@@ -438,58 +438,6 @@ function LockIcon() {
   );
 }
 
-function NoFeeIcon() {
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      width="28"
-      height="28"
-      fill="none"
-    >
-      <rect
-        x="2.5"
-        y="7"
-        width="21"
-        height="15"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-
-      <circle
-        cx="13"
-        cy="14.5"
-        r="4"
-        stroke="currentColor"
-        strokeWidth="1.3"
-      />
-
-      <path
-        d="M11.5 12.5v4M11.5 12.5h2M11.5 14.5h2"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-
-      <circle
-        cx="23.5"
-        cy="22.5"
-        r="6"
-        fill="#fff8ee"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-
-      <path
-        d="M21 20l5 5M26 20l-5 5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export const metadata = {
   title: "Lowongan Kerja | Sinar Kasih",
   description: "Lowongan kerja terbaru di Toko Listrik Sinar Kasih Ambon beserta tahapan seleksinya.",
@@ -534,7 +482,7 @@ export default async function LokerPage() {
         </div>
 
         <div className="lk-aman">
-          <span className="lk-aman-ikon"><NoFeeIcon /></span>
+          <span className="lk-aman-ikon"><IkonSitus nama="perisai" ukuran={22} /></span>
           <div>
             <strong>Rekrutmen tanpa biaya</strong>
             <p>
@@ -582,7 +530,9 @@ export default async function LokerPage() {
                             preload="metadata"
                           />
                         ) : (
-                          <img src={job.gambar_url} alt={`Lowongan ${job.posisi}`} />
+                          <a href={job.gambar_url} target="_blank" rel="noopener noreferrer" title="Lihat poster ukuran penuh">
+                            <img src={job.gambar_url} alt={`Lowongan ${job.posisi}`} />
+                          </a>
                         )
                       ) : (
                         <span className="lk-media-kosong">
@@ -696,7 +646,7 @@ export default async function LokerPage() {
         .wrap-loker { max-width: 980px; }
 
         .lk-aman { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 24px; padding: 16px 18px; border-radius: 14px; background: #fcf6ee; border: 1px solid #f0e2cf; }
-        .lk-aman-ikon { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; background: #fff8ee; color: #9a5b16; border: 1px solid #f0e2cf; }
+        .lk-aman-ikon { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; background: #eaf7ed; color: #2f7a46; }
         .lk-aman strong { color: #3f2f24; font-size: 15px; }
         .lk-aman p { margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: #7a6555; }
 
@@ -704,10 +654,12 @@ export default async function LokerPage() {
         .lk-jumlah { margin: 0 0 14px; font-size: 14.5px; font-weight: 700; color: #6f4c36; }
 
         .lk-daftar { display: grid; gap: 20px; }
-        .lk-kartu { display: grid; grid-template-columns: 300px minmax(0, 1fr); overflow: hidden; background: #fff; border: 1px solid #eadfce; border-radius: 18px; }
-        .lk-media { background: #f7f1e8; min-height: 220px; }
-        .lk-media img, .lk-media video { width: 100%; height: 100%; display: block; object-fit: cover; }
-        .lk-media-kosong { height: 100%; min-height: 220px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #b9a48e; font-size: 14px; font-weight: 600; }
+        .lk-kartu { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 0; align-items: start; overflow: hidden; background: #fff; border: 1px solid #eadfce; border-radius: 18px; }
+        /* Poster lowongan selalu rasio 4:5, tampil utuh tanpa terpotong */
+        .lk-media { align-self: start; aspect-ratio: 4 / 5; margin: 16px 0 16px 16px; border-radius: 12px; overflow: hidden; background: #f7f1e8; }
+        .lk-media a { display: block; width: 100%; height: 100%; }
+        .lk-media img, .lk-media video { width: 100%; height: 100%; display: block; object-fit: contain; }
+        .lk-media-kosong { height: 100%; display: grid; place-content: center; justify-items: center; gap: 8px; color: #b9a48e; font-size: 14px; font-weight: 600; }
         .lk-isi { padding: 22px 24px 24px; display: grid; gap: 16px; align-content: start; min-width: 0; }
         .lk-isi h2 { margin: -6px 0 0; font-size: 23px; line-height: 1.3; color: #3f2f24; }
 
@@ -751,8 +703,7 @@ export default async function LokerPage() {
 
         @media (max-width: 860px) {
           .lk-kartu { grid-template-columns: minmax(0, 1fr); }
-          .lk-media { min-height: 0; aspect-ratio: 16 / 9; }
-          .lk-media-kosong { min-height: 0; }
+          .lk-media { margin: 12px 12px 0; }
           .lk-media.kosong { display: none; }
         }
         @media (max-width: 640px) {

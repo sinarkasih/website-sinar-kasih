@@ -1,10 +1,9 @@
 // Lokasi file: app/tentang/page.js
 // Tentang Kami: judul seragam, daftar buka-tutup bernomor (komponen bersama),
-// ikon garis pengganti emoji, dan kotak ajakan di bagian bawah.
+// ikon emoji untuk daftar produk, dan kotak ajakan di bagian bawah.
 
 import Link from "next/link";
 import DaftarLipat from "../DaftarLipat";
-import IkonSitus from "../IkonSitus";
 import AjakanBawah from "../AjakanBawah";
 
 export const metadata = {
@@ -14,12 +13,12 @@ export const metadata = {
 };
 
 const PRODUK = [
-  { ikon: "lampu", judul: "Lampu & Penerangan", teks: "Berbagai kebutuhan lampu dan produk penerangan." },
-  { ikon: "colokan", judul: "Stop Kontak & Saklar", teks: "Perlengkapan untuk kebutuhan kelistrikan sehari-hari." },
-  { ikon: "petir", judul: "Perlengkapan Listrik", teks: "Berbagai perlengkapan pendukung kebutuhan listrik." },
-  { ikon: "kabel", judul: "Kabel & Instalasi", teks: "Kebutuhan kabel dan perlengkapan instalasi listrik." },
-  { ikon: "rumah", judul: "Kebutuhan Rumah", teks: "Produk pendukung kebutuhan listrik dan penerangan rumah." },
-  { ikon: "toko", judul: "Kebutuhan Usaha", teks: "Berbagai kebutuhan listrik dan penerangan untuk usaha." },
+  { ikon: "💡", judul: "Lampu & Penerangan", teks: "Berbagai kebutuhan lampu dan produk penerangan." },
+  { ikon: "🔌", judul: "Stop Kontak & Saklar", teks: "Perlengkapan untuk kebutuhan kelistrikan sehari-hari." },
+  { ikon: "⚡", judul: "Perlengkapan Listrik", teks: "Berbagai perlengkapan pendukung kebutuhan listrik." },
+  { ikon: "🔧", judul: "Kabel & Instalasi", teks: "Kebutuhan kabel dan perlengkapan instalasi listrik." },
+  { ikon: "🏠", judul: "Kebutuhan Rumah", teks: "Produk pendukung kebutuhan listrik dan penerangan rumah." },
+  { ikon: "🏪", judul: "Kebutuhan Usaha", teks: "Berbagai kebutuhan listrik dan penerangan untuk usaha." },
 ];
 
 const ALASAN = [
@@ -79,7 +78,7 @@ const BAGIAN = [
         <div className="dl-grid">
           {PRODUK.map((p) => (
             <div key={p.judul} className="dl-kartu">
-              <span className="dl-ikon"><IkonSitus nama={p.ikon} /></span>
+              <span className="dl-ikon tk-emoji" aria-hidden="true">{p.ikon}</span>
               <div>
                 <strong>{p.judul}</strong>
                 <p>{p.teks}</p>
@@ -160,6 +159,7 @@ export default function TentangPage() {
 
       <style>{`
         .wrap-baca { max-width: 880px; }
+        .tk-emoji { width: 44px; height: 44px; font-size: 24px; line-height: 1; background: #fff8ee; border: 1px solid #f0e2cf; }
         .tk-lihat { margin: 14px 0 0 !important; }
         .tk-lihat a { color: #6f4c36; font-weight: 700; text-decoration: none; }
         .tk-lihat a:hover { text-decoration: underline; }
