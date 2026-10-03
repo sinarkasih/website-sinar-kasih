@@ -1,13 +1,37 @@
 // Lokasi file: app/page.js
-// Beranda website Toko Listrik Sinar Kasih.
+// Beranda website Toko Listrik Sinar Kasih:
+// hero, Produk Musiman (diatur di admin Tampilan Website, bisa dijadwalkan),
+// kategori, brand, Produk Populer (otomatis dari Statistik), dan Produk Pilihan.
+// Setiap bagian menampilkan maksimal 6 item.
 
 import { Suspense } from "react";
 import Link from "next/link";
 import { getSupabase } from "../lib/supabase";
-import { ambilKatalog, GridProduk } from "./KatalogProduk";
+import { ambilKatalog, ambilProdukDariId, GridProduk } from "./KatalogProduk";
 import { KotakCari } from "./KontrolKatalog";
 
 export const dynamic = "force-dynamic";
+
+// Produk Populer baru ditampilkan jika sudah ada minimal 3 produk yang dilihat
+const MIN_POPULER = 3;
+
+function hariIniWIT() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jayapura",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+// Musiman tampil jika aktif, ada produknya, dan hari ini masuk rentang tanggal (jika diisi)
+function musimanBerlaku(m) {
+  if (!m || !m.aktif || !Array.isArray(m.produk_ids) || m.produk_ids.length === 0) return false;
+  const hari = hariIniWIT();
+  if (m.tanggal_mulai && hari < m.tanggal_mulai) return false;
+  if (m.tanggal_selesai && hari > m.tanggal_selesai) return false;
+  return true;
+}
 
 export default async function Home() {
   const supabase = getSupabase();
@@ -15,9 +39,12 @@ export default async function Home() {
   let kategori = [];
   let brand = [];
   let produk = [];
+  let musiman = null;
+  let produkMusiman = [];
+  let produkPopuler = [];
 
   if (supabase) {
-    const [hasilKategori, hasilBrand, hasilProduk] = await Promise.all([
+    const [hasilKategori, hasilBrand, hasilProduk, hasilMusiman, hasilPopuler] = await Promise.all([
       supabase
         .from("kategori")
         .select("id, nama, slug, gambar_url, urutan")
@@ -34,11 +61,33 @@ export default async function Home() {
         .order("nama", { ascending: true })
         .limit(6),
       ambilKatalog(supabase, { batas: "beranda", perHalaman: 6 }),
+      supabase
+        .from("beranda_musiman")
+        .select("aktif, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
+        .eq("id", 1)
+        .maybeSingle(),
+      supabase.rpc("produk_populer", { p_hari: 30, p_batas: 6 }),
     ]);
 
     kategori = hasilKategori.data || [];
     brand = hasilBrand.data || [];
     produk = hasilProduk.produk || [];
+
+    // Produk Musiman (jika tabelnya belum dibuat, bagian ini dilewati)
+    if (!hasilMusiman.error && musimanBerlaku(hasilMusiman.data)) {
+      musiman = hasilMusiman.data;
+      produkMusiman = await ambilProdukDariId(supabase, musiman.produk_ids, 6);
+    }
+
+    // Produk Populer (otomatis dari Statistik)
+    if (!hasilPopuler.error && (hasilPopuler.data || []).length >= MIN_POPULER) {
+      produkPopuler = await ambilProdukDariId(
+        supabase,
+        hasilPopuler.data.map((p) => p.produk_id),
+        6
+      );
+      if (produkPopuler.length < MIN_POPULER) produkPopuler = [];
+    }
   }
 
   return (
@@ -70,6 +119,22 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* PRODUK MUSIMAN */}
+      {musiman && produkMusiman.length > 0 && (
+        <section className="section musiman">
+          <div className="wrap">
+            <div className="kepala-bagian">
+              <div>
+                <span className="musiman-label">Spesial Musim Ini</span>
+                <h2>{musiman.judul}</h2>
+                {musiman.keterangan && <p>{musiman.keterangan}</p>}
+              </div>
+            </div>
+            <GridProduk produk={produkMusiman} kolom={6} />
+          </div>
+        </section>
+      )}
 
       {/* KATEGORI */}
       {kategori.length > 0 && (
@@ -137,6 +202,21 @@ export default async function Home() {
         </section>
       )}
 
+      {/* PRODUK POPULER */}
+      {produkPopuler.length > 0 && (
+        <section className="section">
+          <div className="wrap">
+            <div className="kepala-bagian">
+              <div>
+                <h2>Produk Populer</h2>
+                <p>Produk yang paling banyak dilihat pengunjung dalam 30 hari terakhir.</p>
+              </div>
+            </div>
+            <GridProduk produk={produkPopuler} kolom={6} />
+          </div>
+        </section>
+      )}
+
       {/* PRODUK */}
       <section className="section">
         <div className="wrap">
@@ -157,6 +237,11 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      <style>{`
+        .musiman { background: linear-gradient(180deg, #fcf3e6 0%, rgba(252, 243, 230, 0) 100%); }
+        .musiman-label { display: inline-block; margin-bottom: 6px; padding: 3px 10px; border-radius: 999px; background: #c58a2b; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+      `}</style>
     </>
   );
 }

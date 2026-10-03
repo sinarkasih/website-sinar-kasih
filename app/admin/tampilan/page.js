@@ -2,6 +2,7 @@
 
 // Lokasi file: app/admin/tampilan/page.js
 // Tampilan Website:
+// - Produk Musiman: produk pilihan musim (Natal, Lebaran, dll) di Beranda
 // - Formulir: tautan Google Form (klaim garansi, kepuasan pelanggan, komplain)
 // - Lagu Tema: lagu Sinar Kasih yang bisa diputar pengunjung (tidak otomatis)
 // Keduanya tampil di halaman Info website.
@@ -10,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 import { useUrut, KolomUrut } from "../Urut";
 import { ambilIdYoutube } from "../../info/VideoPromosi";
+import BagianMusiman from "./BagianMusiman";
 
 const FORM_KOSONG = { judul: "", deskripsi: "", url: "", urutan: 0, aktif: true };
 const LAGU_KOSONG = { judul: "", keterangan: "", urutan: 0, aktif: true };
@@ -755,13 +757,14 @@ export default function TampilanWebsitePage() {
       <div className="admin-page-header">
         <div>
           <h1>Tampilan Website</h1>
-          <p>Atur formulir pelanggan, lagu tema, dan video promosi yang tampil di halaman Info.</p>
+          <p>Atur Produk Musiman di Beranda, serta formulir pelanggan, lagu tema, dan video promosi di halaman Info.</p>
         </div>
         <a href="/info" target="_blank" rel="noreferrer" className="admin-secondary-button">
           Lihat halaman Info ↗
         </a>
       </div>
 
+      <BagianMusiman />
       <BagianFormulir />
       <BagianLagu />
       <BagianVideo />

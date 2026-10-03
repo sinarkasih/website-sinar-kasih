@@ -176,3 +176,42 @@ export function PaginasiPublik({ halaman, total, perHalaman, buatHref }) {
     </nav>
   );
 }
+
+// Ambil produk berdasarkan daftar id (urutan mengikuti daftar id),
+// hanya produk aktif yang tidak ada di Trash, lengkap dengan foto utamanya.
+export async function ambilProdukDariId(supabase, ids, batas = 6) {
+  const daftar = [...new Set((ids || []).map(Number).filter((n) => Number.isFinite(n)))];
+  if (daftar.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("produk_katalog")
+    .select("id, nama, slug, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max")
+    .in("id", daftar)
+    .eq("aktif", true)
+    .is("deleted_at", null);
+
+  if (error) {
+    console.error("PRODUK DARI ID ERROR:", error);
+    return [];
+  }
+
+  const urutan = new Map(daftar.map((id, i) => [id, i]));
+  const produk = (data || [])
+    .sort((a, b) => (urutan.get(Number(a.id)) ?? 999) - (urutan.get(Number(b.id)) ?? 999))
+    .slice(0, batas);
+
+  const foto = {};
+  if (produk.length > 0) {
+    const { data: gambar } = await supabase
+      .from("produk_gambar")
+      .select("produk_id, url, utama, id")
+      .in("produk_id", produk.map((p) => p.id))
+      .order("utama", { ascending: false })
+      .order("id", { ascending: true });
+    (gambar || []).forEach((g) => {
+      if (!foto[g.produk_id]) foto[g.produk_id] = g.url;
+    });
+  }
+
+  return produk.map((p) => ({ ...p, foto: foto[p.id] || null }));
+}
