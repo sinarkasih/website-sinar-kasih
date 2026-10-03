@@ -789,7 +789,7 @@ export default function Page() {
   if (loading) {
     return (
       <main style={styles.page}>
-        <div style={styles.card}>
+        <div className="jo-card" style={styles.card}>
           <p style={styles.muted}>
             Memuat data jam operasional...
           </p>
@@ -800,7 +800,7 @@ export default function Page() {
 
   return (
     <main style={styles.page}>
-      <div style={styles.header}>
+      <div className="jo-header" style={styles.header}>
         <div>
           <h1 style={styles.title}>
             Jam Operasional
@@ -841,8 +841,8 @@ export default function Page() {
         </div>
       )}
 
-      <section style={styles.card}>
-        <div style={styles.sectionHeader}>
+      <section className="jo-card" style={styles.card}>
+        <div className="jo-sectionHeader" style={styles.sectionHeader}>
           <div>
             <h2 style={styles.sectionTitle}>
               Pilih Cabang
@@ -879,8 +879,8 @@ export default function Page() {
         </select>
       </section>
 
-      <section style={styles.card}>
-        <div style={styles.sectionHeader}>
+      <section className="jo-card" style={styles.card}>
+        <div className="jo-sectionHeader" style={styles.sectionHeader}>
           <div>
             <h2 style={styles.sectionTitle}>
               🕐 Jam Operasional Normal
@@ -905,7 +905,7 @@ export default function Page() {
               return (
                 <div
                   key={item.hari}
-                  style={styles.scheduleRow}
+                  className="jo-scheduleRow" style={styles.scheduleRow}
                 >
                   <div
                     style={styles.dayName}
@@ -988,7 +988,7 @@ export default function Page() {
             })}
           </div>
 
-          <div style={styles.formActions}>
+          <div className="jo-formActions" style={styles.formActions}>
             <button
               type="submit"
               disabled={savingNormal}
@@ -1007,8 +1007,8 @@ export default function Page() {
         </form>
       </section>
 
-      <section style={styles.card}>
-        <div style={styles.sectionHeader}>
+      <section className="jo-card" style={styles.card}>
+        <div className="jo-sectionHeader" style={styles.sectionHeader}>
           <div>
             <h2 style={styles.sectionTitle}>
               🗓️ Jam Operasional Khusus
@@ -1040,12 +1040,10 @@ export default function Page() {
         {showSpecialForm && (
           <form
             onSubmit={simpanSpecial}
-            style={styles.specialForm}
+            className="jo-card" style={styles.specialForm}
           >
             <div
-              style={
-                styles.specialFormHeader
-              }
+              className="jo-specialFormHeader" style={styles.specialFormHeader}
             >
               <div>
                 <h3
@@ -1084,7 +1082,7 @@ export default function Page() {
               </button>
             </div>
 
-            <div style={styles.formGrid}>
+            <div className="jo-formGrid" style={styles.formGrid}>
               <div style={styles.field}>
                 <label style={styles.label}>
                   Nama Periode *
@@ -1338,7 +1336,7 @@ export default function Page() {
             </div>
 
             <div
-              style={styles.formActions}
+              className="jo-formActions" style={styles.formActions}
             >
               <button
                 type="button"
@@ -1407,9 +1405,7 @@ export default function Page() {
                   style={styles.periodCard}
                 >
                   <div
-                    style={
-                      styles.periodMain
-                    }
+                    className="jo-periodMain" style={styles.periodMain}
                   >
                     <div>
                       <div
@@ -1466,9 +1462,7 @@ export default function Page() {
                     </div>
 
                     <div
-                      style={
-                        styles.periodActions
-                      }
+                      className="jo-periodActions" style={styles.periodActions}
                     >
                       <button
                         type="button"
@@ -1521,6 +1515,19 @@ export default function Page() {
           </div>
         )}
       </section>
+      <style>{`
+        /* Tampilan HP untuk Jam Operasional */
+        @media (max-width: 760px) {
+          .jo-card { padding: 18px !important; border-radius: 14px !important; }
+          .jo-header, .jo-sectionHeader, .jo-specialFormHeader, .jo-periodMain { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+          .jo-scheduleRow { grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 12px !important; }
+          .jo-scheduleRow > :last-child { grid-column: 1 / -1; }
+          .jo-formGrid { grid-template-columns: 1fr !important; }
+          .jo-periodActions { justify-content: flex-start !important; }
+          .jo-formActions { flex-wrap: wrap; }
+          .jo-formActions > * { flex: 1 1 auto; }
+        }
+      `}</style>
     </main>
   );
 }
@@ -1531,7 +1538,7 @@ const styles = {
     maxWidth: "none",
     boxSizing: "border-box",
     padding: "28px",
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   header: {
@@ -1546,18 +1553,18 @@ const styles = {
     margin: 0,
     fontSize: "34px",
     lineHeight: 1.2,
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   subtitle: {
     margin: "8px 0 0",
-    color: "#766d65",
+    color: "#7d6957",
     fontSize: "15px",
   },
 
   card: {
     background: "#ffffff",
-    border: "1px solid #e2d9cf",
+    border: "1px solid #eadfce",
     borderRadius: "16px",
     padding: "24px",
     marginBottom: "22px",
@@ -1577,18 +1584,18 @@ const styles = {
   sectionTitle: {
     margin: 0,
     fontSize: "22px",
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   formTitle: {
     margin: 0,
     fontSize: "18px",
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   muted: {
     margin: "6px 0 0",
-    color: "#766d65",
+    color: "#7d6957",
     fontSize: "14px",
     lineHeight: 1.6,
   },
@@ -1596,12 +1603,12 @@ const styles = {
   select: {
     width: "100%",
     boxSizing: "border-box",
-    border: "1px solid #d8ccc0",
+    border: "1px solid #e0cfbb",
     borderRadius: "10px",
     padding: "13px 14px",
     fontSize: "15px",
     background: "#ffffff",
-    color: "#3d2b20",
+    color: "#3f2f24",
     fontFamily: "inherit",
   },
 
@@ -1618,14 +1625,14 @@ const styles = {
     alignItems: "center",
     gap: "16px",
     padding: "14px 16px",
-    border: "1px solid #eee6df",
+    border: "1px solid #f0e7db",
     borderRadius: "11px",
-    background: "#fcfaf8",
+    background: "#fcfaf7",
   },
 
   dayName: {
     fontWeight: 700,
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   switchRow: {
@@ -1633,7 +1640,7 @@ const styles = {
     alignItems: "center",
     gap: "8px",
     fontSize: "14px",
-    color: "#51443b",
+    color: "#5c4a3d",
     cursor: "pointer",
   },
 
@@ -1646,17 +1653,17 @@ const styles = {
   timeInput: {
     width: "100%",
     boxSizing: "border-box",
-    border: "1px solid #d8ccc0",
+    border: "1px solid #e0cfbb",
     borderRadius: "8px",
     padding: "10px",
     fontSize: "14px",
     background: "#ffffff",
-    color: "#3d2b20",
+    color: "#3f2f24",
     fontFamily: "inherit",
   },
 
   timeDash: {
-    color: "#766d65",
+    color: "#7d6957",
     fontWeight: 700,
   },
 
@@ -1671,7 +1678,7 @@ const styles = {
     border: "none",
     borderRadius: "9px",
     padding: "11px 17px",
-    background: "#5b3b28",
+    background: "#6f4c36",
     color: "#ffffff",
     fontWeight: 700,
     cursor: "pointer",
@@ -1684,11 +1691,11 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     textDecoration: "none",
-    border: "1px solid #d5c8bc",
+    border: "1px solid #e0cfbb",
     borderRadius: "9px",
     padding: "10px 15px",
     background: "#ffffff",
-    color: "#4e3a2d",
+    color: "#4b3326",
     fontWeight: 700,
     cursor: "pointer",
     fontSize: "14px",
@@ -1697,11 +1704,11 @@ const styles = {
   },
 
   smallSecondaryButton: {
-    border: "1px solid #d5c8bc",
+    border: "1px solid #e0cfbb",
     borderRadius: "8px",
     padding: "8px 12px",
     background: "#ffffff",
-    color: "#4e3a2d",
+    color: "#4b3326",
     fontWeight: 700,
     cursor: "pointer",
     fontSize: "13px",
@@ -1721,10 +1728,10 @@ const styles = {
   },
 
   specialForm: {
-    border: "1px solid #e2d9cf",
+    border: "1px solid #eadfce",
     borderRadius: "13px",
     padding: "20px",
-    background: "#fbf8f5",
+    background: "#fcf8f2",
     marginBottom: "22px",
   },
 
@@ -1751,18 +1758,18 @@ const styles = {
 
   label: {
     fontWeight: 700,
-    color: "#3d2b20",
+    color: "#3f2f24",
     fontSize: "14px",
   },
 
   input: {
     width: "100%",
     boxSizing: "border-box",
-    border: "1px solid #d8ccc0",
+    border: "1px solid #e0cfbb",
     borderRadius: "9px",
     padding: "11px 12px",
     background: "#ffffff",
-    color: "#3d2b20",
+    color: "#3f2f24",
     fontSize: "14px",
     fontFamily: "inherit",
   },
@@ -1772,22 +1779,22 @@ const styles = {
     alignItems: "center",
     gap: "8px",
     minHeight: "42px",
-    color: "#51443b",
+    color: "#5c4a3d",
     fontSize: "14px",
   },
 
   specialScheduleBox: {
     marginTop: "22px",
     paddingTop: "20px",
-    borderTop: "1px solid #e3d9cf",
+    borderTop: "1px solid #f0e7db",
   },
 
   emptyBox: {
     textAlign: "center",
     padding: "38px 20px",
-    border: "1px dashed #d8ccc0",
+    border: "1px dashed #e0cfbb",
     borderRadius: "12px",
-    background: "#fcfaf8",
+    background: "#fcfaf7",
   },
 
   emptyIcon: {
@@ -1802,7 +1809,7 @@ const styles = {
   },
 
   periodCard: {
-    border: "1px solid #e2d9cf",
+    border: "1px solid #eadfce",
     borderRadius: "12px",
     padding: "18px",
     background: "#ffffff",
@@ -1825,7 +1832,7 @@ const styles = {
   periodTitle: {
     margin: 0,
     fontSize: "17px",
-    color: "#3d2b20",
+    color: "#3f2f24",
   },
 
   periodDate: {
@@ -1851,7 +1858,7 @@ const styles = {
 
   statusInactive: {
     background: "#f1eeeb",
-    color: "#766d65",
+    color: "#7d6957",
   },
 
   periodActions: {

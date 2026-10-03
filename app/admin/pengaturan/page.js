@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 
 import { useUrut, KolomUrut } from "../Urut";
+import BagianOptimasiFoto from "./BagianOptimasiFoto";
 const DOMAIN_AKUN = "@sinarkasih.co.id";
 
 // Daftar jabatan & hak aksesnya.
@@ -584,6 +585,9 @@ export default function PengaturanPage() {
           </table>
         </div>
       </div>
+
+      {/* ===== KECILKAN FOTO LAMA ===== */}
+      <BagianOptimasiFoto />
 
       {/* ===== KETERANGAN HAK AKSES ===== */}
       <div className="admin-card pg-info">

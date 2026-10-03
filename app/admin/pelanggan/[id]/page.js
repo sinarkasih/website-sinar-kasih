@@ -389,7 +389,7 @@ export default function Page() {
 
         .page-head p {
           margin: 0;
-          color: #766d65;
+          color: #7d6957;
         }
 
         .head-actions {
@@ -409,7 +409,7 @@ export default function Page() {
         .section-card,
         .stat-card {
           background: #fff;
-          border: 1px solid #e2d9cf;
+          border: 1px solid #eadfce;
           border-radius: 14px;
           box-sizing: border-box;
         }
@@ -422,7 +422,7 @@ export default function Page() {
           font-size: 18px;
           font-weight: 700;
           margin-bottom: 18px;
-          color: #3d2b20;
+          color: #3f2f24;
         }
 
         .info-row {
@@ -430,7 +430,7 @@ export default function Page() {
           grid-template-columns: 190px minmax(0, 1fr);
           gap: 20px;
           padding: 13px 0;
-          border-bottom: 1px solid #eee7df;
+          border-bottom: 1px solid #f0e7db;
         }
 
         .info-row:last-child {
@@ -438,11 +438,11 @@ export default function Page() {
         }
 
         .info-row span {
-          color: #766d65;
+          color: #7d6957;
         }
 
         .info-row strong {
-          color: #3d2b20;
+          color: #3f2f24;
           word-break: break-word;
         }
 
@@ -461,13 +461,13 @@ export default function Page() {
         }
 
         .stat-card span {
-          color: #766d65;
+          color: #7d6957;
           font-size: 14px;
           margin-bottom: 10px;
         }
 
         .stat-card strong {
-          color: #3d2b20;
+          color: #3f2f24;
           font-size: 28px;
         }
 
@@ -486,13 +486,13 @@ export default function Page() {
 
         .section-head h2 {
           margin: 0 0 5px;
-          color: #3d2b20;
+          color: #3f2f24;
           font-size: 20px;
         }
 
         .section-head p {
           margin: 0;
-          color: #766d65;
+          color: #7d6957;
           font-size: 14px;
         }
 
@@ -500,7 +500,7 @@ export default function Page() {
           padding: 9px 13px;
           border-radius: 10px;
           background: #f4ede5;
-          color: #6f4f39;
+          color: #4b3326;
           font-weight: 700;
           white-space: nowrap;
         }
@@ -531,7 +531,7 @@ export default function Page() {
 
         td {
           padding: 15px 14px;
-          border-bottom: 1px solid #eee7df;
+          border-bottom: 1px solid #f0e7db;
           color: #514941;
           font-size: 14px;
         }
@@ -541,7 +541,7 @@ export default function Page() {
         }
 
         tbody tr:hover {
-          background: #fcfaf8;
+          background: #fcfaf7;
         }
 
         .btn {
@@ -560,8 +560,8 @@ export default function Page() {
 
         .btn.secondary {
           background: #fff;
-          color: #6f4f39;
-          border: 1px solid #d9cbbd;
+          color: #4b3326;
+          border: 1px solid #e0cfbb;
         }
 
         .btn.secondary:hover {
@@ -569,7 +569,7 @@ export default function Page() {
         }
 
         .btn.edit {
-          background: #765238;
+          background: #6f4c36;
           color: #fff;
         }
 
@@ -578,7 +578,7 @@ export default function Page() {
         }
 
         .detail-link {
-          color: #6f4f39;
+          color: #4b3326;
           font-weight: 700;
           text-decoration: none;
         }
@@ -592,7 +592,7 @@ export default function Page() {
           padding: 5px 9px;
           border-radius: 999px;
           background: #f4ede5;
-          color: #6f4f39;
+          color: #4b3326;
           font-size: 12px;
           font-weight: 700;
         }
@@ -644,7 +644,7 @@ export default function Page() {
         .empty-state {
           padding: 45px 20px;
           text-align: center;
-          color: #766d65;
+          color: #7d6957;
           background: #faf8f5;
           border: 1px dashed #d9cfc5;
           border-radius: 10px;

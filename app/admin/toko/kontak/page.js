@@ -191,7 +191,7 @@ export default function InformasiTokoKontakPage() {
   return (
     <main style={styles.page}>
       <div style={styles.container}>
-        <div style={styles.header}>
+        <div className="ko-header" style={styles.header}>
           <div>
             <h1 style={styles.title}>
               Informasi Toko & Kontak
@@ -232,7 +232,7 @@ export default function InformasiTokoKontakPage() {
         )}
 
         <section style={styles.card}>
-          <div style={styles.cardHeader}>
+          <div className="ko-cardHeader" style={styles.cardHeader}>
             <h2 style={styles.cardTitle}>
               Kontak Utama Toko
             </h2>
@@ -244,7 +244,7 @@ export default function InformasiTokoKontakPage() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div style={styles.grid}>
+            <div className="ko-grid" style={styles.grid}>
               <div style={styles.field}>
                 <label
                   htmlFor="whatsapp"
@@ -366,9 +366,9 @@ export default function InformasiTokoKontakPage() {
               </div>
             </div>
 
-            <div style={styles.divider} />
+            <div className="ko-divider" style={styles.divider} />
 
-            <div style={styles.actionRow}>
+            <div className="ko-actionRow" style={styles.actionRow}>
               <Link
                 href="/admin/toko"
                 style={styles.cancelButton}
@@ -394,6 +394,17 @@ export default function InformasiTokoKontakPage() {
           </form>
         </section>
       </div>
+      <style>{`
+        /* Tampilan HP untuk Kontak */
+        @media (max-width: 760px) {
+          .ko-header { flex-direction: column !important; gap: 12px !important; }
+          .ko-cardHeader { padding: 20px 18px 14px !important; }
+          .ko-grid { grid-template-columns: 1fr !important; gap: 18px !important; padding: 4px 18px 20px !important; }
+          .ko-divider { margin: 0 18px !important; }
+          .ko-actionRow { flex-wrap: wrap; padding: 18px !important; }
+          .ko-actionRow > * { flex: 1 1 auto; }
+        }
+      `}</style>
     </main>
   );
 }
@@ -422,7 +433,7 @@ const styles = {
 
   title: {
     margin: 0,
-    color: "#2f241f",
+    color: "#3f2f24",
     fontSize: "32px",
     lineHeight: 1.2,
     fontWeight: 700,
@@ -430,7 +441,7 @@ const styles = {
 
   subtitle: {
     margin: "8px 0 0",
-    color: "#78665c",
+    color: "#7d6957",
     fontSize: "16px",
     lineHeight: 1.5,
   },
@@ -441,10 +452,10 @@ const styles = {
     justifyContent: "center",
     minHeight: "48px",
     padding: "0 20px",
-    border: "1px solid #d9c9bc",
+    border: "1px solid #e0cfbb",
     borderRadius: "10px",
     background: "#ffffff",
-    color: "#3d2a21",
+    color: "#4b3326",
     textDecoration: "none",
     fontSize: "16px",
     fontWeight: 600,
@@ -458,7 +469,7 @@ const styles = {
     padding: "30px",
     borderRadius: "14px",
     background: "#ffffff",
-    border: "1px solid #e4d8ce",
+    border: "1px solid #eadfce",
     color: "#6d5a50",
     textAlign: "center",
     fontSize: "16px",
@@ -488,7 +499,7 @@ const styles = {
 
   card: {
     background: "#ffffff",
-    border: "1px solid #dfd2c7",
+    border: "1px solid #eadfce",
     borderRadius: "16px",
     overflow: "hidden",
     boxShadow: "0 5px 18px rgba(76, 50, 35, 0.05)",
@@ -500,7 +511,7 @@ const styles = {
 
   cardTitle: {
     margin: 0,
-    color: "#2e241f",
+    color: "#3f2f24",
     fontSize: "25px",
     lineHeight: 1.3,
     fontWeight: 700,
@@ -508,7 +519,7 @@ const styles = {
 
   cardDescription: {
     margin: "7px 0 0",
-    color: "#806e64",
+    color: "#7d6957",
     fontSize: "15px",
     lineHeight: 1.5,
   },
@@ -528,7 +539,7 @@ const styles = {
   label: {
     display: "block",
     marginBottom: "9px",
-    color: "#30251f",
+    color: "#3f2f24",
     fontSize: "16px",
     lineHeight: 1.3,
     fontWeight: 700,
@@ -539,10 +550,10 @@ const styles = {
     height: "56px",
     padding: "0 16px",
     boxSizing: "border-box",
-    border: "1px solid #d9c9bc",
+    border: "1px solid #e0cfbb",
     borderRadius: "10px",
     background: "#ffffff",
-    color: "#2e241f",
+    color: "#3f2f24",
     fontSize: "16px",
     outline: "none",
   },
@@ -550,7 +561,7 @@ const styles = {
   help: {
     display: "block",
     marginTop: "8px",
-    color: "#85736a",
+    color: "#9a8571",
     fontSize: "14px",
     lineHeight: 1.5,
   },
@@ -558,7 +569,7 @@ const styles = {
   socialLink: {
     display: "inline-block",
     marginTop: "9px",
-    color: "#704c38",
+    color: "#6f4c36",
     fontSize: "14px",
     fontWeight: 600,
     textDecoration: "none",
@@ -567,7 +578,7 @@ const styles = {
   divider: {
     height: "1px",
     margin: "0 34px",
-    background: "#eadfd6",
+    background: "#f0e7db",
   },
 
   actionRow: {
@@ -584,10 +595,10 @@ const styles = {
     justifyContent: "center",
     minHeight: "46px",
     padding: "0 20px",
-    border: "1px solid #d9c9bc",
+    border: "1px solid #e0cfbb",
     borderRadius: "9px",
     background: "#ffffff",
-    color: "#4e3b31",
+    color: "#4b3326",
     textDecoration: "none",
     fontSize: "15px",
     fontWeight: 600,

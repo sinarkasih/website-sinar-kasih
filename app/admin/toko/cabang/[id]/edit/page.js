@@ -402,18 +402,18 @@ export default function Page() {
         .page-head h1 {
           margin: 0 0 6px;
           font-size: 34px;
-          color: #3d2b20;
+          color: #3f2f24;
         }
 
         .page-head p {
           margin: 0;
-          color: #766d65;
+          color: #7d6957;
         }
 
         .form-card {
           width: 100%;
           background: #fff;
-          border: 1px solid #e2d9cf;
+          border: 1px solid #eadfce;
           border-radius: 14px;
           padding: 26px;
           box-sizing: border-box;
@@ -437,11 +437,11 @@ export default function Page() {
 
         .field label {
           font-weight: 700;
-          color: #3d2b20;
+          color: #3f2f24;
         }
 
         .field small {
-          color: #766d65;
+          color: #7d6957;
           font-size: 12px;
         }
 
@@ -449,12 +449,12 @@ export default function Page() {
         .field textarea {
           width: 100%;
           box-sizing: border-box;
-          border: 1px solid #d8ccc0;
+          border: 1px solid #e0cfbb;
           border-radius: 9px;
           padding: 12px 13px;
           font-size: 14px;
           background: #fff;
-          color: #3d2b20;
+          color: #3f2f24;
           font-family: inherit;
         }
 
@@ -465,14 +465,14 @@ export default function Page() {
         .field input:focus,
         .field textarea:focus {
           outline: none;
-          border-color: #8a654a;
+          border-color: #6f4c36;
         }
 
         .preview {
           margin-top: 10px;
           width: 320px;
           height: 200px;
-          border: 1px solid #ddd0c3;
+          border: 1px solid #e0cfbb;
           border-radius: 10px;
           overflow: hidden;
           background: #f5f0e8;
@@ -506,7 +506,7 @@ export default function Page() {
           gap: 10px;
           margin-top: 28px;
           padding-top: 20px;
-          border-top: 1px solid #eee7df;
+          border-top: 1px solid #f0e7db;
         }
 
         .btn {
@@ -524,14 +524,14 @@ export default function Page() {
         }
 
         .btn.primary {
-          background: #765238;
+          background: #6f4c36;
           color: #fff;
         }
 
         .btn.secondary {
           background: #fff;
-          color: #6f4f39;
-          border-color: #d9cbbd;
+          color: #4b3326;
+          border-color: #e0cfbb;
         }
 
         .error-box,
