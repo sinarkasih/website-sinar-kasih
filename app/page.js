@@ -63,7 +63,7 @@ export default async function Home() {
       ambilKatalog(supabase, { batas: "beranda", perHalaman: 6 }),
       supabase
         .from("beranda_musiman")
-        .select("aktif, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
+        .select("aktif, label, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
         .eq("id", 1)
         .maybeSingle(),
       supabase.rpc("produk_populer", { p_hari: 30, p_batas: 6 }),
@@ -126,7 +126,9 @@ export default async function Home() {
           <div className="wrap">
             <div className="kepala-bagian">
               <div>
-                <span className="musiman-label">Spesial Musim Ini</span>
+                {musiman.label && musiman.label.trim() && (
+                  <span className="musiman-label">{musiman.label.trim()}</span>
+                )}
                 <h2>{musiman.judul}</h2>
                 {musiman.keterangan && <p>{musiman.keterangan}</p>}
               </div>
