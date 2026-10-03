@@ -1,3 +1,7 @@
+// Lokasi file: app/toko/page.js
+// Toko Kami: jejak & judul seragam, kartu cabang (foto, alamat, telepon),
+// jam operasional normal & khusus, tombol Maps / ulasan / WhatsApp.
+
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 
@@ -429,18 +433,21 @@ export default async function Page() {
 
   return (
     <>
-      <section className="section">
+      <section className="section halaman-atas">
         <div className="wrap">
-          <div className="tokoHeader">
-            <div>
-              <h1>Toko Kami</h1>
+          <nav className="jejak" aria-label="Posisi halaman">
+            <Link href="/">Beranda</Link>
+            <span>›</span>
+            <Link href="/info">Informasi &amp; Layanan</Link>
+            <span>›</span>
+            <strong>Toko Kami</strong>
+          </nav>
 
-              <p>
-                Temukan lokasi Toko Listrik
-                Sinar Kasih dan kunjungi
-                cabang terdekat.
-              </p>
-            </div>
+          <div className="kepala-halaman">
+            <h1>Toko Kami</h1>
+            <p>
+              Temukan lokasi Toko Listrik Sinar Kasih, jam buka setiap cabang, dan hubungi cabang terdekat.
+            </p>
           </div>
 
           {errorMessage ? (
@@ -816,33 +823,10 @@ export default async function Page() {
             </div>
           )}
 
-          <div className="backArea">
-            <Link
-              href="/lainnya"
-              className="backButton"
-            >
-              ← Kembali ke Informasi & Layanan
-            </Link>
-          </div>
         </div>
       </section>
 
       <style>{`
-        .tokoHeader {
-          margin-bottom: 28px;
-        }
-
-        .tokoHeader h1 {
-          margin: 0 0 8px;
-          font-size: 36px;
-          color: #3f2f24;
-        }
-
-        .tokoHeader p {
-          margin: 0;
-          color: #76685d;
-          font-size: 16px;
-        }
 
         .tokoGrid {
           display: grid;
@@ -1227,29 +1211,6 @@ export default async function Page() {
           border: 1px solid #3d8b4b;
         }
 
-        .backArea {
-          margin-top: 28px;
-          text-align: center;
-        }
-
-        .backButton {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 44px;
-          padding: 0 18px;
-          border: 1px solid #d4c5b5;
-          border-radius: 9px;
-          background: #ffffff;
-          color: #5f432e;
-          text-decoration: none;
-          font-weight: 700;
-        }
-
-        .backButton:hover {
-          background: #f5ede4;
-        }
-
         .tokoMessage {
           padding: 30px;
           border: 1px solid #dfd2c3;
@@ -1266,9 +1227,6 @@ export default async function Page() {
         }
 
         @media (max-width: 600px) {
-          .tokoHeader h1 {
-            font-size: 30px;
-          }
 
           .tokoPhoto {
             height: 220px;

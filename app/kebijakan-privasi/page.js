@@ -39,9 +39,17 @@ export default async function KebijakanPrivasiPage() {
   const email = kontak?.email || "";
 
   return (
-    <>
-      <main className="kpHalaman">
-        <header className="kpKepala">
+    <section className="section halaman-atas">
+      <div className="wrap wrap-baca">
+        <nav className="jejak" aria-label="Posisi halaman">
+          <Link href="/">Beranda</Link>
+          <span>›</span>
+          <Link href="/info">Informasi &amp; Layanan</Link>
+          <span>›</span>
+          <strong>Kebijakan Privasi</strong>
+        </nav>
+
+        <div className="kepala-halaman">
           <h1>Kebijakan Privasi</h1>
           <p>
             Halaman ini menjelaskan data apa saja yang kami terima saat Anda
@@ -49,7 +57,7 @@ export default async function KebijakanPrivasiPage() {
             dipakai, dan bagaimana kami menjaganya.
           </p>
           <span className="kpTanggal">Terakhir diperbarui: {TANGGAL_DIPERBARUI}</span>
-        </header>
+        </div>
 
         <article className="kpIsi">
           <section>
@@ -196,37 +204,13 @@ export default async function KebijakanPrivasiPage() {
                   Kirim email
                 </a>
               )}
-              <Link href="/info" className="kpEmail">
-                Kembali ke Informasi
-              </Link>
             </div>
           </section>
         </article>
-      </main>
+      </div>
 
       <style>{`
-        .kpHalaman {
-          min-height: 100vh;
-          padding: 56px 20px 90px;
-          background: #f8f6f2;
-          color: #30251f;
-        }
-        .kpKepala {
-          max-width: 720px;
-          margin: 0 auto 32px;
-        }
-        .kpKepala h1 {
-          margin: 0;
-          font-size: clamp(32px, 5vw, 46px);
-          line-height: 1.15;
-          color: #5c3f2c;
-        }
-        .kpKepala p {
-          margin: 16px 0 0;
-          font-size: 16.5px;
-          line-height: 1.75;
-          color: #6f6259;
-        }
+        .wrap-baca { max-width: 880px; }
         .kpTanggal {
           display: inline-block;
           margin-top: 14px;
@@ -234,8 +218,6 @@ export default async function KebijakanPrivasiPage() {
           color: #9a8571;
         }
         .kpIsi {
-          max-width: 720px;
-          margin: 0 auto;
           padding: 8px 32px 28px;
           background: #fff;
           border: 1px solid #eadfce;
@@ -311,9 +293,6 @@ export default async function KebijakanPrivasiPage() {
           outline-offset: 2px;
         }
         @media (max-width: 640px) {
-          .kpHalaman {
-            padding: 32px 14px 110px;
-          }
           .kpIsi {
             padding: 4px 18px 20px;
             border-radius: 14px;
@@ -324,6 +303,6 @@ export default async function KebijakanPrivasiPage() {
           }
         }
       `}</style>
-    </>
+    </section>
   );
 }
