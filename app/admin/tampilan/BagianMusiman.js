@@ -2,7 +2,7 @@
 
 // Lokasi file: app/admin/tampilan/BagianMusiman.js
 // Pengaturan "Produk Musiman" di Beranda (khusus Admin Utama):
-// judul & keterangan, jadwal tampil (opsional), aktif/nonaktif,
+// label kecil, judul & keterangan, jadwal tampil (opsional), aktif/nonaktif,
 // dan pilih maksimal 6 produk lewat pencarian (urutan bisa diatur).
 // Produk Populer di Beranda dihitung otomatis dari Statistik, tidak diatur di sini.
 
@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 
 const MAKS = 6;
+const SARAN_LABEL = ["Spesial Musim Ini", "Spesial Natal", "Spesial Lebaran", "Spesial Paskah", "Promo Terbatas"];
 const SARAN_JUDUL = ["Spesial Natal & Tahun Baru", "Spesial Ramadan & Lebaran", "Musim Hujan", "Promo Akhir Tahun"];
 
 function teksHarga(p) {
@@ -79,7 +80,7 @@ export default function BagianMusiman() {
   const muat = useCallback(async () => {
     const { data, error } = await getSupabase()
       .from("beranda_musiman")
-      .select("aktif, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
+      .select("aktif, label, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
       .eq("id", 1)
       .maybeSingle();
     if (error || !data) {
@@ -88,6 +89,7 @@ export default function BagianMusiman() {
     }
     setForm({
       aktif: !!data.aktif,
+      label: data.label ?? "",
       judul: data.judul || "Produk Musiman",
       keterangan: data.keterangan || "",
       tanggal_mulai: data.tanggal_mulai || "",
@@ -177,6 +179,7 @@ export default function BagianMusiman() {
       .from("beranda_musiman")
       .update({
         aktif: form.aktif,
+        label: form.label.trim() || null,
         judul: form.judul.trim(),
         keterangan: form.keterangan.trim() || null,
         tanggal_mulai: form.tanggal_mulai || null,
@@ -252,6 +255,25 @@ export default function BagianMusiman() {
           <input type="checkbox" checked={form.aktif} onChange={(e) => ubah({ aktif: e.target.checked })} />
           <span>Tampilkan Produk Musiman di Beranda</span>
         </label>
+
+        <label>
+          Label kecil di atas judul (kosongkan untuk menyembunyikan)
+          <input
+            type="text"
+            value={form.label}
+            maxLength={40}
+            onChange={(e) => ubah({ label: e.target.value })}
+            placeholder="Contoh: Spesial Natal"
+          />
+        </label>
+        <div className="pm-saran pm-saran-label">
+          <span>Contoh label:</span>
+          {SARAN_LABEL.map((l) => (
+            <button key={l} type="button" className="pm-chip" onClick={() => ubah({ label: l })}>
+              {l}
+            </button>
+          ))}
+        </div>
 
         <label>
           Judul bagian
@@ -396,6 +418,7 @@ export default function BagianMusiman() {
         .pm-saklar input { width: 18px; height: 18px; accent-color: #6f4c36; }
         .pm .tw-grid input[type="date"] { width: 100%; padding: 9px 12px; }
         .pm-saran { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: -4px; font-size: 13px; color: #9a8571; }
+        .pm-saran-label { align-self: end; margin-top: 0; padding-bottom: 8px; }
         .pm-chip { padding: 5px 10px; border: 1px solid #e0cfbb; border-radius: 999px; background: #fff; color: #5c3e2c; font-size: 12.5px; font-weight: 600; cursor: pointer; }
         .pm-chip:hover { background: #f8f1e8; }
 
