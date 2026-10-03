@@ -1,11 +1,13 @@
 // Lokasi file: app/kategori/page.js
 // Kategori utama: judul & jejak seragam, tab Kategori / Brand,
 // hanya kategori paling atas (anak kategori dibuka di halaman kategorinya),
-// dan kartu brand yang membuka daftar produk brand tersebut.
+// kartu brand yang membuka daftar produk brand tersebut, dan kotak cari produk.
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { getSupabase } from "../../lib/supabase";
 import { buatPohon } from "../KategoriPohon";
+import { KotakCari } from "../KontrolKatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +83,7 @@ export default async function Page({ searchParams }) {
           </p>
         </div>
 
+        <div className="kt-atas">
         <div className="kt-tab" role="tablist" aria-label="Jelajahi berdasarkan">
           <Link
             href="/kategori"
@@ -100,6 +103,12 @@ export default async function Page({ searchParams }) {
             Brand
             <span>{brand.length}</span>
           </Link>
+        </div>
+        <Suspense fallback={null}>
+          <div className="kt-cari">
+            <KotakCari bawaParam={false} placeholder="Atau langsung cari nama produk / SKU..." />
+          </div>
+        </Suspense>
         </div>
 
         {gagal ? (
@@ -153,7 +162,10 @@ export default async function Page({ searchParams }) {
       </div>
 
       <style>{`
-        .kt-tab { display: inline-flex; gap: 4px; margin-bottom: 24px; padding: 4px; border: 1px solid #eadfce; border-radius: 14px; background: #fff; }
+        .kt-atas { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+        .kt-cari { flex: 1 1 340px; max-width: 480px; }
+        .kt-cari .kk-cari { margin: 0; }
+        .kt-tab { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid #eadfce; border-radius: 14px; background: #fff; }
         .kt-tab a { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 18px; border-radius: 10px; color: #6f5a49; font-size: 15px; font-weight: 700; text-decoration: none; }
         .kt-tab a:hover { background: #f8f1e8; }
         .kt-tab a.aktif { background: #6f4c36; color: #fff; }

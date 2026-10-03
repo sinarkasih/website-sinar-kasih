@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "../../../../../lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 import { useAdmin } from "../../../AdminContext";
 import { buatPohon } from "../../../../KategoriPohon";
 
@@ -407,12 +408,15 @@ export default function EditProdukPage() {
     }
 
     try {
-      for (const file of files) {
-        if (!file.type.startsWith("image/")) {
+      for (const fileAsli of files) {
+        if (!fileAsli.type.startsWith("image/")) {
           throw new Error(
-            `"${file.name}" bukan file gambar.`
+            `"${fileAsli.name}" bukan file gambar.`
           );
         }
+
+        // Foto dikecilkan otomatis sebelum di-upload
+        const file = await kompresGambar(fileAsli);
 
         if (file.size > 5 * 1024 * 1024) {
           throw new Error(

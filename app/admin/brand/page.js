@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 import Paginasi from "../Paginasi";
 
 import { useUrut, KolomUrut } from "../Urut";
@@ -165,8 +166,8 @@ export default function AdminBrandPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Ukuran logo maksimal 5 MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Ukuran logo maksimal 15 MB.");
       return;
     }
 
@@ -184,6 +185,9 @@ export default function AdminBrandPage() {
     brandId,
     file
   ) {
+    // Gambar dikecilkan otomatis sebelum di-upload
+    file = await kompresGambar(file, { maks: 800 });
+
     const extension =
       file.name.split(".").pop() || "png";
 
@@ -717,7 +721,7 @@ export default function AdminBrandPage() {
 
                 <small>
                   JPG, PNG atau WEBP.
-                  Maksimal 5 MB.
+                  Maksimal 15 MB.
                 </small>
               </div>
 

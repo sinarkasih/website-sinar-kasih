@@ -290,11 +290,11 @@ export default async function Page({ params }) {
       </div>
 
       <style>{`
-        .pd-tata { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+        .pd-tata { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 44px; align-items: start; }
 
         /* Galeri */
         .pd-galeri { display: grid; gap: 12px; position: sticky; top: 90px; }
-        .pd-utama { position: relative; aspect-ratio: 1 / 1; border: 1px solid #eadfce; border-radius: 18px; background: #fff; overflow: hidden; display: grid; place-items: center; }
+        .pd-utama { position: relative; aspect-ratio: 1 / 1; padding: 14px; box-sizing: border-box; border: 1px solid #eadfce; border-radius: 18px; background: #fff; overflow: hidden; display: grid; place-items: center; }
         .pd-utama img { width: 100%; height: 100%; object-fit: contain; }
         .pd-utama-kosong { display: grid; justify-items: center; gap: 8px; color: #b9a48e; font-size: 14px; }
         .pd-geser { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 1px solid #eadfce; border-radius: 50%; background: rgba(255,255,255,.92); color: #4b3326; font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
@@ -359,10 +359,12 @@ export default async function Page({ params }) {
         @media (max-width: 860px) {
           .pd-tata { grid-template-columns: minmax(0, 1fr); gap: 22px; }
           .pd-galeri { position: static; }
-          .pd-utama { aspect-ratio: 4 / 3.4; }
+          .pd-galeri { max-width: 460px; width: 100%; margin: 0 auto; }
+          .pd-utama { aspect-ratio: 4 / 3; }
         }
         @media (max-width: 520px) {
           .pd-thumb button { width: 60px; height: 60px; }
+          .pd-utama { aspect-ratio: 1 / 1; max-height: 78vw; }
           .pd-spek > div { grid-template-columns: 96px 1fr; }
           .pd-deskripsi { padding: 18px; }
         }

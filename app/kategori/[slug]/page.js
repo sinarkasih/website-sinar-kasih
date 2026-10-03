@@ -9,7 +9,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabase } from "../../../lib/supabase";
 import { ambilKatalog, GridProduk, PaginasiPublik } from "../../KatalogProduk";
-import { PilihUrutan } from "../../KontrolKatalog";
+import { PilihUrutan, KotakCari } from "../../KontrolKatalog";
 import { buatPohon } from "../../KategoriPohon";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +23,7 @@ export default async function KategoriDetailPage({ params, searchParams }) {
   const urut = sp?.urut || "terbaru";
   const halaman = Math.max(1, Number(sp?.hal) || 1);
   const modeSemua = sp?.semua === "1";
+  const q = (sp?.q || "").trim();
 
   if (!supabase) {
     return (
@@ -57,6 +58,7 @@ export default async function KategoriDetailPage({ params, searchParams }) {
   if (tampilProduk) {
     hasil = await ambilKatalog(supabase, {
       kategoriIds: pohon.keturunan(kategori.id),
+      cari: q,
       urut,
       halaman,
       perHalaman: PER_HALAMAN,
@@ -66,6 +68,7 @@ export default async function KategoriDetailPage({ params, searchParams }) {
   function buatHref(n) {
     const p = new URLSearchParams();
     if (modeSemua) p.set("semua", "1");
+    if (q) p.set("q", q);
     if (urut !== "terbaru") p.set("urut", urut);
     if (n > 1) p.set("hal", String(n));
     const s = p.toString();
@@ -168,27 +171,47 @@ export default async function KategoriDetailPage({ params, searchParams }) {
           </div>
         ) : hasil.error ? (
           <div className="notice">Produk gagal dimuat. Coba muat ulang halaman.</div>
-        ) : hasil.produk.length === 0 ? (
-          <div className="kosong-cantik">
-            <h2>Belum ada produk</h2>
-            <p>Produk dalam kategori ini akan segera tersedia.</p>
-            <Link href="/kategori" className="btn">Lihat Kategori Lain</Link>
-          </div>
         ) : (
           <>
-            <div className="kk-baris">
-              <p className="jumlah-hasil">{hasil.total} produk</p>
-              <Suspense fallback={null}>
+            <Suspense fallback={null}>
+              <div className="kk-baris">
+                <KotakCari
+                  awal={q}
+                  tujuan={`/kategori/${kategori.slug}`}
+                  placeholder={`Cari di ${kategori.nama}...`}
+                />
                 <PilihUrutan />
-              </Suspense>
-            </div>
-            <GridProduk produk={hasil.produk} />
-            <PaginasiPublik
-              halaman={halaman}
-              total={hasil.total}
-              perHalaman={PER_HALAMAN}
-              buatHref={buatHref}
-            />
+              </div>
+            </Suspense>
+
+            {hasil.produk.length === 0 ? (
+              <div className="kosong-cantik">
+                <h2>{q ? "Produk tidak ditemukan" : "Belum ada produk"}</h2>
+                <p>
+                  {q
+                    ? `Tidak ada produk "${q}" di ${kategori.nama}. Coba kata lain atau cari di semua produk.`
+                    : "Produk dalam kategori ini akan segera tersedia."}
+                </p>
+                {q ? (
+                  <Link href={`/cari?q=${encodeURIComponent(q)}`} className="btn">Cari di Semua Produk</Link>
+                ) : (
+                  <Link href="/kategori" className="btn">Lihat Kategori Lain</Link>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className="jumlah-hasil">
+                  {hasil.total} produk{q ? ` untuk "${q}"` : ""}
+                </p>
+                <GridProduk produk={hasil.produk} />
+                <PaginasiPublik
+                  halaman={halaman}
+                  total={hasil.total}
+                  perHalaman={PER_HALAMAN}
+                  buatHref={buatHref}
+                />
+              </>
+            )}
           </>
         )}
       </div>

@@ -6,8 +6,18 @@ import TampilanPublik, { BungkusPublik } from "./TampilanPublik";
 import PencatatKunjungan from "./PencatatKunjungan";
 
 export const metadata = {
+  metadataBase: new URL("https://sinarkasih.co.id"),
   title: "Sinar Kasih | Toko Listrik Ambon",
-  description: "Website online Toko Listrik Sinar Kasih Ambon",
+  description:
+    "Toko Listrik Sinar Kasih Ambon: katalog kebutuhan listrik, lampu, dan perlengkapan rumah. Pesan mudah lewat WhatsApp.",
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Toko Listrik Sinar Kasih",
+    title: "Toko Listrik Sinar Kasih Ambon",
+    description: "Katalog kebutuhan listrik, lampu, dan perlengkapan rumah di Ambon. Pesan mudah lewat WhatsApp.",
+    images: [{ url: "/bagikan-sinar-kasih.png", width: 1200, height: 630, alt: "Toko Listrik Sinar Kasih" }],
+  },
 };
 
 function HomeIcon() {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "../../../../../lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 
 export default function EditKategoriPage() {
   const params = useParams();
@@ -162,9 +163,9 @@ export default function EditKategoriPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 15 * 1024 * 1024) {
       setError(
-        "Ukuran gambar maksimal 5 MB."
+        "Ukuran gambar maksimal 15 MB."
       );
       return;
     }
@@ -182,6 +183,9 @@ export default function EditKategoriPage() {
     supabase,
     file
   ) {
+    // Gambar dikecilkan otomatis sebelum di-upload
+    file = await kompresGambar(file, { maks: 1000 });
+
     const extension =
       file.name.split(".").pop() ||
       "jpg";
@@ -626,7 +630,7 @@ export default function EditKategoriPage() {
 
             <small>
               JPG, PNG atau WEBP.
-              Maksimal 5 MB.
+              Maksimal 15 MB.
             </small>
 
             {gambarUrl && (

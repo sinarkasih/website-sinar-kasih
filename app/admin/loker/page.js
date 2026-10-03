@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 
 import { useUrut, KolomUrut } from "../Urut";
 const tahapSeleksi = [
@@ -528,8 +529,11 @@ export default function AdminLokerPage() {
       return form.gambar_url || "";
     }
 
+    // Gambar dikecilkan otomatis sebelum di-upload (video tidak diubah)
+    const berkas = await kompresGambar(mediaFile);
+
     const extension =
-      mediaFile.name
+      berkas.name
         .split(".")
         .pop()
         ?.toLowerCase() || "jpg";
@@ -561,11 +565,11 @@ export default function AdminLokerPage() {
         .from("lowongan-images")
         .upload(
           filePath,
-          mediaFile,
+          berkas,
           {
             cacheControl: "3600",
             upsert: false,
-            contentType: mediaFile.type,
+            contentType: berkas.type,
           }
         );
 
@@ -588,8 +592,11 @@ export default function AdminLokerPage() {
       return form.cover_url || "";
     }
 
+    // Gambar dikecilkan otomatis sebelum di-upload (video tidak diubah)
+    const berkas = await kompresGambar(coverFile);
+
     const extension =
-      coverFile.name
+      berkas.name
         .split(".")
         .pop()
         ?.toLowerCase() || "jpg";
@@ -621,11 +628,11 @@ export default function AdminLokerPage() {
         .from("lowongan-images")
         .upload(
           filePath,
-          coverFile,
+          berkas,
           {
             cacheControl: "3600",
             upsert: false,
-            contentType: coverFile.type,
+            contentType: berkas.type,
           }
         );
 

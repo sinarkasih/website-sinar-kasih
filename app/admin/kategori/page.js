@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 import { buatPohon } from "../../KategoriPohon";
 import Paginasi from "../Paginasi";
 
@@ -194,9 +195,9 @@ export default function AdminKategoriPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 15 * 1024 * 1024) {
       setError(
-        "Ukuran gambar maksimal 5 MB."
+        "Ukuran gambar maksimal 15 MB."
       );
       return;
     }
@@ -215,6 +216,9 @@ export default function AdminKategoriPage() {
     kategoriId,
     file
   ) {
+    // Gambar dikecilkan otomatis sebelum di-upload
+    file = await kompresGambar(file, { maks: 1000 });
+
     const extension =
       file.name.split(".").pop() || "jpg";
 
@@ -925,7 +929,7 @@ export default function AdminKategoriPage() {
 
               <small>
                 JPG, PNG atau WEBP.
-                Maksimal 5 MB.
+                Maksimal 15 MB.
               </small>
 
               {editingId &&

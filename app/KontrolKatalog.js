@@ -43,13 +43,15 @@ export function PilihUrutan() {
   );
 }
 
-export function KotakCari({ awal = "", tujuan = "/cari" }) {
+// bawaParam: ikut membawa filter di alamat saat ini (misalnya urutan atau brand).
+// Matikan (false) jika kotak cari dipasang di halaman yang filternya tidak berlaku di tujuan.
+export function KotakCari({ awal = "", tujuan = "/cari", bawaParam = true, placeholder = "Cari nama produk atau SKU..." }) {
   const router = useRouter();
   const params = useSearchParams();
   const [teks, setTeks] = useState(awal);
 
   function cari(kata) {
-    const p = new URLSearchParams(params.toString());
+    const p = new URLSearchParams(bawaParam ? params.toString() : "");
     if (kata) p.set("q", kata);
     else p.delete("q");
     p.delete("hal");
@@ -71,7 +73,7 @@ export function KotakCari({ awal = "", tujuan = "/cari" }) {
           type="text"
           value={teks}
           onChange={(e) => setTeks(e.target.value)}
-          placeholder="Cari nama produk atau SKU..."
+          placeholder={placeholder}
           aria-label="Cari produk"
         />
         {teks !== "" && (
@@ -80,7 +82,8 @@ export function KotakCari({ awal = "", tujuan = "/cari" }) {
             className="kk-x"
             onClick={() => {
               setTeks("");
-              cari("");
+              // Muat ulang hasil hanya jika sedang menampilkan hasil pencarian
+              if (awal) cari("");
             }}
             aria-label="Hapus pencarian"
             title="Hapus pencarian"

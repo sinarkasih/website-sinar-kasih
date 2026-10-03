@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "../../../../../lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 
 export default function EditBrandPage() {
   const params = useParams();
@@ -103,9 +104,9 @@ export default function EditBrandPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 15 * 1024 * 1024) {
       setError(
-        "Ukuran logo maksimal 5 MB."
+        "Ukuran logo maksimal 15 MB."
       );
       return;
     }
@@ -123,6 +124,9 @@ export default function EditBrandPage() {
     supabase,
     file
   ) {
+    // Gambar dikecilkan otomatis sebelum di-upload
+    file = await kompresGambar(file, { maks: 800 });
+
     const extension =
       file.name.split(".").pop() ||
       "png";
@@ -461,7 +465,7 @@ export default function EditBrandPage() {
 
             <small>
               JPG, PNG atau WEBP.
-              Maksimal 5 MB.
+              Maksimal 15 MB.
             </small>
 
             {logoUrl && (

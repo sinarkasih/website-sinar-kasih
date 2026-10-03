@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
+import { kompresGambar } from "@/lib/kompresGambar";
 
 export default function Page() {
   const router = useRouter();
@@ -43,8 +44,8 @@ export default function Page() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Ukuran foto maksimal 5 MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Ukuran foto maksimal 15 MB.");
       return;
     }
 
@@ -103,14 +104,16 @@ export default function Page() {
       }
 
       if (fotoFile) {
+        // Foto dikecilkan otomatis sebelum di-upload
+        const fotoKecil = await kompresGambar(fotoFile);
         const extension =
-          fotoFile.name.split(".").pop()?.toLowerCase() || "jpg";
+          fotoKecil.name.split(".").pop()?.toLowerCase() || "jpg";
 
         const filePath = `cabang/${cabang.id}/utama-${Date.now()}.${extension}`;
 
         const { error: uploadError } = await supabase.storage
           .from("cabang-toko")
-          .upload(filePath, fotoFile, {
+          .upload(filePath, fotoKecil, {
             cacheControl: "3600",
             upsert: false,
           });
@@ -245,7 +248,7 @@ export default function Page() {
             />
 
             <small>
-              Pilih foto cabang. Maksimal 5 MB.
+              Pilih foto cabang. Maksimal 15 MB.
             </small>
 
             {fotoPreview && (
