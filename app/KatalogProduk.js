@@ -34,7 +34,7 @@ export async function ambilKatalog(
   let q = supabase
     .from("produk_katalog")
     .select(
-      "id, nama, slug, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max, produk_unggulan, tampilkan_di_beranda",
+      "id, nama, slug, sku, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max, produk_unggulan, tampilkan_di_beranda",
       { count: "exact" }
     )
     .eq("aktif", true)
@@ -179,6 +179,19 @@ export function PaginasiPublik({ halaman, total, perHalaman, buatHref }) {
   );
 }
 
+// Urutkan daftar produk berdasarkan SKU secara "alami":
+// LMP-2 sebelum LMP-10, produk tanpa SKU di paling akhir.
+export function urutkanSku(daftar) {
+  return [...(daftar || [])].sort((a, b) => {
+    const x = (a.sku || "").trim();
+    const y = (b.sku || "").trim();
+    if (!x && !y) return 0;
+    if (!x) return 1;
+    if (!y) return -1;
+    return x.localeCompare(y, "id", { numeric: true, sensitivity: "base" });
+  });
+}
+
 // Ambil produk berdasarkan daftar id (urutan mengikuti daftar id),
 // hanya produk aktif yang tidak ada di Trash, lengkap dengan foto utamanya.
 export async function ambilProdukDariId(supabase, ids, batas = 6) {
@@ -187,7 +200,7 @@ export async function ambilProdukDariId(supabase, ids, batas = 6) {
 
   const { data, error } = await supabase
     .from("produk_katalog")
-    .select("id, nama, slug, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max")
+    .select("id, nama, slug, sku, kategori_nama, brand_nama, mode_harga, harga, harga_min, harga_max")
     .in("id", daftar)
     .eq("aktif", true)
     .is("deleted_at", null);

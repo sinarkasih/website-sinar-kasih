@@ -3,7 +3,7 @@
 // Lokasi file: app/admin/tampilan/BagianMusiman.js
 // Pengaturan "Produk Musiman" di Beranda (khusus Admin Utama):
 // label kecil, judul & keterangan, jadwal tampil (opsional), aktif/nonaktif,
-// dan pilih maksimal 6 produk lewat pencarian (urutan bisa diatur).
+// dan pilih maksimal 6 produk lewat pencarian (di Beranda urut SKU).
 // Produk Populer di Beranda dihitung otomatis dari Statistik, tidak diatur di sini.
 
 import { useCallback, useEffect, useState } from "react";
@@ -153,16 +153,7 @@ export default function BagianMusiman() {
     setBerubah(true);
   }
 
-  function geser(i, arah) {
-    setPilihan((d) => {
-      const j = i + arah;
-      if (j < 0 || j >= d.length) return d;
-      const baru = [...d];
-      [baru[i], baru[j]] = [baru[j], baru[i]];
-      return baru;
-    });
-    setBerubah(true);
-  }
+
 
   async function kirim() {
     if (!form.judul.trim()) {
@@ -231,6 +222,7 @@ export default function BagianMusiman() {
           <h2>Produk Musiman di Beranda</h2>
           <p>
             Pilih maksimal {MAKS} produk untuk ditonjolkan di bagian atas Beranda, misalnya lampu hias menjelang Natal.
+            Di Beranda, produk otomatis diurutkan berdasarkan SKU.
             Isi tanggal jika ingin tampil dan hilang otomatis. Produk Populer di Beranda dihitung otomatis dari Statistik.
           </p>
         </div>
@@ -324,7 +316,9 @@ export default function BagianMusiman() {
             <p className="tw-kosong pm-kosong">Belum ada produk. Cari dan tambahkan produk di sebelah kanan.</p>
           ) : (
             <ol className="pm-daftar">
-              {pilihan.map((p, i) => {
+              {[...pilihan]
+                .sort((a, b) => String(a.sku || "~").localeCompare(String(b.sku || "~"), "id", { numeric: true, sensitivity: "base" }))
+                .map((p, i) => {
                 const masalah = p.aktif === false || p.deleted_at;
                 return (
                   <li key={p.id} className={masalah ? "masalah" : ""}>
@@ -337,8 +331,6 @@ export default function BagianMusiman() {
                       </small>
                     </span>
                     <span className="pm-aksi">
-                      <button type="button" onClick={() => geser(i, -1)} disabled={i === 0} aria-label="Naikkan" title="Naikkan">↑</button>
-                      <button type="button" onClick={() => geser(i, 1)} disabled={i === pilihan.length - 1} aria-label="Turunkan" title="Turunkan">↓</button>
                       <button type="button" className="hapus" onClick={() => hapus(p.id)} aria-label="Hapus dari daftar" title="Hapus">×</button>
                     </span>
                   </li>

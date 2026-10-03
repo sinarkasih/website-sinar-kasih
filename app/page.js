@@ -2,12 +2,12 @@
 // Beranda website Toko Listrik Sinar Kasih:
 // hero, Produk Musiman (diatur di admin Tampilan Website, bisa dijadwalkan),
 // kategori, brand, Produk Populer (otomatis dari Statistik), dan Produk Pilihan.
-// Setiap bagian menampilkan maksimal 6 item.
+// Setiap bagian menampilkan maksimal 6 item, dan produk ditampilkan urut SKU.
 
 import { Suspense } from "react";
 import Link from "next/link";
 import { getSupabase } from "../lib/supabase";
-import { ambilKatalog, ambilProdukDariId, GridProduk } from "./KatalogProduk";
+import { ambilKatalog, ambilProdukDariId, urutkanSku, GridProduk } from "./KatalogProduk";
 import { KotakCari } from "./KontrolKatalog";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,7 @@ export default async function Home() {
         .order("urutan", { ascending: true })
         .order("nama", { ascending: true })
         .limit(6),
-      ambilKatalog(supabase, { batas: "beranda", perHalaman: 6 }),
+      ambilKatalog(supabase, { batas: "beranda", urut: "sku_az", perHalaman: 6 }),
       supabase
         .from("beranda_musiman")
         .select("aktif, label, judul, keterangan, tanggal_mulai, tanggal_selesai, produk_ids")
@@ -71,12 +71,12 @@ export default async function Home() {
 
     kategori = hasilKategori.data || [];
     brand = hasilBrand.data || [];
-    produk = hasilProduk.produk || [];
+    produk = urutkanSku(hasilProduk.produk || []);
 
     // Produk Musiman (jika tabelnya belum dibuat, bagian ini dilewati)
     if (!hasilMusiman.error && musimanBerlaku(hasilMusiman.data)) {
       musiman = hasilMusiman.data;
-      produkMusiman = await ambilProdukDariId(supabase, musiman.produk_ids, 6);
+      produkMusiman = urutkanSku(await ambilProdukDariId(supabase, musiman.produk_ids, 6));
     }
 
     // Produk Populer (otomatis dari Statistik)
@@ -87,6 +87,7 @@ export default async function Home() {
         6
       );
       if (produkPopuler.length < MIN_POPULER) produkPopuler = [];
+      produkPopuler = urutkanSku(produkPopuler);
     }
   }
 
