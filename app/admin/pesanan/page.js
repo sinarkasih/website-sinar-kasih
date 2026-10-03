@@ -1,781 +1,756 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+// Lokasi file: app/admin/pesanan/page.js
+// Pesanan: kartu ringkasan per status, filter (cari, status, cabang, tanggal),
+// urutkan kolom, halaman 1 2 3, dan panel detail di sebelah kanan
+// (WhatsApp + tombol ubah status) tanpa pindah halaman.
+
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import Paginasi from "../Paginasi";
+import { KolomUrut } from "../Urut";
 
-import { useUrut, KolomUrut } from "../Urut";
-export default function AdminPesananPage() {
-  const router = useRouter();
+const PILIHAN_PER_HALAMAN = [10, 25, 50];
 
-  const [pesanan, setPesanan] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("semua");
+const KOLOM_URUT = {
+  nomor: "nomor_pesanan",
+  tanggal: "created_at",
+  total: "total",
+  status: "status",
+};
+
+const STATUS = {
+  baru: { label: "Baru", kelas: "baru" },
+  diproses: { label: "Diproses", kelas: "diproses" },
+  selesai: { label: "Selesai", kelas: "selesai" },
+  dibatalkan: { label: "Dibatalkan", kelas: "dibatalkan" },
+};
+
+function labelStatus(s) {
+  if (STATUS[s]) return STATUS[s].label;
+  if (!s) return "-";
+  return String(s).split("_").map((k) => k.charAt(0).toUpperCase() + k.slice(1)).join(" ");
+}
+
+function kelasStatus(s) {
+  return STATUS[s] ? STATUS[s].kelas : "lainnya";
+}
+
+function formatRupiah(n) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(n) || 0);
+}
+
+function formatTanggal(v) {
+  if (!v) return "-";
+  const t = new Date(v);
+  return {
+    tgl: t.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+    jam: t.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
+function nomorWA(nomor) {
+  let d = String(nomor || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("0")) d = "62" + d.slice(1);
+  if (d.startsWith("8")) d = "62" + d;
+  return d;
+}
+
+function awalRentang(kode) {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  if (kode === "hari_ini") return t.toISOString();
+  if (kode === "7_hari") { t.setDate(t.getDate() - 6); return t.toISOString(); }
+  if (kode === "30_hari") { t.setDate(t.getDate() - 29); return t.toISOString(); }
+  return null;
+}
+
+function IkonStatus({ nama }) {
+  const isi = {
+    baru: <><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6" /></>,
+    diproses: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+    selesai: <><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></>,
+    dibatalkan: <><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></>,
+  }[nama];
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {isi}
+    </svg>
+  );
+}
+
+function IkonWA() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.8-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z" />
+    </svg>
+  );
+}
+
+// ================= PANEL DETAIL =================
+function PanelDetail({ id, onTutup, onBerubah }) {
+  const [pesanan, setPesanan] = useState(null);
+  const [item, setItem] = useState([]);
+  const [memuat, setMemuat] = useState(true);
+  const [proses, setProses] = useState(false);
+  const [pesan, setPesan] = useState(null);
+
+  const muat = useCallback(async () => {
+    setMemuat(true);
+    setPesan(null);
+    const supabase = getSupabase();
+    const [{ data: p }, { data: d }] = await Promise.all([
+      supabase
+        .from("pesanan")
+        .select(
+          "id, created_at, nomor_pesanan, status, total, catatan, whatsapp, deleted_at, pelanggan:pelanggan_id ( nama, telepon, email, tipe, alamat ), cabang:cabang_id ( nama, alamat )"
+        )
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("detail_pesanan")
+        .select("id, nama_produk, harga, jumlah, subtotal, mode_harga, harga_min, harga_max, catatan")
+        .eq("pesanan_id", id)
+        .order("id", { ascending: true }),
+    ]);
+    setPesanan(p || null);
+    setItem(d || []);
+    setMemuat(false);
+  }, [id]);
 
   useEffect(() => {
-    loadPesanan();
+    muat();
+  }, [muat]);
+
+  async function ubahStatus(statusBaru) {
+    if (statusBaru === "dibatalkan" && !window.confirm("Batalkan pesanan ini?\n\nPesanan berubah menjadi Dibatalkan dan tetap tersimpan dalam riwayat.")) return;
+
+    setProses(true);
+    setPesan(null);
+    let q = getSupabase().from("pesanan").update({ status: statusBaru }).eq("id", id);
+    if (statusBaru === "diproses") q = q.eq("status", "baru");
+    if (statusBaru === "selesai") q = q.eq("status", "diproses");
+    if (statusBaru === "dibatalkan") q = q.in("status", ["baru", "diproses"]);
+    const { data, error } = await q.select("id");
+    setProses(false);
+
+    if (error || !data || data.length === 0) {
+      setPesan({ jenis: "gagal", teks: error ? error.message : "Status tidak dapat diubah. Kemungkinan status sudah berubah." });
+      return;
+    }
+    setPesan({ jenis: "sukses", teks: `Pesanan ditandai ${labelStatus(statusBaru)}.` });
+    setPesanan((p) => ({ ...p, status: statusBaru }));
+    onBerubah();
+  }
+
+  async function keTrash() {
+    if (!window.confirm("Pindahkan pesanan ini ke Trash?\n\nPesanan masih bisa dipulihkan dari Trash Pesanan.")) return;
+    setProses(true);
+    const { error } = await getSupabase()
+      .from("pesanan")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("status", "dibatalkan")
+      .is("deleted_at", null);
+    setProses(false);
+    if (error) {
+      setPesan({ jenis: "gagal", teks: error.message });
+      return;
+    }
+    onBerubah();
+    onTutup();
+  }
+
+  function bukaWA() {
+    const nomor = nomorWA(pesanan?.whatsapp || pesanan?.pelanggan?.telepon);
+    if (!nomor) {
+      window.alert("Nomor WhatsApp pelanggan tidak tersedia.");
+      return;
+    }
+    const nama = pesanan?.pelanggan?.nama || "Pelanggan";
+    const no = pesanan?.nomor_pesanan || `#${pesanan?.id}`;
+    const teks = `Halo ${nama}, kami dari Toko Listrik Sinar Kasih. Kami menghubungi terkait pesanan ${no}.`;
+    window.open(`https://wa.me/${nomor}?text=${encodeURIComponent(teks)}`, "_blank");
+  }
+
+  function hargaItem(it) {
+    if (it.mode_harga === "range") return `${formatRupiah(it.harga_min)} – ${formatRupiah(it.harga_max)}`;
+    if (it.mode_harga === "hubungi") return "Harga dikonfirmasi";
+    return formatRupiah(it.harga);
+  }
+
+  const t = pesanan ? formatTanggal(pesanan.created_at) : null;
+
+  return (
+    <aside className="ps-panel" aria-label="Detail pesanan">
+      <div className="ps-panel-kepala">
+        <h2>Detail Pesanan</h2>
+        <button type="button" className="ps-tutup" onClick={onTutup} aria-label="Tutup detail">
+          ×
+        </button>
+      </div>
+
+      {memuat ? (
+        <p className="ps-redup-teks">Memuat detail...</p>
+      ) : !pesanan ? (
+        <p className="ps-redup-teks">Pesanan tidak ditemukan.</p>
+      ) : (
+        <div className="ps-panel-isi">
+          <div className="ps-ringkas-atas">
+            <div>
+              <strong className="ps-no">{pesanan.nomor_pesanan || `#${pesanan.id}`}</strong>
+              <span className="ps-waktu">{t.tgl}, {t.jam}</span>
+            </div>
+            <span className={`ps-status ${kelasStatus(pesanan.status)}`}>{labelStatus(pesanan.status)}</span>
+          </div>
+
+          <button type="button" className="ps-wa" onClick={bukaWA}>
+            <IkonWA /> Chat WhatsApp
+          </button>
+
+          {pesan && <div className={`ps-pesan ${pesan.jenis}`}>{pesan.teks}</div>}
+
+          <section className="ps-blok">
+            <h3>Pelanggan</h3>
+            <p className="ps-tebal">{pesanan.pelanggan?.nama || "-"}</p>
+            <p>{pesanan.whatsapp || pesanan.pelanggan?.telepon || "-"}</p>
+            {pesanan.pelanggan?.alamat && <p className="ps-redup-teks">{pesanan.pelanggan.alamat}</p>}
+            <p className="ps-redup-teks">
+              {pesanan.pelanggan?.tipe === "guest" ? "Tanpa akun (Guest)" : pesanan.pelanggan?.tipe ? "Pelanggan terdaftar" : ""}
+            </p>
+          </section>
+
+          <section className="ps-blok">
+            <h3>Cabang Tujuan</h3>
+            <p className="ps-tebal">{pesanan.cabang?.nama || "-"}</p>
+            {pesanan.cabang?.alamat && <p className="ps-redup-teks">{pesanan.cabang.alamat}</p>}
+          </section>
+
+          <section className="ps-blok">
+            <h3>Daftar Produk</h3>
+            <ul className="ps-item">
+              {item.map((it) => (
+                <li key={it.id}>
+                  <div>
+                    <span className="ps-tebal">{it.nama_produk}</span>
+                    <span className="ps-redup-teks">{it.jumlah} × {hargaItem(it)}</span>
+                    {it.catatan && <span className="ps-redup-teks">Catatan: {it.catatan}</span>}
+                  </div>
+                  <span className="ps-tebal">{it.mode_harga === "hubungi" ? "-" : formatRupiah(it.subtotal)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="ps-total">
+              <span>Total</span>
+              <strong>{formatRupiah(pesanan.total)}</strong>
+            </div>
+          </section>
+
+          {pesanan.catatan && (
+            <section className="ps-blok">
+              <h3>Catatan Pelanggan</h3>
+              <p className="ps-catatan">{pesanan.catatan}</p>
+            </section>
+          )}
+
+          <div className="ps-aksi">
+            {pesanan.status === "baru" && (
+              <button type="button" className="ps-btn hijau" disabled={proses} onClick={() => ubahStatus("diproses")}>
+                Tandai Diproses
+              </button>
+            )}
+            {pesanan.status === "diproses" && (
+              <button type="button" className="ps-btn utama" disabled={proses} onClick={() => ubahStatus("selesai")}>
+                Tandai Selesai
+              </button>
+            )}
+            {(pesanan.status === "baru" || pesanan.status === "diproses") && (
+              <button type="button" className="ps-btn bahaya" disabled={proses} onClick={() => ubahStatus("dibatalkan")}>
+                Batalkan Pesanan
+              </button>
+            )}
+            {pesanan.status === "dibatalkan" && !pesanan.deleted_at && (
+              <button type="button" className="ps-btn bahaya" disabled={proses} onClick={keTrash}>
+                Pindahkan ke Trash
+              </button>
+            )}
+            <Link href={`/admin/pesanan/${pesanan.id}`} className="ps-btn">
+              Buka halaman lengkap
+            </Link>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+// ================= HALAMAN =================
+export default function AdminPesananPage() {
+  const [pesanan, setPesanan] = useState([]);
+  const [jumlahItem, setJumlahItem] = useState({});
+  const [total, setTotal] = useState(0);
+  const [ringkas, setRingkas] = useState(null);
+  const [cabang, setCabang] = useState([]);
+
+  const [halaman, setHalaman] = useState(1);
+  const [perHalaman, setPerHalaman] = useState(25);
+  const [ketik, setKetik] = useState("");
+  const [cari, setCari] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterCabang, setFilterCabang] = useState("");
+  const [filterTanggal, setFilterTanggal] = useState("");
+  const [urutan, setUrutan] = useState({ kunci: null, arah: "asc" });
+
+  const [dipilih, setDipilih] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const urut = {
+    kunci: urutan.kunci,
+    arah: urutan.arah,
+    ganti: (kunci) => {
+      setUrutan((u) => {
+        if (u.kunci !== kunci) return { kunci, arah: "asc" };
+        if (u.arah === "asc") return { kunci, arah: "desc" };
+        return { kunci: null, arah: "asc" };
+      });
+      setHalaman(1);
+    },
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setCari(ketik.trim());
+      setHalaman(1);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [ketik]);
+
+  const muatRingkasan = useCallback(async () => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    const hitung = (status) =>
+      supabase
+        .from("pesanan")
+        .select("id", { count: "exact", head: true })
+        .is("deleted_at", null)
+        .eq("status", status);
+    const [b, p, s, d, cb] = await Promise.all([
+      hitung("baru"),
+      hitung("diproses"),
+      hitung("selesai"),
+      hitung("dibatalkan"),
+      supabase.from("cabang_toko").select("id, nama").order("nama"),
+    ]);
+    setRingkas({ baru: b.count ?? 0, diproses: p.count ?? 0, selesai: s.count ?? 0, dibatalkan: d.count ?? 0 });
+    setCabang(cb.data || []);
   }, []);
 
-  async function loadPesanan() {
+  useEffect(() => {
+    muatRingkasan();
+  }, [muatRingkasan]);
+
+  const muatPesanan = useCallback(async () => {
     setLoading(true);
     setError("");
-
     const supabase = getSupabase();
-
     if (!supabase) {
       setError("Koneksi database belum tersedia.");
       setLoading(false);
       return;
     }
 
-    const { data, error: pesananError } = await supabase
+    const dari = (halaman - 1) * perHalaman;
+    let q = supabase
       .from("pesanan")
-      .select(`
-        id,
-        created_at,
-        pelanggan_id,
-        cabang_id,
-        nomor_pesanan,
-        status,
-        total,
-        catatan,
-        whatsapp,
-        pelanggan:pelanggan_id (
-          id,
-          nama,
-          email,
-          telepon,
-          tipe
-        ),
-        cabang:cabang_id (
-          id,
-          nama
-        )
-      `)
-      .order("created_at", {
-        ascending: false,
-      });
+      .select(
+        "id, created_at, nomor_pesanan, status, total, whatsapp, pelanggan:pelanggan_id ( nama, telepon ), cabang:cabang_id ( nama )",
+        { count: "exact" }
+      )
+      .is("deleted_at", null);
 
-    if (pesananError) {
-      console.error("Gagal mengambil pesanan:", pesananError);
+    if (cari) {
+      const kata = cari.replace(/[,()%*]/g, " ").trim();
+      if (kata) q = q.or(`nomor_pesanan.ilike.%${kata}%,whatsapp.ilike.%${kata}%`);
+    }
+    if (filterStatus) q = q.eq("status", filterStatus);
+    if (filterCabang) q = q.eq("cabang_id", filterCabang);
+    const awal = awalRentang(filterTanggal);
+    if (awal) q = q.gte("created_at", awal);
 
-      setError(pesananError.message);
-      setPesanan([]);
+    if (urutan.kunci) {
+      q = q.order(KOLOM_URUT[urutan.kunci], { ascending: urutan.arah === "asc", nullsFirst: false });
+    }
+    q = q.order("created_at", { ascending: false }).range(dari, dari + perHalaman - 1);
+
+    const { data, count, error: gagal } = await q;
+    if (gagal) {
+      setError(gagal.message);
       setLoading(false);
       return;
     }
 
     setPesanan(data || []);
+    setTotal(count || 0);
+
+    const ids = (data || []).map((x) => x.id);
+    if (ids.length > 0) {
+      const { data: det } = await supabase
+        .from("detail_pesanan")
+        .select("pesanan_id, jumlah")
+        .in("pesanan_id", ids);
+      const peta = {};
+      (det || []).forEach((d) => {
+        peta[d.pesanan_id] = (peta[d.pesanan_id] || 0) + (Number(d.jumlah) || 0);
+      });
+      setJumlahItem(peta);
+    } else {
+      setJumlahItem({});
+    }
     setLoading(false);
+  }, [halaman, perHalaman, cari, filterStatus, filterCabang, filterTanggal, urutan]);
+
+  useEffect(() => {
+    muatPesanan();
+  }, [muatPesanan]);
+
+  function resetFilter() {
+    setKetik("");
+    setCari("");
+    setFilterStatus("");
+    setFilterCabang("");
+    setFilterTanggal("");
+    setUrutan({ kunci: null, arah: "asc" });
+    setHalaman(1);
   }
 
-  const pesananFiltered = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-
-    return pesanan.filter((item) => {
-      const cocokStatus =
-        statusFilter === "semua" ||
-        item.status === statusFilter;
-
-      if (!cocokStatus) {
-        return false;
-      }
-
-      if (!keyword) {
-        return true;
-      }
-
-      const text = `
-        ${item.nomor_pesanan || ""}
-        ${item.pelanggan?.nama || ""}
-        ${item.pelanggan?.telepon || ""}
-        ${item.pelanggan?.email || ""}
-        ${item.whatsapp || ""}
-        ${item.cabang?.nama || ""}
-      `.toLowerCase();
-
-      return text.includes(keyword);
-    });
-  }, [pesanan, search, statusFilter]);
-
-  function hapusPencarian() {
-    setSearch("");
-  }
-
-  function formatTanggal(value) {
-    if (!value) return "-";
-
-    return new Date(value).toLocaleString("id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  }
-
-  function formatRupiah(value) {
-    const angka = Number(value || 0);
-
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(angka);
-  }
-
-  function labelStatus(status) {
-    switch (status) {
-      case "baru":
-        return "Baru";
-
-      case "diproses":
-        return "Diproses";
-
-      case "selesai":
-        return "Selesai";
-
-      case "dibatalkan":
-        return "Dibatalkan";
-
-      default:
-        // Ubah kode seperti "menunggu_konfirmasi"
-        // menjadi "Menunggu Konfirmasi"
-        if (!status) return "-";
-        return String(status)
-          .split("_")
-          .map(
-            (kata) =>
-              kata.charAt(0).toUpperCase() +
-              kata.slice(1)
-          )
-          .join(" ");
+  function bukaWA(e, p) {
+    e.stopPropagation();
+    const nomor = nomorWA(p.whatsapp || p.pelanggan?.telepon);
+    if (!nomor) {
+      window.alert("Nomor WhatsApp pelanggan tidak tersedia.");
+      return;
     }
+    const teks = `Halo ${p.pelanggan?.nama || "Pelanggan"}, kami dari Toko Listrik Sinar Kasih. Kami menghubungi terkait pesanan ${p.nomor_pesanan || "#" + p.id}.`;
+    window.open(`https://wa.me/${nomor}?text=${encodeURIComponent(teks)}`, "_blank");
   }
 
-  function classStatus(status) {
-    switch (status) {
-      case "baru":
-        return "baru";
+  const totalHalaman = Math.max(1, Math.ceil(total / perHalaman));
+  const adaFilter = ketik || filterStatus || filterCabang || filterTanggal || urutan.kunci;
 
-      case "diproses":
-        return "diproses";
-
-      case "selesai":
-        return "selesai";
-
-      case "dibatalkan":
-        return "dibatalkan";
-
-      default:
-        return "lainnya";
-    }
-  }
-
-  const jumlahBaru = pesanan.filter(
-    (item) => item.status === "baru"
-  ).length;
-
-  const jumlahDiproses = pesanan.filter(
-    (item) => item.status === "diproses"
-  ).length;
-
-  const jumlahSelesai = pesanan.filter(
-    (item) => item.status === "selesai"
-  ).length;
-
-  const jumlahDibatalkan = pesanan.filter(
-    (item) => item.status === "dibatalkan"
-  ).length;
-
-
-  const urut = useUrut(pesananFiltered, {
-    k0: (x) => x.nomor_pesanan,
-    k1: (x) => x.created_at,
-    k2: (x) => x.pelanggan?.nama,
-    k3: (x) => x.cabang?.nama,
-    k4: (x) => Number(x.total ?? 0),
-    k5: (x) => x.status,
-  });
+  const kartu = [
+    { kunci: "baru", label: "Pesanan Baru" },
+    { kunci: "diproses", label: "Diproses" },
+    { kunci: "selesai", label: "Selesai" },
+    { kunci: "dibatalkan", label: "Dibatalkan" },
+  ];
 
   return (
     <main className="admin-content">
-      <style jsx>{`
-        .pesanan-page {
-          width: 100%;
-        }
-
-        .pesanan-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        .pesanan-header h1 {
-          margin: 0 0 6px;
-        }
-
-        .pesanan-header p {
-          margin: 0;
-        }
-
-        .pesanan-summary {
-          width: 100%;
-          display: grid;
-          grid-template-columns: repeat(5, minmax(0, 1fr));
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .pesanan-summary-card {
-          min-width: 0;
-          padding: 16px;
-          border: 1px solid #e2ddd6;
-          border-radius: 10px;
-          background: #fff;
-          box-sizing: border-box;
-        }
-
-        .pesanan-summary-label {
-          margin-bottom: 6px;
-          color: #75685e;
-          font-size: 13px;
-        }
-
-        .pesanan-summary-number {
-          color: #3f2b20;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        /*
-          Khusus halaman Pesanan:
-          card dibuat full width supaya tidak menyisakan
-          ruang kosong besar di sebelah kanan.
-        */
-        .pesanan-card {
-          width: 100%;
-          max-width: none;
-          box-sizing: border-box;
-          overflow: hidden;
-        }
-
-        .pesanan-toolbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 20px;
-          flex-wrap: wrap;
-        }
-
-        .pesanan-search {
-          position: relative;
-          width: 100%;
-          max-width: 440px;
-        }
-
-        .pesanan-search input {
-          width: 100%;
-          height: 44px;
-          box-sizing: border-box;
-          padding: 0 42px 0 14px;
-          border: 1px solid #d7d0c7;
-          border-radius: 8px;
-          background: #fff;
-          font-size: 14px;
-          outline: none;
-        }
-
-        .pesanan-search input:focus {
-          border-color: #9a7657;
-        }
-
-        .pesanan-clear {
-          position: absolute;
-          right: 8px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 28px;
-          height: 28px;
-          padding: 0;
-          border: none;
-          border-radius: 50%;
-          background: #e8dfd3;
-          color: #4a372d;
-          font-size: 20px;
-          line-height: 28px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .pesanan-filters {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .pesanan-filter {
-          min-height: 40px;
-          padding: 8px 14px;
-          border: 1px solid #d7d0c7;
-          border-radius: 8px;
-          background: #fff;
-          color: #5b4b40;
-          cursor: pointer;
-          font-size: 13px;
-          white-space: nowrap;
-        }
-
-        .pesanan-filter.active {
-          background: #4a372d;
-          color: #fff;
-          border-color: #4a372d;
-        }
-
-        .pesanan-table-wrapper {
-          width: 100%;
-          max-width: 100%;
-          overflow-x: auto;
-          border: 1px solid #e2ddd6;
-          border-radius: 10px;
-          box-sizing: border-box;
-        }
-
-        .pesanan-table {
-          width: 100%;
-          min-width: 0;
-          border-collapse: collapse;
-          table-layout: fixed;
-        }
-
-        .pesanan-table th {
-          padding: 13px 14px;
-          background: #f7f3ed;
-          border-bottom: 1px solid #ddd6ce;
-          text-align: left;
-          font-size: 13px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .pesanan-table td {
-          padding: 14px;
-          border-bottom: 1px solid #eee9e3;
-          vertical-align: middle;
-          font-size: 14px;
-          line-height: 1.45;
-          word-break: break-word;
-          overflow-wrap: anywhere;
-        }
-
-        .pesanan-table tbody tr:last-child td {
-          border-bottom: none;
-        }
-
-        .pesanan-table tbody tr:hover {
-          background: #fcfaf7;
-        }
-
-        .col-number {
-          width: 17%;
-        }
-
-        .col-date {
-          width: 15%;
-        }
-
-        .col-customer {
-          width: 19%;
-        }
-
-        .col-branch {
-          width: 14%;
-        }
-
-        .col-total {
-          width: 12%;
-        }
-
-        .col-status {
-          width: 11%;
-        }
-
-        .col-action {
-          width: 12%;
-        }
-
-        .pesanan-number {
-          font-weight: 700;
-          color: #3f2b20;
-        }
-
-        .pesanan-subtext {
-          margin-top: 3px;
-          color: #888;
-          font-size: 12px;
-        }
-
-        .pesanan-customer-name {
-          font-weight: 600;
-          color: #3f2b20;
-        }
-
-        .pesanan-customer-phone {
-          margin-top: 3px;
-          color: #777;
-          font-size: 12px;
-        }
-
-        .pesanan-status {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 28px;
-          padding: 4px 10px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 700;
-          line-height: 1.25;
-          text-align: center;
-          white-space: normal;
-        }
-
-        .pesanan-status.baru {
-          background: #fff3d9;
-          color: #8a641d;
-        }
-
-        .pesanan-status.diproses {
-          background: #eaf2ff;
-          color: #315d91;
-        }
-
-        .pesanan-status.selesai {
-          background: #eaf7ed;
-          color: #347045;
-        }
-
-        .pesanan-status.dibatalkan {
-          background: #fbecec;
-          color: #943f3f;
-        }
-
-        .pesanan-status.lainnya {
-          background: #fdf0e1;
-          color: #9a5b16;
-        }
-
-        .detail-button {
-          width: 100%;
-          min-height: 38px;
-          padding: 8px 12px;
-          border: 1px solid #d7d0c7;
-          border-radius: 8px;
-          background: #fff;
-          color: #4a372d;
-          cursor: pointer;
-          font-size: 14px;
-          white-space: nowrap;
-        }
-
-        .detail-button:hover {
-          background: #f7f3ed;
-        }
-
-        .pesanan-empty {
-          padding: 40px 20px;
-          text-align: center;
-          color: #777;
-        }
-
-        @media (max-width: 1100px) {
-          .pesanan-table {
-            min-width: 900px;
-          }
-        }
-
-        @media (max-width: 900px) {
-          .pesanan-summary {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        @media (max-width: 700px) {
-          .pesanan-header {
-            flex-direction: column;
-          }
-
-          .pesanan-search {
-            max-width: none;
-          }
-
-          .pesanan-toolbar {
-            align-items: stretch;
-          }
-
-          .pesanan-filters {
-            width: 100%;
-          }
-
-          .pesanan-filter {
-            flex: 1 1 auto;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .pesanan-summary {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <div className="pesanan-page">
-        {/* HEADER */}
-        <div className="pesanan-header">
-          <div>
-            <h1>Pesanan</h1>
-
-            <p>
-              Kelola seluruh pesanan pelanggan Toko Listrik
-              Sinar Kasih.
-            </p>
-          </div>
+      <div className="admin-page-header">
+        <div>
+          <h1>Pesanan</h1>
+          <p>Kelola pesanan pelanggan. Klik satu pesanan untuk melihat detail dan mengubah statusnya.</p>
         </div>
+        <Link href="/admin/pesanan/trash" className="admin-secondary-button">
+          Trash Pesanan
+        </Link>
+      </div>
 
-        {/* SUMMARY */}
-        <div className="pesanan-summary">
-          <div className="pesanan-summary-card">
-            <div className="pesanan-summary-label">
-              Semua Pesanan
-            </div>
+      <div className="ps-kartu-grid">
+        {kartu.map((k) => (
+          <button
+            key={k.kunci}
+            type="button"
+            className={`ps-kartu ${k.kunci} ${filterStatus === k.kunci ? "dipilih" : ""}`}
+            onClick={() => {
+              setFilterStatus(filterStatus === k.kunci ? "" : k.kunci);
+              setHalaman(1);
+            }}
+          >
+            <span className="ps-kartu-ikon"><IkonStatus nama={k.kunci} /></span>
+            <span className="ps-kartu-teks">
+              <strong>{ringkas ? ringkas[k.kunci] : "–"}</strong>
+              <span>{k.label}</span>
+            </span>
+          </button>
+        ))}
+      </div>
 
-            <div className="pesanan-summary-number">
-              {pesanan.length}
-            </div>
-          </div>
-
-          <div className="pesanan-summary-card">
-            <div className="pesanan-summary-label">
-              Baru
-            </div>
-
-            <div className="pesanan-summary-number">
-              {jumlahBaru}
-            </div>
-          </div>
-
-          <div className="pesanan-summary-card">
-            <div className="pesanan-summary-label">
-              Diproses
-            </div>
-
-            <div className="pesanan-summary-number">
-              {jumlahDiproses}
-            </div>
-          </div>
-
-          <div className="pesanan-summary-card">
-            <div className="pesanan-summary-label">
-              Selesai
-            </div>
-
-            <div className="pesanan-summary-number">
-              {jumlahSelesai}
-            </div>
-          </div>
-
-          <div className="pesanan-summary-card">
-            <div className="pesanan-summary-label">
-              Dibatalkan
-            </div>
-
-            <div className="pesanan-summary-number">
-              {jumlahDibatalkan}
-            </div>
-          </div>
-        </div>
-
-        {/* CONTENT */}
-        <div className="admin-card pesanan-card">
-          <div className="admin-section-header">
-            <div>
-              <h2>Semua Pesanan</h2>
-
-              <p>
-                {pesananFiltered.length} pesanan
-                ditampilkan.
-              </p>
-            </div>
-          </div>
-
-          {error && (
-            <div className="admin-message admin-message-error">
-              {error}
-            </div>
-          )}
-
-          {/* TOOLBAR */}
-          <div className="pesanan-toolbar">
-            <div className="pesanan-search">
+      <div className={`ps-tata ${dipilih ? "ada-panel" : ""}`}>
+        <div className="admin-product-table-card ps-daftar">
+          <div className="ps-filter">
+            <div className="cari-x-wrap">
               <input
-                type="search"
-                placeholder="Cari nomor pesanan, pelanggan, WhatsApp..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                autoComplete="off"
+                type="text"
+                placeholder="Cari nomor pesanan atau nomor WhatsApp..."
+                value={ketik}
+                onChange={(e) => setKetik(e.target.value)}
               />
-
-              {search.trim() !== "" && (
-                <button
-                  type="button"
-                  className="pesanan-clear"
-                  onClick={hapusPencarian}
-                  aria-label="Hapus pencarian"
-                  title="Hapus pencarian"
-                >
+              {ketik !== "" && (
+                <button type="button" className="cari-x" onClick={() => setKetik("")} aria-label="Hapus pencarian" title="Hapus pencarian">
                   ×
                 </button>
               )}
             </div>
 
-            <div className="pesanan-filters">
-              {[
-                ["semua", "Semua"],
-                ["baru", "Baru"],
-                ["diproses", "Diproses"],
-                ["selesai", "Selesai"],
-                ["dibatalkan", "Dibatalkan"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`pesanan-filter ${
-                    statusFilter === value
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setStatusFilter(value)
-                  }
-                >
-                  {label}
-                </button>
+            <select value={filterTanggal} onChange={(e) => { setFilterTanggal(e.target.value); setHalaman(1); }}>
+              <option value="">Semua Tanggal</option>
+              <option value="hari_ini">Hari Ini</option>
+              <option value="7_hari">7 Hari Terakhir</option>
+              <option value="30_hari">30 Hari Terakhir</option>
+            </select>
+
+            <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setHalaman(1); }}>
+              <option value="">Semua Status</option>
+              <option value="baru">Baru</option>
+              <option value="diproses">Diproses</option>
+              <option value="selesai">Selesai</option>
+              <option value="dibatalkan">Dibatalkan</option>
+            </select>
+
+            <select value={filterCabang} onChange={(e) => { setFilterCabang(e.target.value); setHalaman(1); }}>
+              <option value="">Semua Cabang</option>
+              {cabang.map((c) => (
+                <option key={c.id} value={c.id}>{c.nama}</option>
               ))}
-            </div>
+            </select>
+
+            <button type="button" className="ps-reset" onClick={resetFilter} disabled={!adaFilter}>
+              Reset
+            </button>
           </div>
 
-          {/* TABLE */}
-          {loading ? (
-            <div className="pesanan-empty">
-              Memuat pesanan...
-            </div>
-          ) : pesananFiltered.length === 0 ? (
-            <div className="pesanan-empty">
-              Tidak ada pesanan yang sesuai.
+          {error && <div className="admin-message admin-message-error ps-err">{error}</div>}
+
+          {!loading && pesanan.length === 0 ? (
+            <div className="ps-kosong">
+              <h2>{adaFilter ? "Pesanan tidak ditemukan" : "Belum ada pesanan"}</h2>
+              <p>{adaFilter ? "Coba ubah pencarian atau filter." : "Pesanan dari website akan muncul di sini."}</p>
             </div>
           ) : (
-            <div className="pesanan-table-wrapper">
-              <table className="pesanan-table">
+            <div className="admin-product-table-wrapper">
+              <table>
                 <thead>
                   <tr>
-                    <KolomUrut urut={urut} kunci="k0" className="col-number">No. Pesanan</KolomUrut>
-
-                    <KolomUrut urut={urut} kunci="k1" className="col-date">Tanggal</KolomUrut>
-
-                    <KolomUrut urut={urut} kunci="k2" className="col-customer">Pelanggan</KolomUrut>
-
-                    <KolomUrut urut={urut} kunci="k3" className="col-branch">Cabang</KolomUrut>
-
-                    <KolomUrut urut={urut} kunci="k4" className="col-total">Total</KolomUrut>
-
-                    <KolomUrut urut={urut} kunci="k5" className="col-status">Status</KolomUrut>
-
-                    <th className="col-action">
-                      Aksi
-                    </th>
+                    <KolomUrut urut={urut} kunci="nomor">No. Pesanan</KolomUrut>
+                    <KolomUrut urut={urut} kunci="tanggal">Tanggal</KolomUrut>
+                    <th>Pelanggan</th>
+                    <th className="ps-sembunyi-panel">Jumlah</th>
+                    <KolomUrut urut={urut} kunci="total">Total</KolomUrut>
+                    <th className="ps-sembunyi-panel">Cabang</th>
+                    <KolomUrut urut={urut} kunci="status">Status</KolomUrut>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
-
-                <tbody>
-                  {urut.data.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="pesanan-number">
-                          {item.nomor_pesanan ||
-                            `#${item.id}`}
-                        </div>
-
-                        <div className="pesanan-subtext">
-                          ID: {item.id}
-                        </div>
-                      </td>
-
-                      <td>
-                        {formatTanggal(
-                          item.created_at
-                        )}
-                      </td>
-
-                      <td>
-                        <div className="pesanan-customer-name">
-                          {item.pelanggan?.nama ||
-                            "Guest"}
-                        </div>
-
-                        <div className="pesanan-customer-phone">
-                          {item.whatsapp ||
-                            item.pelanggan?.telepon ||
-                            "-"}
-                        </div>
-                      </td>
-
-                      <td>
-                        {item.cabang?.nama || "-"}
-                      </td>
-
-                      <td>
-                        <strong>
-                          {formatRupiah(item.total)}
-                        </strong>
-                      </td>
-
-                      <td>
-                        <span
-                          className={`pesanan-status ${classStatus(
-                            item.status
-                          )}`}
-                        >
-                          {labelStatus(item.status)}
-                        </span>
-                      </td>
-
-                      <td>
-                        <button
-                          type="button"
-                          className="detail-button"
-                          onClick={() =>
-                            router.push(
-                              `/admin/pesanan/${item.id}`
-                            )
-                          }
-                        >
-                          Detail
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className={loading ? "ps-redup" : ""}>
+                  {pesanan.map((p) => {
+                    const t = formatTanggal(p.created_at);
+                    return (
+                      <tr
+                        key={p.id}
+                        className={`ps-baris ${dipilih === p.id ? "aktif" : ""}`}
+                        onClick={() => setDipilih(p.id)}
+                      >
+                        <td className="ps-no-sel">{p.nomor_pesanan || `#${p.id}`}</td>
+                        <td>
+                          <span className="ps-tgl">{t.tgl}</span>
+                          <span className="ps-jam">{t.jam}</span>
+                        </td>
+                        <td>
+                          <span className="ps-nama">{p.pelanggan?.nama || "-"}</span>
+                          <span className="ps-jam">{p.whatsapp || p.pelanggan?.telepon || ""}</span>
+                        </td>
+                        <td className="ps-sembunyi-panel">{jumlahItem[p.id] ?? "-"} item</td>
+                        <td className="ps-uang">{formatRupiah(p.total)}</td>
+                        <td className="ps-sembunyi-panel">{p.cabang?.nama || "-"}</td>
+                        <td>
+                          <span className={`ps-status ${kelasStatus(p.status)}`}>{labelStatus(p.status)}</span>
+                        </td>
+                        <td>
+                          <div className="ps-aksi-baris">
+                            <button type="button" className="ps-ikon wa" onClick={(e) => bukaWA(e, p)} title="Chat WhatsApp" aria-label="Chat WhatsApp">
+                              <IkonWA />
+                            </button>
+                            <button
+                              type="button"
+                              className="ps-ikon"
+                              onClick={(e) => { e.stopPropagation(); setDipilih(p.id); }}
+                              title="Lihat detail"
+                              aria-label="Lihat detail"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
+
+          <div className="ps-bawah">
+            <label className="ps-per">
+              Tampilkan
+              <select value={perHalaman} onChange={(e) => { setPerHalaman(Number(e.target.value)); setHalaman(1); }}>
+                {PILIHAN_PER_HALAMAN.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+              per halaman
+            </label>
+            <div className="ps-paginasi">
+              <Paginasi halaman={halaman} totalHalaman={totalHalaman} totalData={total} perHalaman={perHalaman} onGanti={setHalaman} satuan="pesanan" />
+            </div>
+          </div>
         </div>
+
+        {dipilih && (
+          <>
+            <div className="ps-latar" onClick={() => setDipilih(null)} />
+            <PanelDetail
+              key={dipilih}
+              id={dipilih}
+              onTutup={() => setDipilih(null)}
+              onBerubah={() => {
+                muatPesanan();
+                muatRingkasan();
+              }}
+            />
+          </>
+        )}
       </div>
+
+      <style>{`
+        .ps-kartu-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .ps-kartu { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #eadfce; border-radius: 14px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: #3f2f24; transition: border-color .15s ease, box-shadow .15s ease; }
+        .ps-kartu:hover { border-color: #d6c1a8; box-shadow: 0 4px 14px rgba(59,42,32,.06); }
+        .ps-kartu.dipilih { border-color: #6f4c36; box-shadow: 0 0 0 2px rgba(111,76,54,.15); }
+        .ps-kartu-ikon { width: 46px; height: 46px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; }
+        .ps-kartu.baru .ps-kartu-ikon { background: #fdf0d8; color: #a8660f; }
+        .ps-kartu.diproses .ps-kartu-ikon { background: #e6efff; color: #2f5fa3; }
+        .ps-kartu.selesai .ps-kartu-ikon { background: #e4f5e9; color: #2f7a46; }
+        .ps-kartu.dibatalkan .ps-kartu-ikon { background: #fbe9e7; color: #b23b2e; }
+        .ps-kartu-teks { display: grid; gap: 2px; }
+        .ps-kartu-teks strong { font-size: 24px; line-height: 1.1; }
+        .ps-kartu-teks span { font-size: 13.5px; color: #7d6957; }
+
+        .ps-tata { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+        .ps-tata.ada-panel { grid-template-columns: minmax(0, 1fr) 380px; }
+        .ps-tata.ada-panel .ps-sembunyi-panel { display: none; }
+        .ps-daftar { min-width: 0; }
+
+        .ps-filter { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(130px, 1fr)) auto; gap: 10px; padding: 16px; border-bottom: 1px solid #f0e7db; }
+        .ps-tata.ada-panel .ps-filter { grid-template-columns: 1fr 1fr; }
+        .ps-tata.ada-panel .ps-filter .cari-x-wrap { grid-column: 1 / -1; }
+        .ps-filter select, .ps-filter input { height: 44px; }
+        .ps-filter select { padding: 0 12px; }
+        .ps-reset { height: 44px; padding: 0 16px; border: 1px solid #e0cfbb; border-radius: 10px; background: #fff; color: #5c3e2c; font-weight: 600; cursor: pointer; }
+        .ps-reset:disabled { opacity: .45; cursor: default; }
+        .ps-err { margin: 14px 16px 0; }
+
+        .ps-daftar table th, .ps-daftar table td { padding: 12px 14px; border-bottom: 1px solid #f0e7db; }
+        .ps-baris { cursor: pointer; transition: background .12s ease; }
+        .ps-baris:hover { background: #fcf8f2; }
+        .ps-baris.aktif { background: #f8efe3; }
+        .ps-no-sel { font-weight: 700; white-space: nowrap; }
+        .ps-tgl, .ps-nama { display: block; white-space: nowrap; }
+        .ps-nama { font-weight: 600; }
+        .ps-jam { display: block; font-size: 12.5px; color: #9a8571; }
+        .ps-uang { font-weight: 700; white-space: nowrap; }
+
+        .ps-status { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .ps-status.baru { background: #fff3d9; color: #8a641d; }
+        .ps-status.diproses { background: #eaf2ff; color: #315d91; }
+        .ps-status.selesai { background: #eaf7ed; color: #347045; }
+        .ps-status.dibatalkan { background: #fbecec; color: #943f3f; }
+        .ps-status.lainnya { background: #fdf0e1; color: #9a5b16; }
+
+        .ps-aksi-baris { display: flex; gap: 6px; }
+        .ps-ikon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #e0cfbb; border-radius: 8px; background: #fff; color: #4b3326; cursor: pointer; }
+        .ps-ikon:hover { background: #f8f1e8; }
+        .ps-ikon.wa { background: #25d366; border-color: #25d366; color: #fff; }
+        .ps-ikon.wa:hover { background: #1fb457; }
+
+        .ps-redup { opacity: .5; }
+        .ps-kosong { padding: 40px 20px; text-align: center; }
+        .ps-kosong p { margin: 0; color: #7d6957; }
+
+        .ps-bawah { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 4px 16px 16px; }
+        .ps-per { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #7d6957; margin-top: 18px; }
+        .ps-per select { height: 36px; padding: 0 8px; }
+        .ps-paginasi { flex: 1; min-width: 260px; }
+
+        /* Panel detail */
+        .ps-panel { position: sticky; top: 0; max-height: calc(100vh - 120px); overflow-y: auto; background: #fff; border: 1px solid #eadfce; border-radius: 14px; box-shadow: 0 8px 24px rgba(59,42,32,.08); }
+        .ps-latar { display: none; }
+        .ps-panel-kepala { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: #fff; border-bottom: 1px solid #f0e7db; }
+        .ps-panel-kepala h2 { margin: 0 !important; font-size: 17px !important; }
+        .ps-tutup { width: 32px; height: 32px; border: none; border-radius: 8px; background: #f3eadf; color: #4b3326; font-size: 22px; line-height: 1; cursor: pointer; }
+        .ps-panel-isi { padding: 16px 18px 20px; display: grid; gap: 14px; }
+        .ps-ringkas-atas { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+        .ps-no { display: block; font-size: 16px; }
+        .ps-waktu { display: block; font-size: 12.5px; color: #9a8571; margin-top: 2px; }
+        .ps-wa { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; border: none; border-radius: 10px; background: #25d366; color: #fff; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+        .ps-wa:hover { background: #1fb457; }
+        .ps-pesan { padding: 10px 12px; border-radius: 10px; font-size: 13.5px; }
+        .ps-pesan.gagal { background: #fbebe7; color: #8a3b2b; }
+        .ps-pesan.sukses { background: #eaf7ed; color: #2f6b3f; }
+        .ps-blok { padding: 14px; border: 1px solid #f0e7db; border-radius: 12px; background: #fcfaf7; }
+        .ps-blok h3 { margin: 0 0 8px !important; font-size: 13px !important; color: #9a8571 !important; text-transform: uppercase; letter-spacing: .03em; }
+        .ps-blok p { margin: 2px 0; font-size: 14px; }
+        .ps-tebal { font-weight: 700; }
+        .ps-redup-teks { display: block; font-size: 13px; color: #7d6957; }
+        .ps-panel > .ps-redup-teks { padding: 18px; }
+        .ps-item { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+        .ps-item li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+        .ps-item li > div { display: grid; gap: 1px; min-width: 0; }
+        .ps-total { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e0cfbb; font-size: 15px; }
+        .ps-catatan { padding: 10px 12px; border-radius: 8px; background: #fff8e8; }
+        .ps-aksi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ps-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border: 1px solid #e0cfbb; border-radius: 10px; background: #fff; color: #4b3326; font-weight: 700; font-size: 14px; text-decoration: none; cursor: pointer; }
+        .ps-btn:hover { background: #f8f1e8; }
+        .ps-btn.hijau { background: #2f9e57; border-color: #2f9e57; color: #fff; }
+        .ps-btn.utama { background: #6f4c36; border-color: #6f4c36; color: #fff; }
+        .ps-btn.bahaya { background: #fbebe7; border-color: #efc7bc; color: #a33a2c; }
+        .ps-btn:disabled { opacity: .6; cursor: wait; }
+        .ps-aksi > a.ps-btn:last-child { grid-column: 1 / -1; }
+
+        @media (max-width: 1200px) {
+          .ps-tata.ada-panel { grid-template-columns: minmax(0, 1fr); }
+          .ps-tata.ada-panel .ps-sembunyi-panel { display: table-cell; }
+          .ps-latar { display: block; position: fixed; inset: 0; z-index: 1003; background: rgba(30,20,14,.45); }
+          .ps-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 1004; width: min(420px, 100%); max-height: none; border-radius: 0; }
+        }
+
+        @media (max-width: 1100px) {
+          .ps-filter { grid-template-columns: 1fr 1fr; }
+          .ps-filter .cari-x-wrap { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 900px) {
+          .ps-kartu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+          .ps-filter { grid-template-columns: 1fr; }
+          .ps-kartu { padding: 12px; gap: 10px; }
+          .ps-kartu-ikon { width: 38px; height: 38px; }
+          .ps-kartu-teks strong { font-size: 20px; }
+        }
+      `}</style>
     </main>
   );
 }
