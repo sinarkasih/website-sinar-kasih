@@ -1273,8 +1273,31 @@ footer {
 /* Kartu produk */
 .kp-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Beranda: 6 kartu sejajar, sama lebar dengan kartu kategori & brand */
+.kp-grid.kp-enam {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kp-enam .kp-isi {
+  padding: 12px 12px 14px;
+}
+
+.kp-enam .kp-nama {
+  font-size: 14px;
+}
+
+.kp-enam .kp-harga {
+  font-size: 15px;
+}
+
+.kp-enam .kp-kosong svg {
+  width: 30px;
+  height: 30px;
 }
 
 .kp-kartu {
@@ -1696,7 +1719,8 @@ footer.kaki {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .kp-grid {
+  .kp-grid,
+  .kp-grid.kp-enam {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -1715,6 +1739,7 @@ footer.kaki {
   }
 
   .kp-grid,
+  .kp-grid.kp-enam,
   .kat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;

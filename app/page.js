@@ -32,8 +32,8 @@ export default async function Home() {
         .eq("aktif", true)
         .order("urutan", { ascending: true })
         .order("nama", { ascending: true })
-        .limit(12),
-      ambilKatalog(supabase, { batas: "beranda", perHalaman: 8 }),
+        .limit(6),
+      ambilKatalog(supabase, { batas: "beranda", perHalaman: 6 }),
     ]);
 
     kategori = hasilKategori.data || [];
@@ -151,7 +151,7 @@ export default async function Home() {
           </div>
 
           {produk.length > 0 ? (
-            <GridProduk produk={produk} />
+            <GridProduk produk={produk} kolom={6} />
           ) : (
             <div className="notice">Produk akan segera tersedia.</div>
           )}

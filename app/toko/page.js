@@ -1303,24 +1303,22 @@ export default async function Page() {
           }
         }
       
-        /* Kotak alamat & telepon: dibuat sejajar dengan kotak Jam Operasional */
+        /* Alamat & telepon: masing-masing kotak sendiri,
+           bentuknya sama dengan kotak Jam Operasional */
         .infoKotak {
+          display: grid;
+          gap: 12px;
           margin-top: 20px;
-          padding: 4px 17px;
-          border: 1px solid #e5d9cc;
-          border-radius: 13px;
-          background: #fcfaf8;
         }
 
         .infoKotak .infoItem {
           align-items: center;
           gap: 11px;
           margin: 0;
-          padding: 12px 0;
-        }
-
-        .infoKotak .infoItem + .infoItem {
-          border-top: 1px solid #efe5d9;
+          padding: 15px 17px;
+          border: 1px solid #e5d9cc;
+          border-radius: 13px;
+          background: #fcfaf8;
         }
 
         .infoKotak .infoIcon {
@@ -1337,7 +1335,12 @@ export default async function Page() {
           font-size: 13.5px;
           color: #5f5045;
         }
-`}</style>
+
+        /* Jarak antar kotak dibuat sama */
+        .tokoContent .hoursAccordion {
+          margin-top: 12px;
+        }
+      `}</style>
     </>
   );
 }

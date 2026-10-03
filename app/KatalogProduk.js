@@ -123,9 +123,9 @@ export function KartuProduk({ produk }) {
   );
 }
 
-export function GridProduk({ produk }) {
+export function GridProduk({ produk, kolom }) {
   return (
-    <div className="kp-grid">
+    <div className={`kp-grid ${kolom === 6 ? "kp-enam" : ""}`}>
       {produk.map((p) => (
         <KartuProduk key={p.id} produk={p} />
       ))}
