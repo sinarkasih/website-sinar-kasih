@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabase } from "../../../../../lib/supabase";
 import { useAdmin } from "../../../AdminContext";
+import { buatPohon } from "../../../../KategoriPohon";
 
 function buatSlugDariNama(value) {
   return String(value || "")
@@ -98,7 +99,7 @@ export default function EditProdukPage() {
 
       supabase
         .from("kategori")
-        .select("id, nama")
+        .select("id, nama, parent_id, urutan")
         .eq("aktif", true)
         .order("nama"),
 
@@ -742,12 +743,9 @@ export default function EditProdukPage() {
                   Pilih kategori
                 </option>
 
-                {kategori.map((item) => (
-                  <option
-                    key={item.id}
-                    value={item.id}
-                  >
-                    {item.nama}
+                {buatPohon(kategori).urutPohon().map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
                   </option>
                 ))}
               </select>

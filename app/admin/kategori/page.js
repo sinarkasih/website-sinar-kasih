@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
+import { buatPohon } from "../../KategoriPohon";
 import Paginasi from "../Paginasi";
 
 import { useUrut, KolomUrut } from "../Urut";
@@ -807,26 +808,20 @@ export default function AdminKategoriPage() {
                     Tidak ada — Kategori Utama
                   </option>
 
-                  {kategori
-                    .filter(
-                      (item) =>
-                        item.id !==
-                        editingId
-                    )
-                    .map(
-                      (item) => (
-                        <option
-                          key={
-                            item.id
-                          }
-                          value={
-                            item.id
-                          }
-                        >
-                          {item.nama}
+                  {(() => {
+                    const pohon = buatPohon(kategori);
+                    const dilarang = editingId
+                      ? pohon.keturunan(editingId)
+                      : [];
+                    return pohon
+                      .urutPohon()
+                      .filter((item) => !dilarang.includes(item.id))
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
                         </option>
-                      )
-                    )}
+                      ));
+                  })()}
                 </select>
               </div>
 

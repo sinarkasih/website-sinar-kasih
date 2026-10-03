@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../../../lib/supabase";
+import { buatPohon } from "../../../KategoriPohon";
 
 export default function TambahProdukPage() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function TambahProdukPage() {
     const [kategoriResult, brandResult] = await Promise.all([
       supabase
         .from("kategori")
-        .select("id, nama")
+        .select("id, nama, parent_id, urutan")
         .eq("aktif", true)
         .order("nama"),
 
@@ -275,9 +276,9 @@ export default function TambahProdukPage() {
               >
                 <option value="">Pilih kategori</option>
 
-                {kategori.map((item) => (
+                {buatPohon(kategori).urutPohon().map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.nama}
+                    {item.label}
                   </option>
                 ))}
               </select>

@@ -24,7 +24,7 @@ export function teksHarga(p) {
 // Ambil produk per halaman dari view produk_katalog + foto utamanya
 export async function ambilKatalog(
   supabase,
-  { kategoriId, brandId, cari, urut = "terbaru", halaman = 1, perHalaman = 24, batas }
+  { kategoriId, kategoriIds, brandId, cari, urut = "terbaru", halaman = 1, perHalaman = 24, batas }
 ) {
   const aturan = URUTAN_PRODUK[urut] || URUTAN_PRODUK.terbaru;
   const dari = (halaman - 1) * perHalaman;
@@ -38,7 +38,8 @@ export async function ambilKatalog(
     .eq("aktif", true)
     .is("deleted_at", null);
 
-  if (kategoriId) q = q.eq("kategori_id", kategoriId);
+  if (kategoriIds && kategoriIds.length > 0) q = q.in("kategori_id", kategoriIds);
+  else if (kategoriId) q = q.eq("kategori_id", kategoriId);
   if (brandId) q = q.eq("brand_id", brandId);
 
   if (cari) {

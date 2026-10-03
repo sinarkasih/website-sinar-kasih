@@ -12,6 +12,7 @@ import { getSupabase } from "../../../lib/supabase";
 import Paginasi from "../Paginasi";
 import { KolomUrut } from "../Urut";
 import { useAdmin } from "../AdminContext";
+import { buatPohon } from "../../KategoriPohon";
 
 const PILIHAN_PER_HALAMAN = [10, 25, 50];
 
@@ -139,7 +140,7 @@ export default function AdminProdukPage() {
       hitung((q) => q.eq("aktif", true)),
       hitung((q) => q.eq("aktif", false)),
       hitung((q) => q.is("mode_harga", null)),
-      supabase.from("kategori").select("id, nama").order("nama"),
+      supabase.from("kategori").select("id, nama, parent_id, urutan").order("nama"),
       supabase.from("brand").select("id, nama").order("nama"),
     ]);
 
@@ -182,7 +183,10 @@ export default function AdminProdukPage() {
       const kata = cari.replace(/[,()%*]/g, " ").trim();
       if (kata) q = q.or(`nama.ilike.%${kata}%,sku.ilike.%${kata}%`);
     }
-    if (filterKategori) q = q.eq("kategori_id", filterKategori);
+    if (filterKategori) {
+      // ikut sertakan semua turunan kategori yang dipilih
+      q = q.in("kategori_id", buatPohon(daftarKategori).keturunan(Number(filterKategori)));
+    }
     if (filterBrand) q = q.eq("brand_id", filterBrand);
     if (filterStatus === "aktif") q = q.eq("aktif", true);
     if (filterStatus === "nonaktif") q = q.eq("aktif", false);
@@ -226,7 +230,7 @@ export default function AdminProdukPage() {
     }
 
     setLoading(false);
-  }, [halaman, perHalaman, cari, filterKategori, filterBrand, filterStatus, urutan]);
+  }, [halaman, perHalaman, cari, filterKategori, filterBrand, filterStatus, urutan, daftarKategori]);
 
   useEffect(() => {
     loadProduk();
@@ -353,8 +357,8 @@ export default function AdminProdukPage() {
             }}
           >
             <option value="">Semua Kategori</option>
-            {daftarKategori.map((k) => (
-              <option key={k.id} value={k.id}>{k.nama}</option>
+            {buatPohon(daftarKategori).urutPohon().map((k) => (
+              <option key={k.id} value={k.id}>{k.label}</option>
             ))}
           </select>
 
