@@ -297,6 +297,11 @@ export default function AdminLayout({ children }) {
 
     setAdmin(data);
     setStatus("masuk");
+
+    // Perangkat yang dipakai login admin tidak ikut dihitung di Statistik
+    try {
+      window.localStorage.setItem("sk_tanpa_statistik", "1");
+    } catch {}
   }, []);
 
   // Periksa login sekali saat panel dibuka, lalu pantau perubahan login/keluar

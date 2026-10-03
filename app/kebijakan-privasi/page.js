@@ -111,6 +111,23 @@ export default async function KebijakanPrivasiPage() {
           </section>
 
           <section>
+            <h2>Statistik kunjungan</h2>
+            <p>
+              Untuk mengetahui produk apa yang paling banyak dicari, kami
+              mencatat secara anonim halaman yang dibuka, klik tombol WhatsApp,
+              dan dari mana pengunjung datang (misalnya dari Google atau
+              Instagram). Untuk membedakan pengunjung, browser Anda diberi kode
+              acak yang disimpan di perangkat Anda sendiri.
+            </p>
+            <p>
+              Catatan ini tidak berisi nama, nomor telepon, alamat, atau alamat
+              IP Anda, hanya dilihat oleh pengelola toko, dan tidak dibagikan
+              kepada pihak lain. Anda dapat menghapus kode acak tersebut dengan
+              membersihkan data browser.
+            </p>
+          </section>
+
+          <section>
             <h2>Layanan pihak lain yang kami gunakan</h2>
             <ul>
               <li>

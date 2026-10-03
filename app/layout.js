@@ -3,6 +3,7 @@ import "./globals.css";
 import Link from "next/link";
 import CartNav from "./CartNav";
 import TampilanPublik, { BungkusPublik } from "./TampilanPublik";
+import PencatatKunjungan from "./PencatatKunjungan";
 
 export const metadata = {
   title: "Sinar Kasih | Toko Listrik Ambon",
@@ -249,6 +250,7 @@ export default function RootLayout({ children }) {
             </div>
           </footer>
         </TampilanPublik>
+        <PencatatKunjungan />
       </body>
     </html>
   );
