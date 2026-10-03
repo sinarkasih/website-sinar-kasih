@@ -412,10 +412,10 @@ function BagianLagu() {
               />
             </label>
             <label>
-              File lagu (MP3/M4A, maks. 20 MB)
+              File lagu (MP3, M4A, MP4, MPEG, maks. 20 MB)
               <input
                 type="file"
-                accept="audio/*"
+                accept="audio/*,video/mp4,video/mpeg,.mp3,.m4a,.mp4,.mpeg,.mpg"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
               {editItem && (
