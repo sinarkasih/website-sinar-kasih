@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../../lib/supabase";
 import { useUrut, KolomUrut } from "../Urut";
+import { ambilIdYoutube } from "../../info/VideoPromosi";
 
 const FORM_KOSONG = { judul: "", deskripsi: "", url: "", urutan: 0, aktif: true };
 const LAGU_KOSONG = { judul: "", keterangan: "", urutan: 0, aktif: true };
@@ -228,6 +229,240 @@ function BagianFormulir() {
                   <td>
                     <a href={item.url} target="_blank" rel="noreferrer" className="tw-link">
                       Buka formulir ↗
+                    </a>
+                  </td>
+                  <td>
+                    <span className={`admin-status ${item.aktif ? "active" : "inactive"}`}>
+                      {item.aktif ? "Tampil" : "Disembunyikan"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="tw-aksi-baris">
+                      <button type="button" className="tw-btn" onClick={() => buka(item)}>
+                        Edit
+                      </button>
+                      <button type="button" className="tw-btn bahaya" onClick={() => hapus(item)}>
+                        Hapus
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ================= VIDEO =================
+function BagianVideo() {
+  const [daftar, setDaftar] = useState([]);
+  const [form, setForm] = useState(null); // null = tertutup
+  const [editId, setEditId] = useState(null);
+  const [pesan, setPesan] = useState(null);
+  const [simpan, setSimpan] = useState(false);
+
+  const muat = useCallback(async () => {
+    const { data, error } = await getSupabase()
+      .from("video_promosi")
+      .select("*")
+      .order("urutan", { ascending: true })
+      .order("id", { ascending: true });
+    if (error) {
+      setPesan({
+        jenis: "gagal",
+        teks: "Data video gagal dimuat. Pastikan langkah SQL sudah dijalankan. (" + error.message + ")",
+      });
+      return;
+    }
+    setDaftar(data || []);
+  }, []);
+
+  useEffect(() => {
+    muat();
+  }, [muat]);
+
+  const urut = useUrut(daftar, {
+    urutan: (x) => Number(x.urutan ?? 0),
+    judul: (x) => x.judul,
+    status: (x) => x.aktif,
+  });
+
+  function buka(item) {
+    setPesan(null);
+    setEditId(item ? item.id : null);
+    setForm(
+      item
+        ? {
+            judul: item.judul,
+            deskripsi: item.keterangan || "",
+            url: item.youtube_url,
+            urutan: item.urutan ?? 0,
+            aktif: item.aktif,
+          }
+        : { ...FORM_KOSONG, urutan: daftar.length + 1 }
+    );
+  }
+
+  async function kirim(e) {
+    e.preventDefault();
+    const url = form.url.trim();
+    if (!ambilIdYoutube(url)) {
+      setPesan({
+        jenis: "gagal",
+        teks: "Link YouTube tidak dikenali. Salin link dari tombol Bagikan di YouTube, contoh: https://youtu.be/abc123xyz00",
+      });
+      return;
+    }
+    setSimpan(true);
+    const isi = {
+      judul: form.judul.trim(),
+      keterangan: form.deskripsi.trim() || null,
+      youtube_url: url,
+      urutan: Number(form.urutan) || 0,
+      aktif: form.aktif,
+    };
+    const q = getSupabase().from("video_promosi");
+    const { error } = editId
+      ? await q.update(isi).eq("id", editId)
+      : await q.insert(isi);
+    setSimpan(false);
+    if (error) {
+      setPesan({ jenis: "gagal", teks: "Gagal menyimpan: " + error.message });
+      return;
+    }
+    setPesan({ jenis: "sukses", teks: `Video "${isi.judul}" tersimpan.` });
+    setForm(null);
+    muat();
+  }
+
+  async function hapus(item) {
+    if (!window.confirm(`Hapus video "${item.judul}"?`)) return;
+    const { error } = await getSupabase()
+      .from("video_promosi")
+      .delete()
+      .eq("id", item.id);
+    if (error) {
+      setPesan({ jenis: "gagal", teks: "Gagal menghapus: " + error.message });
+      return;
+    }
+    setPesan({ jenis: "sukses", teks: `Video "${item.judul}" dihapus.` });
+    muat();
+  }
+
+  return (
+    <div className="admin-card tw-kartu">
+      <div className="tw-kepala">
+        <div>
+          <h2>Video Promosi</h2>
+          <p>
+            Video dari YouTube yang tampil di halaman Info. Unggah video ke
+            YouTube Sinar Kasih dulu, lalu tempel link-nya di sini. Video
+            hanya diputar saat pengunjung menekan tombol putar.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="admin-primary-button"
+          onClick={() => buka(null)}
+        >
+          + Tambah video
+        </button>
+      </div>
+
+      <Pesan pesan={pesan} />
+
+      {form && (
+        <form onSubmit={kirim} className="tw-form">
+          <div className="tw-grid">
+            <label>
+              Judul
+              <input
+                type="text"
+                value={form.judul}
+                onChange={(e) => setForm({ ...form, judul: e.target.value })}
+                placeholder="Contoh: Promo Lampu Takajo"
+                required
+              />
+            </label>
+            <label>
+              Link YouTube
+              <input
+                type="url"
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+                placeholder="https://youtu.be/..."
+                required
+              />
+            </label>
+            <label className="tw-lebar">
+              Keterangan singkat
+              <input
+                type="text"
+                value={form.deskripsi}
+                onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+                placeholder="Contoh: Lampu hemat energi untuk rumah Anda"
+              />
+            </label>
+            <label>
+              Urutan tampil
+              <input
+                type="number"
+                value={form.urutan}
+                onChange={(e) => setForm({ ...form, urutan: e.target.value })}
+              />
+            </label>
+            <label className="tw-cek">
+              <input
+                type="checkbox"
+                checked={form.aktif}
+                onChange={(e) => setForm({ ...form, aktif: e.target.checked })}
+              />
+              Tampilkan di website
+            </label>
+          </div>
+          <div className="tw-aksi">
+            <button type="submit" className="admin-primary-button" disabled={simpan}>
+              {simpan ? "Menyimpan..." : "Simpan"}
+            </button>
+            <button
+              type="button"
+              className="admin-secondary-button"
+              onClick={() => setForm(null)}
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      )}
+
+      {daftar.length === 0 ? (
+        <p className="tw-kosong">Belum ada video.</p>
+      ) : (
+        <div className="tw-tabel">
+          <table>
+            <thead>
+              <tr>
+                <KolomUrut urut={urut} kunci="urutan">Urutan</KolomUrut>
+                <KolomUrut urut={urut} kunci="judul">Judul</KolomUrut>
+                <th>Link</th>
+                <KolomUrut urut={urut} kunci="status">Status</KolomUrut>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {urut.data.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.urutan}</td>
+                  <td>
+                    <strong>{item.judul}</strong>
+                    {item.keterangan && <small className="tw-ket">{item.keterangan}</small>}
+                  </td>
+                  <td>
+                    <a href={item.youtube_url} target="_blank" rel="noreferrer" className="tw-link">
+                      Buka video ↗
                     </a>
                   </td>
                   <td>
@@ -520,7 +755,7 @@ export default function TampilanWebsitePage() {
       <div className="admin-page-header">
         <div>
           <h1>Tampilan Website</h1>
-          <p>Atur formulir pelanggan dan lagu tema yang tampil di halaman Info.</p>
+          <p>Atur formulir pelanggan, lagu tema, dan video promosi yang tampil di halaman Info.</p>
         </div>
         <a href="/info" target="_blank" rel="noreferrer" className="admin-secondary-button">
           Lihat halaman Info ↗
@@ -529,6 +764,7 @@ export default function TampilanWebsitePage() {
 
       <BagianFormulir />
       <BagianLagu />
+      <BagianVideo />
 
       <style>{`
         .tw-kartu { margin-bottom: 20px; }

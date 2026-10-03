@@ -1,6 +1,7 @@
 // Lokasi file: app/info/page.js  (dulu: app/lainnya/page.js)
 import { getSupabase } from "@/lib/supabase";
 import PemutarLagu from "./PemutarLagu";
+import VideoPromosi from "./VideoPromosi";
 
 export const dynamic = "force-dynamic";
 
@@ -135,6 +136,15 @@ function MusicIcon() {
   );
 }
 
+function VideoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="5" width="14" height="14" rx="2" />
+      <path d="m17 10 4-2.5v9L17 14" />
+    </svg>
+  );
+}
+
 function ArrowIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -153,7 +163,7 @@ export default async function InfoPage() {
     .limit(1)
     .maybeSingle();
 
-  const [{ data: formulir }, { data: lagu }] = await Promise.all([
+  const [{ data: formulir }, { data: lagu }, { data: video }] = await Promise.all([
     supabase
       .from("formulir_tautan")
       .select("id, judul, deskripsi, url")
@@ -166,10 +176,17 @@ export default async function InfoPage() {
       .eq("aktif", true)
       .order("urutan", { ascending: true })
       .order("id", { ascending: true }),
+    supabase
+      .from("video_promosi")
+      .select("id, judul, keterangan, youtube_url")
+      .eq("aktif", true)
+      .order("urutan", { ascending: true })
+      .order("id", { ascending: true }),
   ]);
 
   const daftarFormulir = formulir || [];
   const daftarLagu = lagu || [];
+  const daftarVideo = video || [];
 
   const whatsappUrl = "https://wa.me/6281285750033";
 
@@ -289,12 +306,19 @@ export default async function InfoPage() {
                     : undefined
                 }
               >
-                <div className={`menuIcon ${item.iconClass}`}>
-                  {item.icon}
-                </div>
+                {!item.featured && (
+                  <div className={`menuIcon ${item.iconClass}`}>
+                    {item.icon}
+                  </div>
+                )}
 
                 <div className="menuContent">
                   <div className="menuTitleRow">
+                    {item.featured && (
+                      <div className={`menuIcon ${item.iconClass}`}>
+                        {item.icon}
+                      </div>
+                    )}
                     <h2>{item.title}</h2>
 
                     {item.featured && (
@@ -380,6 +404,22 @@ export default async function InfoPage() {
                   <PemutarLagu lagu={daftarLagu} />
                 </div>
               )}
+            </section>
+          )}
+
+          {daftarVideo.length > 0 && (
+            <section className="infoPanel videoPanel">
+              <div className="infoPanelKepala">
+                <div className="menuIcon videoIcon">
+                  <VideoIcon />
+                </div>
+                <div>
+                  <h2>Video Promosi</h2>
+                  <p>Tonton dan bagikan video Sinar Kasih ke keluarga dan teman.</p>
+                </div>
+              </div>
+
+              <VideoPromosi video={daftarVideo} />
             </section>
           )}
 
@@ -736,16 +776,17 @@ export default async function InfoPage() {
           }
         }
       
-        /* Kartu Info Loker: ditonjolkan di tengah */
+        /* Kartu Info Loker: ditonjolkan di tengah, ringkas */
         .featuredCard {
           flex-direction: column;
           align-items: center !important;
           justify-content: center;
           text-align: center;
           gap: 14px;
-          padding: 34px 28px !important;
+          min-height: 0 !important;
+          padding: 26px 28px !important;
           background:
-            radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08), transparent 60%),
+            radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.07), transparent 60%),
             linear-gradient(135deg, #ffffff 0%, #fff6ea 100%) !important;
         }
 
@@ -757,6 +798,21 @@ export default async function InfoPage() {
 
         .featuredCard .menuTitleRow {
           justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .featuredCard .menuTitleRow .menuIcon {
+          width: 46px !important;
+          height: 46px !important;
+          min-width: 46px !important;
+          border-radius: 13px !important;
+        }
+
+        .featuredCard .menuTitleRow .menuIcon svg {
+          width: 24px !important;
+          height: 24px !important;
         }
 
         .featuredCard .menuContent h2 {
@@ -764,7 +820,14 @@ export default async function InfoPage() {
         }
 
         .featuredCard .menuContent p {
-          max-width: 560px;
+          max-width: none;
+          margin: 0;
+        }
+
+        @media (min-width: 861px) {
+          .featuredCard .menuContent p {
+            white-space: nowrap;
+          }
         }
 
         .featuredCta {
@@ -797,7 +860,7 @@ export default async function InfoPage() {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 18px;
           margin-top: 18px;
-          align-items: start;
+          align-items: stretch;
         }
 
         .infoDua.infoSatu {
@@ -805,11 +868,14 @@ export default async function InfoPage() {
           justify-content: center;
         }
 
+        /* Panel dibuat sama persis dengan kartu menu di atasnya */
         .infoPanel {
-          padding: 24px;
+          padding: 24px 25px;
           background: #ffffff;
-          border: 1px solid #eadfce;
-          border-radius: 20px;
+          border: 1px solid #eadfd5;
+          border-radius: 18px;
+          box-shadow: 0 8px 24px rgba(75, 36, 24, 0.06);
+          min-width: 0;
         }
 
         .infoPanelKepala {
@@ -1035,6 +1101,51 @@ export default async function InfoPage() {
           }
         }
 
+        @media (max-width: 760px) {
+          .infoDua {
+            gap: 14px;
+            margin-top: 14px;
+          }
+
+          .infoPanel {
+            padding: 20px;
+          }
+
+          .infoPanelKepala {
+            gap: 15px;
+          }
+
+          .infoPanelKepala .menuIcon {
+            width: 54px;
+            height: 54px;
+            min-width: 54px;
+          }
+
+          .infoPanelKepala h2 {
+            font-size: 17px;
+          }
+
+          .infoPanelKepala p {
+            font-size: 13px;
+          }
+
+          .formBaris,
+          .pl-baris {
+            padding: 12px;
+          }
+
+          .formBaris strong,
+          .pl-judul {
+            font-size: 14px;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .infoPanel {
+            padding: 18px;
+          }
+        }
+
         @media (max-width: 480px) {
           .pl-unduh span {
             display: none;
@@ -1042,6 +1153,125 @@ export default async function InfoPage() {
 
           .featuredCard .menuContent h2 {
             font-size: 22px !important;
+          }
+        }
+
+        /* Video promosi */
+        .videoPanel {
+          margin-top: 18px;
+        }
+
+        .videoIcon {
+          background: #fde9e7 !important;
+          color: #d93025 !important;
+        }
+
+        .vd-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .vd-kartu {
+          border: 1px solid #efe5d9;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #fcf9f5;
+        }
+
+        .vd-layar {
+          position: relative;
+          aspect-ratio: 16 / 9;
+          background: #1f1915;
+        }
+
+        .vd-layar iframe,
+        .vd-sampul {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border: 0;
+        }
+
+        .vd-sampul {
+          padding: 0;
+          cursor: pointer;
+          background: #1f1915;
+        }
+
+        .vd-sampul img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .vd-tombol {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 60px;
+          height: 60px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: rgba(217, 48, 37, 0.92);
+          color: #fff;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        .vd-tombol svg {
+          fill: currentColor;
+          margin-left: 3px;
+        }
+
+        .vd-sampul:hover .vd-tombol {
+          background: #d93025;
+        }
+
+        .vd-isi {
+          display: grid;
+          gap: 3px;
+          padding: 12px 14px 14px;
+        }
+
+        .vd-isi strong {
+          font-size: 15px;
+          color: #3f2f24;
+        }
+
+        .vd-isi span {
+          font-size: 13px;
+          color: #7d6957;
+        }
+
+        .vd-link {
+          margin-top: 4px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #6f4c36;
+          text-decoration: none;
+        }
+
+        .vd-link:hover {
+          text-decoration: underline;
+        }
+
+        @media (max-width: 860px) {
+          .vd-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 560px) {
+          .vd-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .videoPanel {
+            margin-top: 14px;
           }
         }
 `}</style>
