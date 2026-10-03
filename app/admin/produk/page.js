@@ -1,7 +1,8 @@
 "use client";
 
 // Lokasi file: app/admin/produk/page.js
-// Daftar produk: kartu ringkasan, filter (kategori, brand, status),
+// Daftar produk: kartu ringkasan, filter (kategori, brand, status,
+// termasuk "belum ada foto" dan "belum ada kategori"),
 // foto kecil, urutkan kolom, halaman 1 2 3, dan pilihan jumlah per halaman.
 // Tombol "Pindahkan ke Trash" dan "Impor / Ekspor" hanya untuk Admin Utama.
 
@@ -15,6 +16,10 @@ import { useAdmin } from "../AdminContext";
 import { buatPohon } from "../../KategoriPohon";
 
 const PILIHAN_PER_HALAMAN = [10, 25, 50];
+
+// Filter status yang boleh dibuka lewat alamat, contoh dari Dashboard:
+// /admin/produk?status=tanpa_foto
+const STATUS_DARI_ALAMAT = ["aktif", "nonaktif", "tanpa_harga", "tanpa_foto", "tanpa_kategori"];
 
 const KOLOM_URUT = {
   produk: "nama",
@@ -98,6 +103,8 @@ export default function AdminProdukPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState(null);
+  // true setelah filter dari alamat dibaca, supaya daftar tidak dimuat dua kali
+  const [siap, setSiap] = useState(false);
 
   const urut = {
     kunci: urutan.kunci,
@@ -191,6 +198,30 @@ export default function AdminProdukPage() {
     if (filterStatus === "aktif") q = q.eq("aktif", true);
     if (filterStatus === "nonaktif") q = q.eq("aktif", false);
     if (filterStatus === "tanpa_harga") q = q.is("mode_harga", null);
+    if (filterStatus === "tanpa_kategori") q = q.is("kategori_id", null);
+    if (filterStatus === "tanpa_foto") {
+      // Cari dulu produk yang sama sekali belum punya foto
+      const { data: tanpaFoto, error: fotoError } = await supabase
+        .from("produk")
+        .select("id, produk_gambar(id)")
+        .is("deleted_at", null)
+        .is("produk_gambar", null)
+        .limit(1000);
+      if (fotoError) {
+        setError("Gagal mencari produk tanpa foto: " + fotoError.message);
+        setLoading(false);
+        return;
+      }
+      const ids = (tanpaFoto || []).map((p) => p.id);
+      if (ids.length === 0) {
+        setProduk([]);
+        setTotal(0);
+        setFoto({});
+        setLoading(false);
+        return;
+      }
+      q = q.in("id", ids);
+    }
 
     if (urutan.kunci) {
       q = q.order(KOLOM_URUT[urutan.kunci], {
@@ -232,9 +263,17 @@ export default function AdminProdukPage() {
     setLoading(false);
   }, [halaman, perHalaman, cari, filterKategori, filterBrand, filterStatus, urutan, daftarKategori]);
 
+  // Baca filter dari alamat, contoh: /admin/produk?status=tanpa_foto
   useEffect(() => {
+    const st = new URLSearchParams(window.location.search).get("status");
+    if (st && STATUS_DARI_ALAMAT.includes(st)) setFilterStatus(st);
+    setSiap(true);
+  }, []);
+
+  useEffect(() => {
+    if (!siap) return;
     loadProduk();
-  }, [loadProduk]);
+  }, [loadProduk, siap]);
 
   function resetFilter() {
     setKetik("");
@@ -386,6 +425,8 @@ export default function AdminProdukPage() {
             <option value="aktif">Aktif</option>
             <option value="nonaktif">Nonaktif</option>
             <option value="tanpa_harga">Belum ada harga</option>
+            <option value="tanpa_foto">Belum ada foto</option>
+            <option value="tanpa_kategori">Belum ada kategori</option>
           </select>
 
           <button

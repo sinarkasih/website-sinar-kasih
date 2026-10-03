@@ -106,6 +106,15 @@ function CartIcon() {
   );
 }
 
+function PrivasiIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
 function JobIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -269,6 +278,16 @@ export default async function InfoPage() {
         "Pelajari cara memilih produk dan melakukan pemesanan dengan mudah.",
       icon: <CartIcon />,
       iconClass: "cartIcon",
+      featured: false,
+      external: false,
+    },
+    {
+      href: "/kebijakan-privasi",
+      title: "Kebijakan Privasi",
+      description:
+        "Data apa yang kami terima saat Anda memesan, untuk apa dipakai, dan bagaimana kami menjaganya.",
+      icon: <PrivasiIcon />,
+      iconClass: "privasiIcon",
       featured: false,
       external: false,
     },
@@ -561,6 +580,11 @@ export default async function InfoPage() {
         .infoIcon {
           background: #eee5ff;
           color: #7650c9;
+        }
+
+        .privasiIcon {
+          background: #e3f1ec;
+          color: #2f7a5c;
         }
 
         .cartIcon {

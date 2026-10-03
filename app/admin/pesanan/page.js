@@ -310,6 +310,8 @@ export default function AdminPesananPage() {
 
   const [dipilih, setDipilih] = useState(null);
   const [loading, setLoading] = useState(true);
+  // true setelah filter dari alamat (misal ?status=baru dari Dashboard) dibaca
+  const [siap, setSiap] = useState(false);
   const [error, setError] = useState("");
 
   const urut = {
@@ -417,9 +419,17 @@ export default function AdminPesananPage() {
     setLoading(false);
   }, [halaman, perHalaman, cari, filterStatus, filterCabang, filterTanggal, urutan]);
 
+  // Baca filter dari alamat, contoh: /admin/pesanan?status=baru
   useEffect(() => {
+    const st = new URLSearchParams(window.location.search).get("status");
+    if (st && STATUS[st]) setFilterStatus(st);
+    setSiap(true);
+  }, []);
+
+  useEffect(() => {
+    if (!siap) return;
     muatPesanan();
-  }, [muatPesanan]);
+  }, [muatPesanan, siap]);
 
   function resetFilter() {
     setKetik("");

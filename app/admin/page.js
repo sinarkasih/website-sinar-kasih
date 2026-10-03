@@ -2,7 +2,8 @@
 
 // Lokasi file: app/admin/page.js
 // Dashboard Admin Utama: ringkasan, grafik penjualan, status pesanan,
-// produk & kategori terlaris, pesanan terbaru, aktivitas, aksi cepat, info toko.
+// produk & kategori terlaris, pesanan terbaru, aktivitas, aksi cepat, info toko,
+// dan panel "Produk Belum Lengkap" (belum ada foto / harga / kategori).
 // Semua angka dari data asli database.
 
 import Link from "next/link";
@@ -80,6 +81,8 @@ const IKON = {
   brand: <><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" /></>,
   tampilan: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>,
   toko: <><path d="M4 10v10h16V10" /><path d="M3 10 5 4h14l2 6Z" /><path d="M10 20v-5h4v5" /></>,
+  foto: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.8" /><path d="m21 16-5-5-8 8" /></>,
+  harga: <><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><path d="M8 8h.01" /></>,
 };
 
 function GrafikPenjualan({ hari }) {
@@ -174,7 +177,10 @@ export default function DashboardPage() {
       }
       const { awal, akhir, awalLalu } = hitungRentang(rentang);
 
-      const [psn, produkAktif, pelanggan, pesananBaru, terbaru, aktivitas, cabang] = await Promise.all([
+      const hitungProduk = (atur) =>
+        atur(supabase.from("produk_katalog").select("id", { count: "exact", head: true }).is("deleted_at", null));
+
+      const [psn, produkAktif, pelanggan, pesananBaru, terbaru, aktivitas, cabang, tanpaFoto, tanpaHarga, tanpaKategori] = await Promise.all([
         supabase.from("pesanan").select("id, created_at, status, total")
           .is("deleted_at", null).gte("created_at", awalLalu.toISOString())
           .order("created_at", { ascending: true }).limit(10000),
@@ -187,6 +193,11 @@ export default function DashboardPage() {
           .order("waktu", { ascending: false }).limit(5),
         supabase.from("cabang_toko").select("id, nama, alamat, telepon, google_maps_url, aktif, urutan")
           .eq("aktif", true).order("urutan", { ascending: true }),
+        // Produk belum lengkap (produk di Trash tidak dihitung)
+        supabase.from("produk").select("id, produk_gambar(id)", { count: "exact", head: true })
+          .is("deleted_at", null).is("produk_gambar", null),
+        hitungProduk((q) => q.is("mode_harga", null)),
+        hitungProduk((q) => q.is("kategori_id", null)),
       ]);
 
       if (psn.error) {
@@ -274,6 +285,11 @@ export default function DashboardPage() {
         terbaru: terbaru.data || [],
         aktivitas: aktivitas.error ? [] : aktivitas.data || [],
         cabang: cabang.data || [],
+        belumLengkap: [
+          { kunci: "foto", label: "Belum ada foto", nilai: tanpaFoto.error ? null : tanpaFoto.count ?? 0, href: "/admin/produk?status=tanpa_foto" },
+          { kunci: "harga", label: "Belum ada harga", nilai: tanpaHarga.error ? null : tanpaHarga.count ?? 0, href: "/admin/produk?status=tanpa_harga" },
+          { kunci: "kategori", label: "Belum ada kategori", nilai: tanpaKategori.error ? null : tanpaKategori.count ?? 0, href: "/admin/produk?status=tanpa_kategori" },
+        ],
       });
     }
     muat();
@@ -289,7 +305,7 @@ export default function DashboardPage() {
   const kartu = [
     { kunci: "pesanan", label: "Total Pesanan", nilai: data?.jumlahKini, naik: pPesanan, warna: "merah", href: "/admin/pesanan" },
     { kunci: "uang", label: "Penjualan Selesai", nilai: data ? rp(data.jualKini) : null, naik: pJual, warna: "hijau", href: "/admin/pesanan" },
-    { kunci: "baru", label: "Pesanan Baru (perlu diproses)", nilai: data?.pesananBaru, warna: "kuning", href: "/admin/pesanan" },
+    { kunci: "baru", label: "Pesanan Baru (perlu diproses)", nilai: data?.pesananBaru, warna: "kuning", href: "/admin/pesanan?status=baru" },
     { kunci: "produk", label: "Produk Aktif", nilai: data?.produkAktif, warna: "biru", href: "/admin/produk" },
     { kunci: "pelanggan", label: "Total Pelanggan", nilai: data?.pelanggan, warna: "ungu", href: "/admin/pelanggan" },
   ];
@@ -341,6 +357,30 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {data && (
+        <section className="db-panel db-lengkap">
+          <div className="db-panel-kepala">
+            <h2>Produk Belum Lengkap</h2>
+            {data.belumLengkap.every((b) => b.nilai === 0) ? (
+              <span className="db-lengkap-ok">Semua produk sudah lengkap</span>
+            ) : (
+              <span className="db-redup-kecil">Klik untuk melihat daftar produknya</span>
+            )}
+          </div>
+          <div className="db-lengkap-grid">
+            {data.belumLengkap.map((b) => (
+              <Link key={b.kunci} href={b.href} className={`db-lengkap-item ${b.nilai > 0 ? "ada" : ""}`}>
+                <span className={`db-kartu-ikon ${b.nilai > 0 ? "kuning" : "hijau"}`}><Ikon d={IKON[b.kunci]} ukuran={20} /></span>
+                <span className="db-lengkap-teks">
+                  <strong>{b.nilai === null ? "–" : b.nilai}</strong>
+                  <span>{b.label}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="db-baris dua">
         <section className="db-panel">
@@ -481,6 +521,16 @@ export default function DashboardPage() {
         .db-kartu-teks em.naik { color: #2f7a46; }
         .db-kartu-teks em.turun { color: #b23b2e; }
 
+        .db-lengkap { margin-bottom: 20px; }
+        .db-lengkap-ok { font-size: 13px; font-weight: 700; color: #2f7a46; }
+        .db-lengkap-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .db-lengkap-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #f0e7db; border-radius: 12px; background: #fcf9f5; color: #3f2f24; text-decoration: none; }
+        .db-lengkap-item:hover { border-color: #d6c1a8; background: #fff; }
+        .db-lengkap-item.ada { border-color: #f1d9a8; background: #fffaf0; }
+        .db-lengkap-teks { display: grid; gap: 1px; }
+        .db-lengkap-teks strong { font-size: 19px; line-height: 1.2; }
+        .db-lengkap-teks span { font-size: 13px; color: #7d6957; }
+
         .db-baris { display: grid; gap: 20px; margin-bottom: 20px; }
         .db-baris.dua { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); }
         .db-baris.tiga { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -559,6 +609,7 @@ export default function DashboardPage() {
           .db-kartu-grid { grid-template-columns: 1fr 1fr; }
           .db-baris.tiga { grid-template-columns: 1fr; }
           .db-aksi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .db-lengkap-grid { grid-template-columns: 1fr; }
           .db-rentang { width: 100%; }
         }
       `}</style>

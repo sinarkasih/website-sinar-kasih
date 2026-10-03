@@ -240,6 +240,7 @@ export default function RootLayout({ children }) {
                 <Link href="/tentang">Tentang Kami</Link>
                 <Link href="/loker">Lowongan Kerja</Link>
                 <Link href="/info">Informasi &amp; Layanan</Link>
+                <Link href="/kebijakan-privasi">Kebijakan Privasi</Link>
               </div>
             </div>
 
