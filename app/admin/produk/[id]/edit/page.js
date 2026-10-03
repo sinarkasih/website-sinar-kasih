@@ -711,11 +711,14 @@ export default function EditProdukPage() {
         </button>
       </div>
 
-      <div className="admin-card">
+      <div>
         <form
           onSubmit={handleSubmit}
           className="admin-form"
         >
+          <div className="pf-tata">
+            <div className="pf-kiri admin-card">
+              <h2 className="pf-judul">Informasi Produk</h2>
           <div className="admin-form-group">
             <label>Nama Produk</label>
 
@@ -726,66 +729,6 @@ export default function EditProdukPage() {
               placeholder="Nama produk"
             />
           </div>
-
-          <div className="admin-form-grid">
-            <div className="admin-form-group">
-              <label>SKU</label>
-
-              <input
-                name="sku"
-                value={form.sku}
-                onChange={handleChange}
-                placeholder="SKU produk"
-              />
-            </div>
-
-            <div className="admin-form-group">
-              <label>Slug (alamat halaman produk)</label>
-
-              <input
-                name="slug"
-                value={form.slug}
-                readOnly
-                placeholder="slug-produk"
-                style={{ background: "#f6f1ea", color: "#7d6957" }}
-              />
-
-              {bolehUbahSlug ? (
-                <button
-                  type="button"
-                  className="admin-secondary-button"
-                  style={{ marginTop: "8px", minHeight: "36px" }}
-                  onClick={() => {
-                    const slugBaru = buatSlugDariNama(form.nama);
-                    if (!slugBaru || slugBaru === form.slug) {
-                      window.alert("Slug sudah sesuai dengan nama produk.");
-                      return;
-                    }
-                    const yakin = window.confirm(
-                      "Buat ulang slug dari nama produk?\n\n" +
-                        "Slug lama: " + (form.slug || "-") + "\n" +
-                        "Slug baru: " + slugBaru + "\n\n" +
-                        "PERHATIAN: link lama produk ini yang sudah dibagikan " +
-                        "(WhatsApp, media sosial, Google) tidak akan berfungsi lagi. " +
-                        "Perubahan baru tersimpan setelah klik Simpan."
-                    );
-                    if (yakin) {
-                      setForm((f) => ({ ...f, slug: slugBaru }));
-                    }
-                  }}
-                >
-                  Buat ulang slug dari nama
-                </button>
-              ) : null}
-
-              <small style={{ display: "block", marginTop: "6px", color: "#9a8571", fontSize: "12.5px" }}>
-                Slug tidak ikut berubah saat nama diubah, supaya link produk
-                yang sudah dibagikan tetap berfungsi.
-                {!bolehUbahSlug && " Hanya Admin Utama yang bisa mengubahnya."}
-              </small>
-            </div>
-          </div>
-
           <div className="admin-form-grid">
             <div className="admin-form-group">
               <label>Kategori</label>
@@ -833,31 +776,6 @@ export default function EditProdukPage() {
               </select>
             </div>
           </div>
-
-          <div className="admin-form-grid">
-            <div className="admin-form-group">
-              <label>Satuan</label>
-
-              <input
-                name="satuan"
-                value={form.satuan}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="admin-form-group">
-              <label>Stok</label>
-
-              <input
-                type="number"
-                min="0"
-                name="stok"
-                value={form.stok}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
           <div className="admin-form-group">
             <label>Deskripsi</label>
 
@@ -868,7 +786,6 @@ export default function EditProdukPage() {
               rows="6"
             />
           </div>
-
           {/* LABEL PRODUK */}
 
           <div className="admin-form-group">
@@ -968,9 +885,11 @@ export default function EditProdukPage() {
               </div>
             )}
           </div>
+            </div>
 
-          {/* PILIHAN BERANDA */}
-
+            <div className="pf-kanan">
+              <div className="admin-card">
+                <h2 className="pf-judul">Status Produk</h2>
           <div className="admin-form-checkbox">
             <input
               type="checkbox"
@@ -1021,6 +940,100 @@ export default function EditProdukPage() {
               ditampilkan di website
             </label>
           </div>
+              </div>
+
+              <div className="admin-card">
+                <h2 className="pf-judul">Stok &amp; Satuan</h2>
+          <div className="admin-form-grid">
+            <div className="admin-form-group">
+              <label>Satuan</label>
+
+              <input
+                name="satuan"
+                value={form.satuan}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="admin-form-group">
+              <label>Stok</label>
+
+              <input
+                type="number"
+                min="0"
+                name="stok"
+                value={form.stok}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+              </div>
+
+              <div className="admin-card">
+                <h2 className="pf-judul">Kode &amp; Alamat Produk</h2>
+          <div className="admin-form-grid">
+            <div className="admin-form-group">
+              <label>SKU</label>
+
+              <input
+                name="sku"
+                value={form.sku}
+                onChange={handleChange}
+                placeholder="SKU produk"
+              />
+            </div>
+
+            <div className="admin-form-group">
+              <label>Slug (alamat halaman produk)</label>
+
+              <input
+                name="slug"
+                value={form.slug}
+                readOnly
+                placeholder="slug-produk"
+                style={{ background: "#f6f1ea", color: "#7d6957" }}
+              />
+
+              {bolehUbahSlug ? (
+                <button
+                  type="button"
+                  className="admin-secondary-button"
+                  style={{ marginTop: "8px", minHeight: "36px" }}
+                  onClick={() => {
+                    const slugBaru = buatSlugDariNama(form.nama);
+                    if (!slugBaru || slugBaru === form.slug) {
+                      window.alert("Slug sudah sesuai dengan nama produk.");
+                      return;
+                    }
+                    const yakin = window.confirm(
+                      "Buat ulang slug dari nama produk?\n\n" +
+                        "Slug lama: " + (form.slug || "-") + "\n" +
+                        "Slug baru: " + slugBaru + "\n\n" +
+                        "PERHATIAN: link lama produk ini yang sudah dibagikan " +
+                        "(WhatsApp, media sosial, Google) tidak akan berfungsi lagi. " +
+                        "Perubahan baru tersimpan setelah klik Simpan."
+                    );
+                    if (yakin) {
+                      setForm((f) => ({ ...f, slug: slugBaru }));
+                    }
+                  }}
+                >
+                  Buat ulang slug dari nama
+                </button>
+              ) : null}
+
+              <small style={{ display: "block", marginTop: "6px", color: "#9a8571", fontSize: "12.5px" }}>
+                Slug tidak ikut berubah saat nama diubah, supaya link produk
+                yang sudah dibagikan tetap berfungsi.
+                {!bolehUbahSlug && " Hanya Admin Utama yang bisa mengubahnya."}
+              </small>
+            </div>
+          </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pf-bawah">
 
           {error && (
             <div className="admin-message admin-message-error">
@@ -1043,6 +1056,7 @@ export default function EditProdukPage() {
               ? "Menyimpan..."
               : "Simpan Perubahan"}
           </button>
+          </div>
         </form>
       </div>
 

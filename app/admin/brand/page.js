@@ -638,13 +638,42 @@ export default function AdminBrandPage() {
 
                 <input
                   value={slug}
-                  onChange={(e) =>
-                    setSlug(
-                      e.target.value
-                    )
-                  }
-                  placeholder="philips"
+                  readOnly
+                  placeholder="otomatis dari nama"
+                  style={{ background: "#f6f1ea", color: "#7d6957" }}
                 />
+
+                {editingId ? (
+                  <button
+                    type="button"
+                    className="admin-secondary-button"
+                    style={{ marginTop: "8px", minHeight: "36px" }}
+                    onClick={() => {
+                      const slugBaru = buatSlug(nama);
+                      if (!slugBaru || slugBaru === slug) {
+                        window.alert("Slug sudah sesuai dengan nama.");
+                        return;
+                      }
+                      const yakin = window.confirm(
+                        "Buat ulang slug dari nama?\n\n" +
+                          "Slug lama: " + (slug || "-") + "\n" +
+                          "Slug baru: " + slugBaru + "\n\n" +
+                          "PERHATIAN: link lama brand ini yang sudah dibagikan " +
+                          "(WhatsApp, media sosial, Google) tidak akan berfungsi lagi. " +
+                          "Perubahan baru tersimpan setelah klik Simpan."
+                      );
+                      if (yakin) setSlug(slugBaru);
+                    }}
+                  >
+                    Buat ulang slug dari nama
+                  </button>
+                ) : null}
+
+                <small style={{ display: "block", marginTop: "6px", color: "#9a8571", fontSize: "12.5px" }}>
+                  {editingId
+                    ? "Slug tidak ikut berubah saat nama diubah, supaya link yang sudah dibagikan tetap berfungsi."
+                    : "Dibuat otomatis dari nama."}
+                </small>
               </div>
 
             </div>

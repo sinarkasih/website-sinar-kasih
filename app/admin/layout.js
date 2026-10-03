@@ -24,7 +24,11 @@ const AKSES_ROLE = {
 // Halaman yang tetap DIKUNCI untuk jabatan tertentu,
 // walaupun berada di dalam menu yang boleh dibuka.
 const DILARANG = {
-  karyawan_produk: ["/admin/produk/impor-ekspor"],
+  karyawan_produk: [
+    "/admin/produk/impor-ekspor",
+    "/admin/produk/trash",
+    "/admin/produk/nonaktif",
+  ],
 };
 
 const HALAMAN_AWAL = {
@@ -1256,6 +1260,68 @@ const CSS = `
 
   .adm-isi .cari-x:hover {
     background: #ddd0c0;
+  }
+
+
+  /* Form Tambah/Edit Produk: dua kolom */
+  .adm-isi .pf-tata {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .adm-isi .pf-kanan {
+    display: grid;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .adm-isi .pf-kiri {
+    min-width: 0;
+  }
+
+  .adm-isi .pf-judul {
+    font-size: 17px !important;
+    margin: 0 0 16px !important;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0e7db;
+  }
+
+  .adm-isi .pf-kanan .admin-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .adm-isi .pf-tata .admin-card {
+    margin: 0 !important;
+  }
+
+  .adm-isi .pf-bawah {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: #fffdf9;
+    border: 1px solid #eadfce;
+    border-radius: 14px;
+    box-shadow: 0 -4px 16px rgba(59, 42, 32, 0.06);
+  }
+
+  .adm-isi .pf-bawah .admin-message {
+    flex-basis: 100%;
+    margin: 0 !important;
+  }
+
+  @media (max-width: 1000px) {
+    .adm-isi .pf-tata {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 600px) {

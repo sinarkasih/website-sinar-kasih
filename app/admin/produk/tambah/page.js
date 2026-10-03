@@ -248,8 +248,11 @@ export default function TambahProdukPage() {
         </button>
       </div>
 
-      <div className="admin-card">
+      <div>
         <form onSubmit={handleSubmit} className="admin-form">
+          <div className="pf-tata">
+            <div className="pf-kiri admin-card">
+              <h2 className="pf-judul">Informasi Produk</h2>
           <div className="admin-form-group">
             <label>Nama Produk *</label>
 
@@ -261,31 +264,6 @@ export default function TambahProdukPage() {
               required
             />
           </div>
-
-          <div className="admin-form-grid">
-            <div className="admin-form-group">
-              <label>SKU</label>
-
-              <input
-                name="sku"
-                value={form.sku}
-                onChange={handleChange}
-                placeholder="Contoh: PH-LED-9W"
-              />
-            </div>
-
-            <div className="admin-form-group">
-              <label>Slug</label>
-
-              <input
-                name="slug"
-                value={form.slug}
-                onChange={handleChange}
-                placeholder="philips-led-essential-9w"
-              />
-            </div>
-          </div>
-
           <div className="admin-form-grid">
             <div className="admin-form-group">
               <label>Kategori</label>
@@ -323,7 +301,39 @@ export default function TambahProdukPage() {
               </select>
             </div>
           </div>
+          <div className="admin-form-group">
+            <label>Deskripsi</label>
 
+            <textarea
+              name="deskripsi"
+              value={form.deskripsi}
+              onChange={handleChange}
+              rows="6"
+              placeholder="Deskripsi produk..."
+            />
+          </div>
+            </div>
+
+            <div className="pf-kanan">
+              <div className="admin-card">
+                <h2 className="pf-judul">Status Produk</h2>
+          <div className="admin-form-checkbox">
+            <input
+              type="checkbox"
+              id="aktif"
+              name="aktif"
+              checked={form.aktif}
+              onChange={handleChange}
+            />
+
+            <label htmlFor="aktif">
+              Produk aktif dan dapat ditampilkan di website
+            </label>
+          </div>
+              </div>
+
+              <div className="admin-card">
+                <h2 className="pf-judul">Stok &amp; Satuan</h2>
           <div className="admin-form-grid">
             <div className="admin-form-group">
               <label>Satuan</label>
@@ -348,32 +358,42 @@ export default function TambahProdukPage() {
               />
             </div>
           </div>
+              </div>
 
-          <div className="admin-form-group">
-            <label>Deskripsi</label>
+              <div className="admin-card">
+                <h2 className="pf-judul">Kode &amp; Alamat Produk</h2>
+          <div className="admin-form-grid">
+            <div className="admin-form-group">
+              <label>SKU</label>
 
-            <textarea
-              name="deskripsi"
-              value={form.deskripsi}
-              onChange={handleChange}
-              rows="6"
-              placeholder="Deskripsi produk..."
-            />
+              <input
+                name="sku"
+                value={form.sku}
+                onChange={handleChange}
+                placeholder="Contoh: PH-LED-9W"
+              />
+            </div>
+
+            <div className="admin-form-group">
+              <label>Slug</label>
+
+              <input
+                name="slug"
+                value={form.slug}
+                readOnly
+                placeholder="otomatis dari nama produk"
+                style={{ background: "#f6f1ea", color: "#7d6957" }}
+              />
+              <small style={{ display: "block", marginTop: "6px", color: "#9a8571", fontSize: "12.5px" }}>
+                Dibuat otomatis dari nama produk.
+              </small>
+            </div>
+          </div>
+              </div>
+            </div>
           </div>
 
-          <div className="admin-form-checkbox">
-            <input
-              type="checkbox"
-              id="aktif"
-              name="aktif"
-              checked={form.aktif}
-              onChange={handleChange}
-            />
-
-            <label htmlFor="aktif">
-              Produk aktif dan dapat ditampilkan di website
-            </label>
-          </div>
+          <div className="pf-bawah">
 
           {error && (
             <div className="admin-message admin-message-error">
@@ -394,6 +414,7 @@ export default function TambahProdukPage() {
           >
             {saving ? "Menyimpan..." : "Simpan Produk"}
           </button>
+          </div>
         </form>
       </div>
     </main>
