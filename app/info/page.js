@@ -2,6 +2,7 @@
 import { getSupabase } from "@/lib/supabase";
 import PemutarLagu from "./PemutarLagu";
 import VideoPromosi from "./VideoPromosi";
+import PanelLipat from "./PanelLipat";
 
 export const dynamic = "force-dynamic";
 
@@ -355,17 +356,13 @@ export default async function InfoPage() {
               }`}
             >
               {daftarFormulir.length > 0 && (
-                <div className="infoPanel">
-                  <div className="infoPanelKepala">
-                    <div className="menuIcon formIcon">
-                      <FormIcon />
-                    </div>
-                    <div>
-                      <h2>Formulir Pelanggan</h2>
-                      <p>Klaim garansi, penilaian, dan masukan Anda.</p>
-                    </div>
-                  </div>
-
+                <PanelLipat
+                  ikon={<FormIcon />}
+                  kelasIkon="formIcon"
+                  judul="Formulir Pelanggan"
+                  keterangan="Klaim garansi, penilaian, dan masukan Anda."
+                  jumlah={`${daftarFormulir.length} formulir`}
+                >
                   <div className="formDaftar">
                     {daftarFormulir.map((f) => (
                       <a
@@ -386,41 +383,34 @@ export default async function InfoPage() {
                       </a>
                     ))}
                   </div>
-                </div>
+                </PanelLipat>
               )}
 
               {daftarLagu.length > 0 && (
-                <div className="infoPanel">
-                  <div className="infoPanelKepala">
-                    <div className="menuIcon musicIcon">
-                      <MusicIcon />
-                    </div>
-                    <div>
-                      <h2>Lagu Sinar Kasih</h2>
-                      <p>Putar atau unduh untuk didengarkan di HP Anda.</p>
-                    </div>
-                  </div>
-
+                <PanelLipat
+                  ikon={<MusicIcon />}
+                  kelasIkon="musicIcon"
+                  judul="Lagu Sinar Kasih"
+                  keterangan="Putar atau unduh untuk didengarkan di HP Anda."
+                  jumlah={`${daftarLagu.length} lagu`}
+                >
                   <PemutarLagu lagu={daftarLagu} />
-                </div>
+                </PanelLipat>
               )}
             </section>
           )}
 
           {daftarVideo.length > 0 && (
-            <section className="infoPanel videoPanel">
-              <div className="infoPanelKepala">
-                <div className="menuIcon videoIcon">
-                  <VideoIcon />
-                </div>
-                <div>
-                  <h2>Video Promosi</h2>
-                  <p>Tonton dan bagikan video Sinar Kasih ke keluarga dan teman.</p>
-                </div>
-              </div>
-
+            <PanelLipat
+              ikon={<VideoIcon />}
+              kelasIkon="videoIcon"
+              judul="Video Promosi"
+              keterangan="Tonton dan bagikan video Sinar Kasih ke keluarga dan teman."
+              jumlah={`${daftarVideo.length} video`}
+              className="videoPanel"
+            >
               <VideoPromosi video={daftarVideo} />
-            </section>
+            </PanelLipat>
           )}
 
         </div>
@@ -1272,6 +1262,120 @@ export default async function InfoPage() {
 
           .videoPanel {
             margin-top: 14px;
+          }
+        }
+
+        /* ===== Panel buka-tutup (HP) ===== */
+        .panelTombol {
+          width: 100%;
+          padding: 0;
+          border: none;
+          background: none;
+          font: inherit;
+          text-align: left;
+          color: inherit;
+          cursor: default;
+        }
+
+        .panelTeks {
+          display: grid;
+          gap: 2px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .panelJudul {
+          font-size: 20px;
+          font-weight: 700;
+          color: #3f2f24;
+        }
+
+        .panelKet {
+          font-size: 14px;
+          color: #7d6957;
+        }
+
+        .panelJumlah,
+        .panelPanah {
+          display: none;
+        }
+
+        /* Isi daftar tidak boleh melebar keluar panel */
+        .panelIsi,
+        .pl,
+        .pl-daftar,
+        .formDaftar {
+          min-width: 0;
+        }
+
+        .pl-daftar,
+        .formDaftar {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .pl-baris,
+        .formBaris {
+          min-width: 0;
+        }
+
+        .formBaris > div {
+          min-width: 0;
+        }
+
+        @media (max-width: 860px) {
+          .panelTombol {
+            cursor: pointer;
+          }
+
+          .panelLipat .infoPanelKepala {
+            margin-bottom: 0;
+          }
+
+          .panelLipat.buka .infoPanelKepala {
+            margin-bottom: 16px;
+          }
+
+          .panelIsi {
+            display: none;
+          }
+
+          .panelLipat.buka .panelIsi {
+            display: block;
+          }
+
+          .panelPanah {
+            display: block;
+            flex-shrink: 0;
+            color: #8c6f5d;
+            transition: transform 0.2s ease;
+          }
+
+          .panelLipat.buka .panelPanah {
+            transform: rotate(180deg);
+          }
+
+          .panelJumlah {
+            display: inline-block;
+            justify-self: start;
+            margin-top: 4px;
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: #f3eadf;
+            color: #6f4c36;
+            font-size: 12px;
+            font-weight: 700;
+          }
+
+          .panelJudul {
+            font-size: 17px;
+          }
+
+          .panelKet {
+            font-size: 13px;
+          }
+
+          .pl-ket {
+            white-space: normal;
           }
         }
 `}</style>
