@@ -12,7 +12,7 @@ import GaleriProduk from "./GaleriProduk";
 
 export const dynamic = "force-dynamic";
 
-const ALAMAT_SITUS = "https://sinarkasih.co.id";
+const ALAMAT_SITUS = "https://www.sinarkasih.co.id";
 const WHATSAPP_CADANGAN = "6281285750033";
 
 function nomorWa(teks) {

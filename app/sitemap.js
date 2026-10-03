@@ -5,7 +5,7 @@
 
 import { getSupabase } from "../lib/supabase";
 
-const SITUS = "https://sinarkasih.co.id";
+const SITUS = "https://www.sinarkasih.co.id";
 
 export const revalidate = 3600;
 

@@ -11,6 +11,6 @@ export default function robots() {
         disallow: ["/admin", "/troli", "/checkout"],
       },
     ],
-    sitemap: "https://sinarkasih.co.id/sitemap.xml",
+    sitemap: "https://www.sinarkasih.co.id/sitemap.xml",
   };
 }

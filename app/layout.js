@@ -6,7 +6,7 @@ import TampilanPublik, { BungkusPublik } from "./TampilanPublik";
 import PencatatKunjungan from "./PencatatKunjungan";
 
 export const metadata = {
-  metadataBase: new URL("https://sinarkasih.co.id"),
+  metadataBase: new URL("https://www.sinarkasih.co.id"),
   title: "Sinar Kasih | Toko Listrik Ambon",
   description:
     "Toko Listrik Sinar Kasih Ambon: katalog kebutuhan listrik, lampu, dan perlengkapan rumah. Pesan mudah lewat WhatsApp.",
