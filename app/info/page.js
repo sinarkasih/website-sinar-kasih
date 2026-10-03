@@ -1,5 +1,6 @@
 // Lokasi file: app/info/page.js  (dulu: app/lainnya/page.js)
 import { getSupabase } from "@/lib/supabase";
+import PemutarLagu from "./PemutarLagu";
 
 export const dynamic = "force-dynamic";
 
@@ -306,100 +307,79 @@ export default async function InfoPage() {
                   <p>{item.description}</p>
                 </div>
 
-                <div className="menuArrow">
-                  <ArrowIcon />
-                </div>
+                {item.featured ? (
+                  <span className="featuredCta">
+                    Lihat Lowongan
+                    <ArrowIcon />
+                  </span>
+                ) : (
+                  <div className="menuArrow">
+                    <ArrowIcon />
+                  </div>
+                )}
               </a>
             ))}
 
           </section>
 
-          {daftarFormulir.length > 0 && (
-            <section className="infoBagian">
-              <div className="infoBagianKepala">
-                <h2>Formulir Pelanggan</h2>
-                <p>
-                  Sampaikan klaim garansi, penilaian, atau masukan Anda
-                  melalui formulir berikut.
-                </p>
-              </div>
-
-              <div className="menuGrid">
-                {daftarFormulir.map((f) => (
-                  <a
-                    key={f.id}
-                    href={f.url}
-                    className="menuCard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+          {(daftarFormulir.length > 0 || daftarLagu.length > 0) && (
+            <section
+              className={`infoDua ${
+                daftarFormulir.length > 0 && daftarLagu.length > 0
+                  ? ""
+                  : "infoSatu"
+              }`}
+            >
+              {daftarFormulir.length > 0 && (
+                <div className="infoPanel">
+                  <div className="infoPanelKepala">
                     <div className="menuIcon formIcon">
                       <FormIcon />
                     </div>
-                    <div className="menuContent">
-                      <div className="menuTitleRow">
-                        <h2>{f.judul}</h2>
-                      </div>
-                      <p>{f.deskripsi || "Isi formulir"}</p>
+                    <div>
+                      <h2>Formulir Pelanggan</h2>
+                      <p>Klaim garansi, penilaian, dan masukan Anda.</p>
                     </div>
-                    <div className="menuArrow">
-                      <ArrowIcon />
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
+                  </div>
 
-          {daftarLagu.length > 0 && (
-            <section className="infoBagian">
-              <div className="infoBagianKepala">
-                <h2>Lagu Sinar Kasih</h2>
-                <p>
-                  Putar lagu tema kami, atau unduh untuk didengarkan kapan
-                  saja di HP Anda.
-                </p>
-              </div>
+                  <div className="formDaftar">
+                    {daftarFormulir.map((f) => (
+                      <a
+                        key={f.id}
+                        href={f.url}
+                        className="formBaris"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <div>
+                          <strong>{f.judul}</strong>
+                          {f.deskripsi && <span>{f.deskripsi}</span>}
+                        </div>
+                        <span className="formIsi">
+                          Isi
+                          <ArrowIcon />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <div className="laguDaftar">
-                {daftarLagu.map((l) => (
-                  <div key={l.id} className="laguKartu">
+              {daftarLagu.length > 0 && (
+                <div className="infoPanel">
+                  <div className="infoPanelKepala">
                     <div className="menuIcon musicIcon">
                       <MusicIcon />
                     </div>
-                    <div className="laguIsi">
-                      <h3>{l.judul}</h3>
-                      {l.keterangan && <p>{l.keterangan}</p>}
-                      <audio
-                        controls
-                        preload="none"
-                        src={l.audio_url}
-                        className="laguAudio"
-                      >
-                        Browser Anda tidak mendukung pemutar audio.
-                      </audio>
-                      <a
-                        href={`${l.audio_url}?download=${encodeURIComponent(
-                          `${l.judul} - Sinar Kasih.${
-                            (l.audio_path || "lagu.mp3").split(".").pop()
-                          }`
-                        )}`}
-                        className="laguUnduh"
-                        download
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                          strokeLinejoin="round" aria-hidden="true">
-                          <path d="M12 4v11" />
-                          <path d="m7 10 5 5 5-5" />
-                          <path d="M5 20h14" />
-                        </svg>
-                        Unduh lagu
-                      </a>
+                    <div>
+                      <h2>Lagu Sinar Kasih</h2>
+                      <p>Putar atau unduh untuk didengarkan di HP Anda.</p>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <PemutarLagu lagu={daftarLagu} />
+                </div>
+              )}
             </section>
           )}
 
@@ -756,23 +736,110 @@ export default async function InfoPage() {
           }
         }
       
-        .infoBagian {
-          margin-top: 44px;
+        /* Kartu Info Loker: ditonjolkan di tengah */
+        .featuredCard {
+          flex-direction: column;
+          align-items: center !important;
+          justify-content: center;
+          text-align: center;
+          gap: 14px;
+          padding: 34px 28px !important;
+          background:
+            radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08), transparent 60%),
+            linear-gradient(135deg, #ffffff 0%, #fff6ea 100%) !important;
         }
 
-        .infoBagianKepala {
+        .featuredCard .menuContent {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .featuredCard .menuTitleRow {
+          justify-content: center;
+        }
+
+        .featuredCard .menuContent h2 {
+          font-size: 26px !important;
+        }
+
+        .featuredCard .menuContent p {
+          max-width: 560px;
+        }
+
+        .featuredCta {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 20px;
+          border-radius: 999px;
+          background: #6f4c36;
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .featuredCta svg {
+          width: 18px;
+          height: 18px;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 2;
+        }
+
+        .featuredCard:hover .featuredCta {
+          background: #5c3e2c;
+        }
+
+        /* Formulir & Lagu: dua kolom berdampingan */
+        .infoDua {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
+          margin-top: 18px;
+          align-items: start;
+        }
+
+        .infoDua.infoSatu {
+          grid-template-columns: minmax(0, 640px);
+          justify-content: center;
+        }
+
+        .infoPanel {
+          padding: 24px;
+          background: #ffffff;
+          border: 1px solid #eadfce;
+          border-radius: 20px;
+        }
+
+        .infoPanelKepala {
+          display: flex;
+          align-items: center;
+          gap: 14px;
           margin-bottom: 16px;
         }
 
-        .infoBagianKepala h2 {
-          margin: 0 0 4px;
-          font-size: 22px;
+        .infoPanelKepala .menuIcon {
+          width: 52px;
+          height: 52px;
+          min-width: 52px;
+          border-radius: 15px;
+        }
+
+        .infoPanelKepala .menuIcon svg {
+          width: 26px;
+          height: 26px;
+        }
+
+        .infoPanelKepala h2 {
+          margin: 0 0 2px;
+          font-size: 20px;
           color: #3f2f24;
         }
 
-        .infoBagianKepala p {
+        .infoPanelKepala p {
           margin: 0;
-          font-size: 15px;
+          font-size: 14px;
           color: #7d6957;
         }
 
@@ -786,70 +853,195 @@ export default async function InfoPage() {
           color: #c0405e !important;
         }
 
-        .laguDaftar {
+        .formDaftar {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
+          gap: 10px;
         }
 
-        .laguKartu {
+        .formBaris {
           display: flex;
-          gap: 18px;
-          align-items: flex-start;
-          padding: 22px;
-          background: #ffffff;
-          border: 1px solid #eadfce;
-          border-radius: 18px;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 14px 16px;
+          border: 1px solid #efe5d9;
+          border-radius: 14px;
+          background: #fcf9f5;
+          color: #3f2f24;
+          text-decoration: none;
+          transition: border-color 0.15s ease, background 0.15s ease;
         }
 
-        .laguIsi {
+        .formBaris:hover {
+          border-color: #d9c4b2;
+          background: #fff;
+        }
+
+        .formBaris strong {
+          display: block;
+          font-size: 15px;
+        }
+
+        .formBaris span:not(.formIsi) {
+          display: block;
+          margin-top: 2px;
+          font-size: 13px;
+          color: #7d6957;
+        }
+
+        .formIsi {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          flex-shrink: 0;
+          padding: 7px 12px;
+          border-radius: 999px;
+          background: #efe9fb;
+          color: #6b4fbb;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .formIsi svg {
+          width: 15px;
+          height: 15px;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 2;
+        }
+
+        /* Daftar putar lagu */
+        .pl-daftar {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          gap: 10px;
+        }
+
+        .pl-baris {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 14px;
+          border: 1px solid #efe5d9;
+          border-radius: 14px;
+          background: #fcf9f5;
+        }
+
+        .pl-baris.aktif {
+          border-color: #e7b9c4;
+          background: #fff7f9;
+        }
+
+        .pl-putar {
+          width: 40px;
+          height: 40px;
+          flex-shrink: 0;
+          display: grid;
+          place-items: center;
+          border: none;
+          border-radius: 50%;
+          background: #c0405e;
+          color: #fff;
+          cursor: pointer;
+        }
+
+        .pl-putar svg {
+          fill: currentColor;
+        }
+
+        .pl-putar:hover {
+          background: #a8344f;
+        }
+
+        .pl-info {
           flex: 1;
           min-width: 0;
         }
 
-        .laguIsi h3 {
-          margin: 2px 0 4px;
-          font-size: 17px;
+        .pl-judul {
+          display: block;
+          font-size: 15px;
+          font-weight: 700;
           color: #3f2f24;
         }
 
-        .laguIsi p {
-          margin: 0 0 10px;
-          font-size: 14px;
+        .pl-no {
+          color: #b9a690;
+          font-weight: 600;
+        }
+
+        .pl-ket {
+          display: block;
+          margin-top: 1px;
+          font-size: 12.5px;
+          color: #7d6957;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .pl-progres {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 8px;
+          font-size: 12px;
           color: #7d6957;
         }
 
-        .laguAudio {
-          width: 100%;
-          height: 40px;
+        .pl-progres input {
+          flex: 1;
+          accent-color: #c0405e;
         }
 
-        .laguUnduh {
+        .pl-unduh {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 10px;
-          padding: 8px 14px;
+          gap: 5px;
+          flex-shrink: 0;
+          padding: 7px 12px;
           border: 1px solid #e0cfbb;
           border-radius: 999px;
-          background: #fffaf3;
+          background: #fff;
           color: #6f4c36;
-          font-size: 13.5px;
+          font-size: 13px;
           font-weight: 700;
           text-decoration: none;
         }
 
-        .laguUnduh:hover {
+        .pl-unduh:hover {
           background: #f3e8da;
         }
 
-        @media (max-width: 760px) {
-          .laguDaftar {
+        .pl-semua {
+          display: block;
+          width: 100%;
+          margin-top: 12px;
+          padding: 10px;
+          border: 1px dashed #d9c4b2;
+          border-radius: 12px;
+          background: none;
+          color: #6f4c36;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        @media (max-width: 860px) {
+          .infoDua {
             grid-template-columns: 1fr;
           }
+        }
 
-          .infoBagian {
-            margin-top: 32px;
+        @media (max-width: 480px) {
+          .pl-unduh span {
+            display: none;
+          }
+
+          .featuredCard .menuContent h2 {
+            font-size: 22px !important;
           }
         }
 `}</style>
