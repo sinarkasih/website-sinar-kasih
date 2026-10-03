@@ -1,862 +1,166 @@
+// Lokasi file: app/kategori/page.js
+// Kategori utama: judul & jejak seragam, tab Kategori / Brand,
+// hanya kategori paling atas (anak kategori dibuka di halaman kategorinya),
+// dan kartu brand yang membuka daftar produk brand tersebut.
+
 import Link from "next/link";
 import { getSupabase } from "../../lib/supabase";
+import { buatPohon } from "../KategoriPohon";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Kategori Produk | Sinar Kasih",
+  description: "Jelajahi produk listrik dan penerangan Sinar Kasih berdasarkan kategori atau brand.",
+};
+
 export default async function Page({ searchParams }) {
   const params = await searchParams;
-
-  const activeTab =
-    params?.tab === "brand"
-      ? "brand"
-      : "kategori";
-
+  const tab = params?.tab === "brand" ? "brand" : "kategori";
   const supabase = getSupabase();
 
-  let categories = [];
-  let brands = [];
-  let errorMessage = null;
+  let kategori = [];
+  let brand = [];
+  let gagal = null;
 
   if (!supabase) {
-    errorMessage =
-      "Koneksi Supabase belum tersedia.";
+    gagal = "Koneksi database belum tersedia.";
   } else {
-    const [
-      categoriesResult,
-      brandsResult,
-    ] = await Promise.all([
+    const [k, b] = await Promise.all([
       supabase
         .from("kategori")
-        .select(`
-          id,
-          nama,
-          slug,
-          deskripsi,
-          parent_id,
-          urutan,
-          gambar_url
-        `)
+        .select("id, nama, slug, deskripsi, parent_id, urutan, gambar_url")
         .eq("aktif", true)
-        .order("urutan", {
-          ascending: true,
-        })
-        .order("nama", {
-          ascending: true,
-        }),
-
+        .order("urutan", { ascending: true })
+        .order("nama", { ascending: true }),
       supabase
         .from("brand")
-        .select(`
-          id,
-          nama,
-          slug,
-          logo_url,
-          urutan
-        `)
+        .select("id, nama, slug, logo_url, urutan")
         .eq("aktif", true)
-        .order("urutan", {
-          ascending: true,
-        })
-        .order("nama", {
-          ascending: true,
-        }),
+        .order("urutan", { ascending: true })
+        .order("nama", { ascending: true }),
     ]);
-
-    if (categoriesResult.error) {
-      console.error(
-        "SUPABASE KATEGORI ERROR:",
-        categoriesResult.error
-      );
-
-      errorMessage =
-        categoriesResult.error.message;
-    } else {
-      categories =
-        categoriesResult.data || [];
+    if (k.error) {
+      console.error("KATEGORI ERROR:", k.error);
+      gagal = "Kategori gagal dimuat. Coba muat ulang halaman.";
     }
-
-    if (brandsResult.error) {
-      console.error(
-        "SUPABASE BRAND ERROR:",
-        brandsResult.error
-      );
-
-      if (!errorMessage) {
-        errorMessage =
-          brandsResult.error.message;
-      }
-    } else {
-      brands =
-        brandsResult.data || [];
+    if (b.error) {
+      console.error("BRAND ERROR:", b.error);
+      if (!gagal) gagal = "Brand gagal dimuat. Coba muat ulang halaman.";
     }
+    kategori = k.data || [];
+    brand = b.data || [];
   }
 
+  const pohon = buatPohon(kategori);
+  const utama = pohon.anak(null);
+
   return (
-    <>
-      <section className="section">
-        <div className="wrap">
+    <section className="section halaman-atas">
+      <div className="wrap">
+        <nav className="jejak" aria-label="Posisi halaman">
+          <Link href="/">Beranda</Link>
+          <span>›</span>
+          {tab === "brand" ? (
+            <>
+              <Link href="/kategori">Kategori</Link>
+              <span>›</span>
+              <strong>Brand</strong>
+            </>
+          ) : (
+            <strong>Kategori</strong>
+          )}
+        </nav>
 
-          {/* KEMBALI KE BERANDA */}
-
-          <div
-            style={{
-              marginBottom: "18px",
-            }}
-          >
-            <Link
-              href="/"
-              style={{
-                display:
-                  "inline-flex",
-                alignItems:
-                  "center",
-                gap: "6px",
-                textDecoration:
-                  "none",
-                color: "#7a4f35",
-                fontWeight: 700,
-                fontSize: "14px",
-              }}
-            >
-              ← Kembali ke Beranda
-            </Link>
-          </div>
-
-          {/* JUDUL */}
-
-          <h1>
-            Kategori Produk
-          </h1>
-
-          <p
-            style={{
-              marginTop: "8px",
-              color: "#6b6258",
-            }}
-          >
-            Jelajahi produk berdasarkan
-            kategori atau brand.
+        <div className="kepala-halaman">
+          <h1>{tab === "brand" ? "Brand Produk" : "Kategori Produk"}</h1>
+          <p>
+            {tab === "brand"
+              ? "Pilih brand untuk melihat semua produknya."
+              : "Pilih kategori untuk melihat jenis dan produknya."}
           </p>
-
-          {/* LAYOUT SIDEBAR + KONTEN */}
-
-          <div
-            className="kategori-public-layout"
-            style={{
-              marginTop: "28px",
-            }}
-          >
-
-            {/* SIDEBAR PUBLIK */}
-
-            <aside
-              className="kategori-public-sidebar"
-            >
-              <div
-                style={{
-                  background:
-                    "#fff",
-                  border:
-                    "1px solid #e2d7c8",
-                  borderRadius:
-                    "14px",
-                  padding:
-                    "18px",
-                }}
-              >
-                <h3
-                  style={{
-                    margin:
-                      "0 0 14px",
-                    fontSize:
-                      "17px",
-                  }}
-                >
-                  Jelajahi Produk
-                </h3>
-
-                {/* MENU UTAMA */}
-
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    flexDirection:
-                      "column",
-                    gap: "6px",
-                  }}
-                >
-                  <Link
-                    href="/kategori"
-                    style={{
-                      display:
-                        "block",
-                      padding:
-                        "10px 12px",
-                      borderRadius:
-                        "8px",
-                      textDecoration:
-                        "none",
-                      background:
-                        activeTab ===
-                        "kategori"
-                          ? "#7a4f35"
-                          : "#f7f2eb",
-                      color:
-                        activeTab ===
-                        "kategori"
-                          ? "#fff"
-                          : "#4b3528",
-                      fontWeight:
-                        700,
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    Kategori
-                  </Link>
-
-                  <Link
-                    href="/kategori?tab=brand"
-                    style={{
-                      display:
-                        "block",
-                      padding:
-                        "10px 12px",
-                      borderRadius:
-                        "8px",
-                      textDecoration:
-                        "none",
-                      background:
-                        activeTab ===
-                        "brand"
-                          ? "#7a4f35"
-                          : "#f7f2eb",
-                      color:
-                        activeTab ===
-                        "brand"
-                          ? "#fff"
-                          : "#4b3528",
-                      fontWeight:
-                        700,
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    Brand
-                  </Link>
-                </div>
-
-                {/* DAFTAR KATEGORI */}
-
-                {activeTab ===
-                  "kategori" &&
-                  categories.length >
-                    0 && (
-                    <div
-                      style={{
-                        marginTop:
-                          "20px",
-                        paddingTop:
-                          "16px",
-                        borderTop:
-                          "1px solid #e8ddd0",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize:
-                            "12px",
-                          fontWeight:
-                            700,
-                          color:
-                            "#8a7c6c",
-                          textTransform:
-                            "uppercase",
-                          letterSpacing:
-                            "0.04em",
-                          marginBottom:
-                            "8px",
-                        }}
-                      >
-                        Kategori
-                      </div>
-
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          flexDirection:
-                            "column",
-                          gap:
-                            "2px",
-                        }}
-                      >
-                        {categories.map(
-                          (category) => (
-                            <Link
-                              key={
-                                category.id
-                              }
-                              href={`/kategori/${category.slug}`}
-                              style={{
-                                padding:
-                                  "8px 10px",
-                                borderRadius:
-                                  "7px",
-                                textDecoration:
-                                  "none",
-                                color:
-                                  "#5b4436",
-                                fontSize:
-                                  "13px",
-                              }}
-                            >
-                              {category.nama}
-                            </Link>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                {/* DAFTAR BRAND */}
-
-                {activeTab ===
-                  "brand" &&
-                  brands.length >
-                    0 && (
-                    <div
-                      style={{
-                        marginTop:
-                          "20px",
-                        paddingTop:
-                          "16px",
-                        borderTop:
-                          "1px solid #e8ddd0",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize:
-                            "12px",
-                          fontWeight:
-                            700,
-                          color:
-                            "#8a7c6c",
-                          textTransform:
-                            "uppercase",
-                          letterSpacing:
-                            "0.04em",
-                          marginBottom:
-                            "8px",
-                        }}
-                      >
-                        Brand
-                      </div>
-
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          flexDirection:
-                            "column",
-                          gap:
-                            "2px",
-                        }}
-                      >
-                        {brands.map(
-                          (brand) => (
-                            <a
-                              key={
-                                brand.id
-                              }
-                              href={`#brand-${brand.slug}`}
-                              style={{
-                                padding:
-                                  "8px 10px",
-                                borderRadius:
-                                  "7px",
-                                textDecoration:
-                                  "none",
-                                color:
-                                  "#5b4436",
-                                fontSize:
-                                  "13px",
-                              }}
-                            >
-                              {brand.nama}
-                            </a>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            </aside>
-
-            {/* KONTEN UTAMA */}
-
-            <div
-              className="kategori-public-content"
-            >
-
-              {/* TAB KATEGORI / BRAND */}
-
-              <div
-                style={{
-                  display:
-                    "flex",
-                  gap: "8px",
-                  marginBottom:
-                    "24px",
-                  borderBottom:
-                    "1px solid #e2d7c8",
-                }}
-              >
-                <Link
-                  href="/kategori"
-                  style={{
-                    textDecoration:
-                      "none",
-                    background:
-                      activeTab ===
-                      "kategori"
-                        ? "#7a4f35"
-                        : "#f5f0e8",
-                    color:
-                      activeTab ===
-                      "kategori"
-                        ? "#ffffff"
-                        : "#4b3528",
-                    padding:
-                      "10px 20px",
-                    borderRadius:
-                      "10px 10px 0 0",
-                    fontWeight:
-                      700,
-                  }}
-                >
-                  Kategori
-                </Link>
-
-                <Link
-                  href="/kategori?tab=brand"
-                  style={{
-                    textDecoration:
-                      "none",
-                    background:
-                      activeTab ===
-                      "brand"
-                        ? "#7a4f35"
-                        : "#f5f0e8",
-                    color:
-                      activeTab ===
-                      "brand"
-                        ? "#ffffff"
-                        : "#4b3528",
-                    padding:
-                      "10px 20px",
-                    borderRadius:
-                      "10px 10px 0 0",
-                    fontWeight:
-                      700,
-                  }}
-                >
-                  Brand
-                </Link>
-              </div>
-
-              {/* ERROR */}
-
-              {errorMessage ? (
-                <div className="notice">
-                  <b>
-                    Koneksi database:
-                  </b>{" "}
-                  {errorMessage}
-                </div>
-              ) : activeTab ===
-                "brand" ? (
-
-                /* =========================
-                   BRAND
-                   ========================= */
-
-                <>
-                  <h2
-                    style={{
-                      marginTop: 0,
-                    }}
-                  >
-                    Brand
-                  </h2>
-
-                  <p
-                    style={{
-                      marginTop:
-                        "6px",
-                      color:
-                        "#756b60",
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    Brand diurutkan
-                    berdasarkan
-                    Urutan Tampil.
-                  </p>
-
-                  {brands.length ===
-                  0 ? (
-                    <div className="notice">
-                      Belum ada
-                      brand aktif.
-                    </div>
-                  ) : (
-                    <div
-                      className="public-brand-grid"
-                      style={{
-                        marginTop:
-                          "20px",
-                      }}
-                    >
-                      {brands.map(
-                        (brand) => (
-                          <article
-                            key={
-                              brand.id
-                            }
-                            id={`brand-${brand.slug}`}
-                            className="public-brand-card"
-                          >
-                            <div
-                              style={{
-                                width:
-                                  "100%",
-                                height:
-                                  "90px",
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                justifyContent:
-                                  "center",
-                              }}
-                            >
-                              {brand.logo_url ? (
-                                <img
-                                  src={
-                                    brand.logo_url
-                                  }
-                                  alt={
-                                    brand.nama
-                                  }
-                                  style={{
-                                    maxWidth:
-                                      "100%",
-                                    maxHeight:
-                                      "82px",
-                                    objectFit:
-                                      "contain",
-                                  }}
-                                />
-                              ) : (
-                                <span
-                                  style={{
-                                    fontSize:
-                                      "18px",
-                                    fontWeight:
-                                      800,
-                                    color:
-                                      "#6f4a32",
-                                  }}
-                                >
-                                  {brand.nama}
-                                </span>
-                              )}
-                            </div>
-                          </article>
-                        )
-                      )}
-                    </div>
-                  )}
-                </>
-
-              ) : (
-
-                /* =========================
-                   KATEGORI
-                   ========================= */
-
-                <>
-                  <h2
-                    style={{
-                      marginTop: 0,
-                    }}
-                  >
-                    Kategori
-                  </h2>
-
-                  <p
-                    style={{
-                      marginTop:
-                        "6px",
-                      color:
-                        "#756b60",
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    Kategori diurutkan
-                    berdasarkan
-                    Urutan Tampil.
-                  </p>
-
-                  {categories.length ===
-                  0 ? (
-                    <div className="notice">
-                      Belum ada
-                      kategori aktif.
-                    </div>
-                  ) : (
-                    <div
-                      className="public-category-grid"
-                      style={{
-                        marginTop:
-                          "20px",
-                      }}
-                    >
-                      {categories.map(
-                        (category) => (
-                          <Link
-                            href={`/kategori/${category.slug}`}
-                            key={
-                              category.id
-                            }
-                            style={{
-                              textDecoration:
-                                "none",
-                              color:
-                                "inherit",
-                            }}
-                          >
-                            <article
-                              className="public-category-card"
-                            >
-                              <div
-                                style={{
-                                  width:
-                                    "100%",
-                                  height:
-                                    "130px",
-                                  borderRadius:
-                                    "10px",
-                                  overflow:
-                                    "hidden",
-                                  background:
-                                    "#f5f0e8",
-                                  display:
-                                    "flex",
-                                  alignItems:
-                                    "center",
-                                  justifyContent:
-                                    "center",
-                                }}
-                              >
-                                {category.gambar_url ? (
-                                  <img
-                                    src={
-                                      category.gambar_url
-                                    }
-                                    alt={
-                                      category.nama
-                                    }
-                                    style={{
-                                      width:
-                                        "100%",
-                                      height:
-                                        "100%",
-                                      objectFit:
-                                        "contain",
-                                    }}
-                                  />
-                                ) : (
-                                  <span
-                                    style={{
-                                      color:
-                                        "#8a7c6c",
-                                      fontSize:
-                                        "14px",
-                                    }}
-                                  >
-                                    Belum
-                                    ada
-                                    gambar
-                                  </span>
-                                )}
-                              </div>
-
-                              <div
-                                style={{
-                                  marginTop:
-                                    "12px",
-                                  fontWeight:
-                                    700,
-                                  fontSize:
-                                    "16px",
-                                }}
-                              >
-                                {
-                                  category.nama
-                                }
-                              </div>
-
-                              {category.deskripsi && (
-                                <div
-                                  style={{
-                                    marginTop:
-                                      "5px",
-                                    fontSize:
-                                      "13px",
-                                    color:
-                                      "#756b60",
-                                  }}
-                                >
-                                  {
-                                    category.deskripsi
-                                  }
-                                </div>
-                              )}
-                            </article>
-                          </Link>
-                        )
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
         </div>
-      </section>
 
-      {/* STYLE KHUSUS HALAMAN KATEGORI */}
+        <div className="kt-tab" role="tablist" aria-label="Jelajahi berdasarkan">
+          <Link
+            href="/kategori"
+            role="tab"
+            aria-selected={tab === "kategori"}
+            className={tab === "kategori" ? "aktif" : ""}
+          >
+            Kategori
+            <span>{utama.length}</span>
+          </Link>
+          <Link
+            href="/kategori?tab=brand"
+            role="tab"
+            aria-selected={tab === "brand"}
+            className={tab === "brand" ? "aktif" : ""}
+          >
+            Brand
+            <span>{brand.length}</span>
+          </Link>
+        </div>
+
+        {gagal ? (
+          <div className="notice">{gagal}</div>
+        ) : tab === "brand" ? (
+          brand.length === 0 ? (
+            <div className="kosong-cantik">
+              <h2>Belum ada brand</h2>
+              <p>Brand produk akan segera ditampilkan.</p>
+            </div>
+          ) : (
+            <div className="brand-grid kt-brand">
+              {brand.map((b) => (
+                <Link
+                  key={b.id}
+                  id={`brand-${b.slug}`}
+                  href={`/cari?brand=${encodeURIComponent(b.slug)}`}
+                  className="brand-kartu"
+                  title={`Produk ${b.nama}`}
+                >
+                  {b.logo_url ? <img src={b.logo_url} alt={b.nama} loading="lazy" /> : <span>{b.nama}</span>}
+                </Link>
+              ))}
+            </div>
+          )
+        ) : utama.length === 0 ? (
+          <div className="kosong-cantik">
+            <h2>Belum ada kategori</h2>
+            <p>Kategori produk akan segera ditampilkan.</p>
+          </div>
+        ) : (
+          <div className="kat-grid kat-grid-anak">
+            {utama.map((k) => {
+              const jumlahAnak = pohon.anak(k.id).length;
+              return (
+                <Link key={k.id} href={`/kategori/${k.slug}`} className="kat-kartu">
+                  <div className="kat-foto">
+                    {k.gambar_url ? (
+                      <img src={k.gambar_url} alt={k.nama} loading="lazy" />
+                    ) : (
+                      <span>{k.nama.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="kat-nama">{k.nama}</span>
+                  {jumlahAnak > 0 && <span className="kat-sub">{jumlahAnak} jenis</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <style>{`
-        .kategori-public-layout {
-          display: grid;
-          grid-template-columns: 220px minmax(0, 1fr);
-          gap: 28px;
-          align-items: start;
-        }
-
-        .kategori-public-sidebar {
-          position: sticky;
-          top: 20px;
-        }
-
-        .public-brand-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(
-              auto-fill,
-              minmax(180px, 1fr)
-            );
-          gap: 18px;
-        }
-
-        .public-brand-card {
-          background: #fff;
-          border: 1px solid #e2d7c8;
-          border-radius: 14px;
-          padding: 16px;
-          min-height: 160px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          box-sizing: border-box;
-          scroll-margin-top: 30px;
-        }
-
-        .public-category-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(
-              auto-fill,
-              minmax(180px, 1fr)
-            );
-          gap: 18px;
-        }
-
-        .public-category-card {
-          background: #fff;
-          border: 1px solid #e2d7c8;
-          border-radius: 14px;
-          padding: 14px;
-          min-height: 190px;
-          box-sizing: border-box;
-        }
-
-        .kategori-public-sidebar a:hover {
-          background: #eee4d8 !important;
-        }
-
-        .public-brand-card,
-        .public-category-card {
-          transition:
-            transform 0.15s ease,
-            box-shadow 0.15s ease;
-        }
-
-        .public-brand-card:hover,
-        .public-category-card:hover {
-          transform: translateY(-2px);
-          box-shadow:
-            0 6px 18px rgba(63, 47, 36, 0.08);
-        }
-
-        @media (max-width: 800px) {
-          .kategori-public-layout {
-            grid-template-columns: 1fr;
-            gap: 20px;
-          }
-
-          .kategori-public-sidebar {
-            position: static;
-          }
-
-          .public-brand-grid,
-          .public-category-grid {
-            grid-template-columns:
-              repeat(
-                auto-fill,
-                minmax(145px, 1fr)
-              );
-          }
-        }
-
-        @media (max-width: 480px) {
-          .public-brand-grid,
-          .public-category-grid {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-            gap: 12px;
-          }
-
-          .public-brand-card {
-            min-height: 135px;
-            padding: 12px;
-          }
-
-          .public-category-card {
-            min-height: 165px;
-            padding: 10px;
-          }
-        }
+        .kt-tab { display: inline-flex; gap: 4px; margin-bottom: 24px; padding: 4px; border: 1px solid #eadfce; border-radius: 14px; background: #fff; }
+        .kt-tab a { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 18px; border-radius: 10px; color: #6f5a49; font-size: 15px; font-weight: 700; text-decoration: none; }
+        .kt-tab a:hover { background: #f8f1e8; }
+        .kt-tab a.aktif { background: #6f4c36; color: #fff; }
+        .kt-tab a span { min-width: 24px; height: 22px; padding: 0 7px; display: grid; place-items: center; border-radius: 999px; background: rgba(111, 76, 54, .1); font-size: 12px; box-sizing: border-box; }
+        .kt-tab a.aktif span { background: rgba(255, 255, 255, .2); }
+        .kt-brand .brand-kartu:target { border-color: #6f4c36; box-shadow: 0 0 0 3px rgba(111, 76, 54, .15); }
       `}</style>
-    </>
+    </section>
   );
 }

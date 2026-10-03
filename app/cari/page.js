@@ -1,7 +1,9 @@
 // Lokasi file: app/cari/page.js
-// Halaman Cari Produk: pencarian, urutan, dan halaman 1 2 3.
+// Halaman Cari Produk: pencarian, urutan, halaman 1 2 3,
+// dan daftar produk per brand (/cari?brand=slug-brand).
 
 import { Suspense } from "react";
+import Link from "next/link";
 import { getSupabase } from "../../lib/supabase";
 import {
   ambilKatalog,
@@ -20,13 +22,35 @@ export default async function Page({ searchParams }) {
   const urut = params?.urut || "terbaru";
   const halaman = Math.max(1, Number(params?.hal) || 1);
 
+  const slugBrand = (params?.brand || "").trim();
+
   const supabase = getSupabase();
+
+  // Jika dibuka dari kartu brand: tampilkan produk brand tersebut
+  let brand = null;
+  if (supabase && slugBrand) {
+    const { data } = await supabase
+      .from("brand")
+      .select("id, nama, slug, logo_url")
+      .eq("slug", slugBrand)
+      .eq("aktif", true)
+      .maybeSingle();
+    brand = data || null;
+  }
+
   const { produk, total, error } = supabase
-    ? await ambilKatalog(supabase, { cari: q, urut, halaman, perHalaman: PER_HALAMAN })
+    ? await ambilKatalog(supabase, {
+        cari: q,
+        brandId: brand?.id,
+        urut,
+        halaman,
+        perHalaman: PER_HALAMAN,
+      })
     : { produk: [], total: 0, error: "Koneksi database belum tersedia." };
 
   function buatHref(n) {
     const p = new URLSearchParams();
+    if (brand) p.set("brand", brand.slug);
     if (q) p.set("q", q);
     if (urut !== "terbaru") p.set("urut", urut);
     if (n > 1) p.set("hal", String(n));
@@ -37,14 +61,37 @@ export default async function Page({ searchParams }) {
   return (
     <section className="section halaman-atas">
       <div className="wrap">
-        <div className="kepala-halaman">
-          <h1>Cari Produk</h1>
-          <p>
-            {q
-              ? `Hasil pencarian untuk "${q}"`
-              : "Temukan produk berdasarkan nama atau kode SKU."}
-          </p>
-        </div>
+        {brand ? (
+          <>
+            <nav className="jejak" aria-label="Posisi halaman">
+              <a href="/">Beranda</a>
+              <span>›</span>
+              <Link href="/kategori?tab=brand">Brand</Link>
+              <span>›</span>
+              <strong>{brand.nama}</strong>
+            </nav>
+            <div className="kepala-halaman kepala-gambar">
+              {brand.logo_url && (
+                <div className="kepala-ikon">
+                  <img src={brand.logo_url} alt={brand.nama} />
+                </div>
+              )}
+              <div>
+                <h1>Produk {brand.nama}</h1>
+                <p>Semua produk dari brand {brand.nama} yang tersedia di Sinar Kasih.</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="kepala-halaman">
+            <h1>Cari Produk</h1>
+            <p>
+              {q
+                ? `Hasil pencarian untuk "${q}"`
+                : "Temukan produk berdasarkan nama atau kode SKU."}
+            </p>
+          </div>
+        )}
 
         <Suspense fallback={null}>
           <div className="kk-baris">
@@ -58,7 +105,11 @@ export default async function Page({ searchParams }) {
         ) : produk.length === 0 ? (
           <div className="kosong-cantik">
             <h2>Produk tidak ditemukan</h2>
-            <p>Coba kata kunci lain, atau lihat produk berdasarkan kategori.</p>
+            <p>
+              {brand
+                ? `Belum ada produk ${brand.nama} yang ditampilkan.`
+                : "Coba kata kunci lain, atau lihat produk berdasarkan kategori."}
+            </p>
             <a href="/kategori" className="btn">Lihat Kategori</a>
           </div>
         ) : (

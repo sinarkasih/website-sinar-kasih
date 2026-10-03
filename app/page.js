@@ -121,7 +121,7 @@ export default async function Home() {
               {brand.map((b) => (
                 <Link
                   key={b.id}
-                  href={`/kategori?tab=brand#brand-${b.slug}`}
+                  href={`/cari?brand=${encodeURIComponent(b.slug)}`}
                   className="brand-kartu"
                   title={b.nama}
                 >
