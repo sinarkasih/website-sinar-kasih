@@ -8,21 +8,24 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const PILIHAN = [
   ["terbaru", "Terbaru"],
+  ["sku_az", "SKU A–Z"],
+  ["sku_za", "SKU Z–A"],
   ["nama_az", "Nama A–Z"],
   ["nama_za", "Nama Z–A"],
   ["harga_rendah", "Harga terendah"],
   ["harga_tinggi", "Harga tertinggi"],
 ];
 
-export function PilihUrutan() {
+// bawaan: urutan awal halaman ini (dipakai saat alamat tidak menyebut urutan)
+export function PilihUrutan({ bawaan = "terbaru" }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const nilai = params.get("urut") || "terbaru";
+  const nilai = params.get("urut") || bawaan;
 
   function ganti(e) {
     const p = new URLSearchParams(params.toString());
-    if (e.target.value === "terbaru") p.delete("urut");
+    if (e.target.value === bawaan) p.delete("urut");
     else p.set("urut", e.target.value);
     p.delete("hal");
     const qs = p.toString();

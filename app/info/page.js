@@ -1,4 +1,5 @@
 // Lokasi file: app/info/page.js  (dulu: app/lainnya/page.js)
+import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import PemutarLagu from "./PemutarLagu";
 import VideoPromosi from "./VideoPromosi";
@@ -295,18 +296,22 @@ export default async function InfoPage() {
 
   return (
     <>
-      <main className="lainnyaPage">
-        <div className="lainnyaContainer">
+      <section className="section halaman-atas">
+        <div className="wrap">
 
-          <header className="lainnyaHeader">
+          <nav className="jejak" aria-label="Posisi halaman">
+            <Link href="/">Beranda</Link>
+            <span>›</span>
+            <strong>Informasi &amp; Layanan</strong>
+          </nav>
+
+          <div className="kepala-halaman">
             <h1>Informasi &amp; Layanan</h1>
-
             <p>
-              Temukan informasi toko, layanan, media sosial,
-              lowongan kerja, dan cara berbelanja di Toko
+              Temukan informasi toko, layanan, media sosial, lowongan kerja, dan cara berbelanja di Toko
               Listrik Sinar Kasih.
             </p>
-          </header>
+          </div>
 
           <section className="menuGrid">
 
@@ -433,7 +438,7 @@ export default async function InfoPage() {
           )}
 
         </div>
-      </main>
+      </section>
 
       <style>{`
         .lainnyaPage {

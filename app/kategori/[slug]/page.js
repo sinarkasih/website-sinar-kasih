@@ -20,7 +20,9 @@ export default async function KategoriDetailPage({ params, searchParams }) {
   const supabase = getSupabase();
   const { slug } = await params;
   const sp = await searchParams;
-  const urut = sp?.urut || "terbaru";
+  // Produk di kategori diurutkan berdasarkan SKU secara bawaan
+  const URUT_AWAL = "sku_az";
+  const urut = sp?.urut || URUT_AWAL;
   const halaman = Math.max(1, Number(sp?.hal) || 1);
   const modeSemua = sp?.semua === "1";
   const q = (sp?.q || "").trim();
@@ -69,7 +71,7 @@ export default async function KategoriDetailPage({ params, searchParams }) {
     const p = new URLSearchParams();
     if (modeSemua) p.set("semua", "1");
     if (q) p.set("q", q);
-    if (urut !== "terbaru") p.set("urut", urut);
+    if (urut !== URUT_AWAL) p.set("urut", urut);
     if (n > 1) p.set("hal", String(n));
     const s = p.toString();
     return s ? `/kategori/${slug}?${s}` : `/kategori/${slug}`;
@@ -180,7 +182,7 @@ export default async function KategoriDetailPage({ params, searchParams }) {
                   tujuan={`/kategori/${kategori.slug}`}
                   placeholder={`Cari di ${kategori.nama}...`}
                 />
-                <PilihUrutan />
+                <PilihUrutan bawaan={URUT_AWAL} />
               </div>
             </Suspense>
 

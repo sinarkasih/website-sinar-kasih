@@ -6,6 +6,8 @@ import Link from "next/link";
 
 export const URUTAN_PRODUK = {
   terbaru: { label: "Terbaru", kolom: "id", naik: false },
+  sku_az: { label: "SKU A–Z", kolom: "sku", naik: true },
+  sku_za: { label: "SKU Z–A", kolom: "sku", naik: false },
   nama_az: { label: "Nama A–Z", kolom: "nama", naik: true },
   nama_za: { label: "Nama Z–A", kolom: "nama", naik: false },
   harga_rendah: { label: "Harga terendah", kolom: "harga_urut", naik: true },

@@ -19,7 +19,10 @@ const PER_HALAMAN = 24;
 export default async function Page({ searchParams }) {
   const params = await searchParams;
   const q = (params?.q || "").trim();
-  const urut = params?.urut || "terbaru";
+  const slugBrandAwal = (params?.brand || "").trim();
+  // Daftar produk per brand diurutkan berdasarkan SKU secara bawaan
+  const URUT_AWAL = slugBrandAwal ? "sku_az" : "terbaru";
+  const urut = params?.urut || URUT_AWAL;
   const halaman = Math.max(1, Number(params?.hal) || 1);
 
   const slugBrand = (params?.brand || "").trim();
@@ -52,7 +55,7 @@ export default async function Page({ searchParams }) {
     const p = new URLSearchParams();
     if (brand) p.set("brand", brand.slug);
     if (q) p.set("q", q);
-    if (urut !== "terbaru") p.set("urut", urut);
+    if (urut !== URUT_AWAL) p.set("urut", urut);
     if (n > 1) p.set("hal", String(n));
     const s = p.toString();
     return s ? `/cari?${s}` : "/cari";
@@ -83,6 +86,12 @@ export default async function Page({ searchParams }) {
             </div>
           </>
         ) : (
+          <>
+          <nav className="jejak" aria-label="Posisi halaman">
+            <a href="/">Beranda</a>
+            <span>›</span>
+            <strong>Cari Produk</strong>
+          </nav>
           <div className="kepala-halaman">
             <h1>Cari Produk</h1>
             <p>
@@ -91,12 +100,13 @@ export default async function Page({ searchParams }) {
                 : "Temukan produk berdasarkan nama atau kode SKU."}
             </p>
           </div>
+          </>
         )}
 
         <Suspense fallback={null}>
           <div className="kk-baris">
             <KotakCari awal={q} />
-            <PilihUrutan />
+            <PilihUrutan bawaan={URUT_AWAL} />
           </div>
         </Suspense>
 

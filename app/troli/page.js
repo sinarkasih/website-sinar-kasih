@@ -1,6 +1,10 @@
 "use client";
 
+// Lokasi file: app/troli/page.js
+// Troli: jejak Beranda › Troli, daftar produk, ubah jumlah, ringkasan & checkout.
+
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Page() {
   const [cart, setCart] = useState([]);
@@ -86,6 +90,12 @@ export default function Page() {
   return (
     <section className="section halaman-atas">
       <div className="wrap">
+        <nav className="jejak" aria-label="Posisi halaman">
+          <Link href="/">Beranda</Link>
+          <span>›</span>
+          <strong>Troli</strong>
+        </nav>
+
         <div className="kepala-halaman">
           <h1>Troli</h1>
           <p>Periksa produk yang akan Anda pesan sebelum checkout.</p>
